@@ -8,7 +8,7 @@ export class GraphicsViewportController {
   readonly #element: HTMLElement;
   readonly #listener: ViewportListener;
   readonly #diagnostics: Diagnostics;
-  #observer?: ResizeObserver;
+  #observer: ResizeObserver | undefined;
   #started = false;
 
   public constructor(element: HTMLElement, listener: ViewportListener, diagnostics: Diagnostics) {
