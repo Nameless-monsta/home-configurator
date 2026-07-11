@@ -1,0 +1,25 @@
+name: Lint Log
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-log:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: pnpm install --no-frozen-lockfile
+      - name: Capture lint output
+        run: pnpm lint > lint.log 2>&1 || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lint-log
+          path: lint.log
