@@ -73,8 +73,10 @@ export class MemoryHomeAssistantTransport implements HomeAssistantTransport {
     else if (type === 'get_config') result = this.#config;
     else if (type === 'call_service') {
       this.serviceCalls.push({
-        domain: String(message['domain'] ?? ''),
-        service: String(message['service'] ?? ''),
+        domain:
+          typeof message['domain'] === 'string' ? message['domain'] : '',
+        service:
+          typeof message['service'] === 'string' ? message['service'] : '',
         target: message['target'],
         serviceData: message['service_data'],
       });
@@ -134,7 +136,7 @@ export class MemoryHomeAssistantTransport implements HomeAssistantTransport {
   #emit<TData>(eventType: string, data: TData): void {
     const event: HAEvent<TData> = { event_type: eventType, data };
     for (const listener of [...(this.#subscriptions.get(eventType) ?? [])]) {
-      listener(event as HAEvent<unknown>);
+      listener(event);
     }
   }
 }

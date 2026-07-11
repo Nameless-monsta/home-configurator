@@ -559,7 +559,8 @@ export class HomeAssistantEngine implements HomeAssistantRuntime {
       return await this.#transport.request<T>(message);
     } catch (error) {
       this.#diagnostics.record('warn', 'home-assistant', 'Optional Home Assistant request failed', {
-        type: String(message['type'] ?? 'unknown'),
+        type:
+          typeof message['type'] === 'string' ? message['type'] : 'unknown',
         message: error instanceof Error ? error.message : String(error),
       });
       return fallback;

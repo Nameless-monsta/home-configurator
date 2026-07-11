@@ -67,7 +67,7 @@ const parseMessage = (data: unknown): IncomingMessage | undefined => {
   if (typeof data !== 'string') return undefined;
   try {
     const parsed: unknown = JSON.parse(data);
-    return typeof parsed === 'object' && parsed !== null ? (parsed as IncomingMessage) : undefined;
+    return typeof parsed === 'object' && parsed !== null ? parsed : undefined;
   } catch {
     return undefined;
   }
@@ -105,13 +105,14 @@ export class HomeAssistantWebSocketClient implements HomeAssistantTransport {
     return this.#connectPromise;
   }
 
-  public async disconnect(): Promise<void> {
+  public disconnect(): Promise<void> {
     this.#intentionalClose = true;
     const socket = this.#socket;
     this.#socket = undefined;
     if (socket && socket.readyState < 2) socket.close(1000, 'client disconnect');
     this.#rejectPending(new Error('Home Assistant transport disconnected'));
     this.#subscriptions.clear();
+    return Promise.resolve();
   }
 
   public request<T>(message: Readonly<Record<string, unknown>>): Promise<T> {
