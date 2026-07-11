@@ -15,7 +15,9 @@ Updated: 2026-07-12
 
 Phase 4.6 is complete. Home Configurator now has a full-screen UI shell, room and device navigation, a capability-driven configurator, reusable controls, device panels, iyO motion orchestration, responsive behaviour and accessibility validation.
 
-Milestone 4.7.1 — Prototype Command Bridge is implemented and CI validated on draft pull request #17. The dashboard configurator now dispatches semantic Home Assistant commands through the existing engine, including power, brightness, colour, colour temperature, climate, media and cover controls. The milestone remains pending merge into `main`.
+Milestone 4.7.1 — Prototype Command Bridge is complete and merged through pull request #18. The dashboard configurator now dispatches semantic Home Assistant commands through the existing engine, including power, brightness, colour, colour temperature, climate, media and cover controls.
+
+The active implementation gate is 4.7.2 — Authoritative State and Model Binding.
 
 ## Completed
 
@@ -42,6 +44,7 @@ Milestone 4.7.1 — Prototype Command Bridge is implemented and CI validated on 
 - 4.4 Interaction Engine
 - 4.5 Home Assistant Engine
 - 4.6 UI Engine
+- 4.7.1 Prototype Command Bridge
 
 ## Phase 4 workstream
 
@@ -52,7 +55,8 @@ Milestone 4.7.1 — Prototype Command Bridge is implemented and CI validated on 
 - [x] 4.5 Home Assistant Engine
 - [x] 4.6 UI Engine
 - [ ] 4.7 First Interactive Prototype
-  - [ ] 4.7.1 Prototype Command Bridge — implemented and CI validated, pending merge
+  - [x] 4.7.1 Prototype Command Bridge
+  - [ ] 4.7.2 Authoritative State and Model Binding
 - [ ] 4.8 Performance optimisation
 - [ ] 4.9 Documentation
 - [ ] 4.10 HACS release
@@ -63,7 +67,7 @@ Milestone 4.7.1 — Prototype Command Bridge is implemented and CI validated on 
 - Phase 4.4 passed formatting, linting, strict TypeScript, package tests and all production builds.
 - Phase 4.5 passed formatting, linting, strict TypeScript, tests and production builds on GitHub Actions run 173.
 - Phase 4.6 passed formatting, linting, strict TypeScript, unit and contract tests and all production builds.
-- Milestone 4.7.1 passed Prettier, ESLint, strict TypeScript, all unit and contract tests, and all production builds on GitHub Actions run 256.
+- Milestone 4.7.1 passed Prettier, ESLint, strict TypeScript, all unit and contract tests, and all production builds on GitHub Actions run 261 before merge through pull request #18.
 
 ## First interactive prototype
 
@@ -82,6 +86,6 @@ The first interactive prototype must validate:
 
 ## Next
 
-1. Review and merge pull request #17 for 4.7.1 — Prototype Command Bridge.
-2. Start 4.7.2 with authoritative prototype state confirmation and selected-device model binding.
+1. Implement 4.7.2 authoritative prototype state confirmation and selected-device model binding.
+2. Bind the selected light's power, colour and brightness to the 3D model.
 3. Select the project licence before public distribution.
