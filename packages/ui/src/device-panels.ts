@@ -360,7 +360,7 @@ export class DevicePanelRegistry {
     return {
       id: source.id,
       title: source.name,
-      subtitle: source.subtitle,
+      ...(source.subtitle === undefined ? {} : { subtitle: source.subtitle }),
       available: source.available,
       sections,
     };
