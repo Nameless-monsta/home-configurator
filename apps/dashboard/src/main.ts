@@ -6,7 +6,7 @@ import {
 } from '@home-configurator/home-assistant';
 import { InteractionEngine, semanticOrbitHandler } from '@home-configurator/interaction';
 import { createRuntime } from '@home-configurator/runtime';
-import { UiFoundation } from '@home-configurator/ui';
+import { UiFoundation, UiNavigation } from '@home-configurator/ui';
 
 import './styles.css';
 
@@ -15,8 +15,18 @@ if (!root) throw new Error('Application root was not found');
 
 const ui = new UiFoundation({
   root,
-  version: '0.6.1',
-  subtitle: 'The visual shell is online. Navigation and controls arrive in the next milestones.',
+  version: '0.6.2',
+  subtitle: 'Navigate rooms and devices while the spatial stage remains persistent.',
+});
+
+const navigation = new UiNavigation({
+  root,
+  onNavigate: ({ roomId, deviceId }) => {
+    ui.setDiagnostics({
+      room: roomId ?? 'none',
+      device: deviceId ?? 'none',
+    });
+  },
 });
 
 const runtime = createRuntime({
@@ -49,7 +59,7 @@ interaction.registerTarget({
   },
 });
 interaction.animations.play({
-  id: 'foundation-float',
+  id: 'navigation-float',
   durationMs: 4200,
   loop: true,
   onUpdate: (progress) => {
@@ -79,7 +89,11 @@ const homeAssistant = new HomeAssistantEngine({
   diagnostics: runtime.diagnostics,
   transport: new MemoryHomeAssistantTransport({
     floors: [{ floor_id: 'ground', name: 'Ground Floor', level: 0 }],
-    areas: [{ area_id: 'living-room', name: 'Living Room', floor_id: 'ground' }],
+    areas: [
+      { area_id: 'living-room', name: 'Living Room', floor_id: 'ground' },
+      { area_id: 'bedroom', name: 'Bedroom', floor_id: 'ground' },
+      { area_id: 'kitchen', name: 'Kitchen', floor_id: 'ground' },
+    ],
     devices: [
       {
         id: 'ikea-lamp',
@@ -88,6 +102,9 @@ const homeAssistant = new HomeAssistantEngine({
         manufacturer: 'IKEA',
         model: 'TRÅDFRI',
       },
+      { id: 'living-tv', name: 'Living Room TV', area_id: 'living-room' },
+      { id: 'bedroom-ac', name: 'Bedroom AC', area_id: 'bedroom' },
+      { id: 'kitchen-lights', name: 'Kitchen Lights', area_id: 'kitchen' },
     ],
     entities: [
       {
@@ -96,12 +113,41 @@ const homeAssistant = new HomeAssistantEngine({
         platform: 'zha',
         device_id: 'ikea-lamp',
       },
+      {
+        entity_id: 'media_player.living_room_tv',
+        unique_id: 'living-tv-player',
+        platform: 'webostv',
+        device_id: 'living-tv',
+      },
+      {
+        entity_id: 'climate.bedroom_ac',
+        unique_id: 'bedroom-ac-climate',
+        platform: 'climate',
+        device_id: 'bedroom-ac',
+      },
+      {
+        entity_id: 'switch.kitchen_lights',
+        unique_id: 'kitchen-lights-switch',
+        platform: 'switch',
+        device_id: 'kitchen-lights',
+      },
     ],
     states: [
       entityState('light.ikea_lamp', 'on', {
         friendly_name: 'IKEA Lamp',
         brightness: 168,
         supported_color_modes: ['hs', 'color_temp'],
+      }),
+      entityState('media_player.living_room_tv', 'playing', {
+        friendly_name: 'Living Room TV',
+        volume_level: 0.34,
+      }),
+      entityState('climate.bedroom_ac', 'cool', {
+        friendly_name: 'Bedroom AC',
+        temperature: 22,
+      }),
+      entityState('switch.kitchen_lights', 'off', {
+        friendly_name: 'Kitchen Lights',
       }),
     ],
   }),
@@ -111,6 +157,10 @@ let runtimePhase = 'idle';
 let homeAssistantStatus = 'uninitialized';
 let rooms = 0;
 let devices = 0;
+let currentRoom = 'none';
+let currentDevice = 'none';
+
+navigation.setItems([], []);
 
 runtime.events.on('runtime.phase', ({ current }) => {
   runtimePhase = current;
@@ -121,16 +171,40 @@ homeAssistant.subscribe(({ snapshot }) => {
   homeAssistantStatus = snapshot.status;
   rooms = snapshot.rooms.length;
   devices = snapshot.devices.length;
+  navigation.setItems(
+    snapshot.rooms.map((room) => ({
+      id: room.id,
+      name: room.name,
+      deviceIds: room.deviceIds,
+    })),
+    snapshot.devices.map((device) => ({
+      id: device.id,
+      name: device.name,
+      roomId: device.roomId,
+      available: device.available,
+      meta: [device.manufacturer, device.model].filter(Boolean).join(' '),
+    })),
+  );
 });
 
+navigation.snapshot();
+const unsubscribeNavigation = navigation['snapshot']
+  ? undefined
+  : undefined;
+void unsubscribeNavigation;
+
 runtime.diagnostics.subscribe((snapshot) => {
+  const location = navigation.snapshot();
+  currentRoom = location.roomId ?? 'none';
+  currentDevice = location.deviceId ?? 'none';
   ui.setDiagnostics({
     runtime: runtimePhase,
     homeAssistant: homeAssistantStatus,
     rooms,
     devices,
+    room: currentRoom,
+    device: currentDevice,
     frame: snapshot.gauges['scheduler.frame'] ?? 0,
-    drawCalls: snapshot.gauges['graphics.drawCalls'] ?? 0,
     gestures: snapshot.counters['interaction.completed'] ?? 0,
   });
 });
@@ -141,6 +215,7 @@ let disposed = false;
 const shutdown = async (): Promise<void> => {
   if (disposed) return;
   disposed = true;
+  navigation.dispose();
   ui.dispose();
   interaction.dispose();
   await homeAssistant.disconnect();
