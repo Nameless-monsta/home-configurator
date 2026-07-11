@@ -14,7 +14,7 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test --concurrency=1",
-    "test:ci": "turbo run test:ci --concurrency=1",
+    "test:ci": "pnpm --filter @home-configurator/shared test:ci && pnpm --filter @home-configurator/runtime test:ci && pnpm --filter @home-configurator/dashboard test:ci",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:ci && pnpm build"
