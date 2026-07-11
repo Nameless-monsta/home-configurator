@@ -33,7 +33,12 @@ let latestHomeSnapshot: ConfirmedRuntimeSnapshot | null = null;
 
 const formatCapabilityValue = (value: unknown): ConfiguratorValue => {
   if (value === undefined) return 'Available';
-  if (value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+  if (
+    value === null ||
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
     return value;
   }
   return 'Configured';
