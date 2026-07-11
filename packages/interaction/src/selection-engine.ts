@@ -48,7 +48,9 @@ export class SelectionEngine {
     if (id !== undefined && !this.#objects.has(id)) throw new Error(`Selectable not found: ${id}`);
     this.#selectedId = id;
     this.#diagnostics.setGauge('interaction.selection', id ? 1 : 0);
-    this.#diagnostics.record('debug', 'interaction.selection', 'Selection changed', { id: id ?? null });
+    this.#diagnostics.record('debug', 'interaction.selection', 'Selection changed', {
+      id: id ?? null,
+    });
   }
 
   public hover(id?: string): void {
