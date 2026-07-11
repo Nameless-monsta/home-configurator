@@ -21,7 +21,11 @@ jobs:
           node-version-file: .nvmrc
       - run: pnpm install --no-frozen-lockfile
       - name: Apply formatter output
-        run: pnpm format || true
+        run: pnpm format > format.log 2>&1 || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ui-format-log
+          path: format.log
       - name: Commit formatter output
         run: |
           if git diff --quiet; then
