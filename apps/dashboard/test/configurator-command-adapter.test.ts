@@ -1,19 +1,14 @@
 import type { CommandReceipt, SemanticCommand } from '@home-configurator/home-assistant';
 import { describe, expect, it } from 'vitest';
 
-import {
-  HomeAssistantConfiguratorAdapter,
-  hexToHs,
-} from '../src/configurator-command-adapter.js';
+import { HomeAssistantConfiguratorAdapter, hexToHs } from '../src/configurator-command-adapter.js';
 
 const acknowledged = (command: SemanticCommand): CommandReceipt => ({
   commandId: command.id,
   state: 'acknowledged',
 });
 
-const createHarness = (
-  receipt: (command: SemanticCommand) => CommandReceipt = acknowledged,
-) => {
+const createHarness = (receipt: (command: SemanticCommand) => CommandReceipt = acknowledged) => {
   const commands: SemanticCommand[] = [];
   const adapter = new HomeAssistantConfiguratorAdapter({
     homeAssistant: {
