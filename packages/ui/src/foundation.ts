@@ -121,7 +121,10 @@ export class UiFoundation {
   }
 
   readonly #handleClick = (event: Event): void => {
-    const target = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-ui-action]') : null;
+    const target =
+      event.target instanceof Element
+        ? event.target.closest<HTMLElement>('[data-ui-action]')
+        : null;
     const action = target?.dataset['uiAction'];
     if (action === 'open-diagnostics') this.openOverlay('diagnostics');
     if (action === 'close-overlay') this.closeOverlay();
