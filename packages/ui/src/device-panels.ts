@@ -25,7 +25,7 @@ export interface DevicePanelSource {
   readonly subtitle?: string;
   readonly available: boolean;
   readonly capabilities: readonly DevicePanelCapability[];
-  readonly values: Readonly<Partial<Record<DevicePanelCapability | string, unknown>>>;
+  readonly values: Readonly<Record<string, unknown>>;
   readonly metadata?: Readonly<Record<string, ConfiguratorValue>>;
 }
 
