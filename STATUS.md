@@ -12,7 +12,7 @@ Updated: 2026-07-11
 
 ## Current gate
 
-Phase 3 is in progress. Navigation shell, room navigation, device configurator, color sphere, climate, media, vacuum and scene interaction specifications are complete and committed. The remaining design work is the shared transition library, animation library and final UX approval.
+Phase 3 is nearly complete. Navigation, room, device, color, climate, media, vacuum, scene, transition and animation specifications are complete and committed. The remaining task is 3.11 — Final UX approval.
 
 ## Completed
 
@@ -39,10 +39,12 @@ Phase 3 is in progress. Navigation shell, room navigation, device configurator, 
 - 3.6 Media interaction
 - 3.7 Vacuum interaction
 - 3.8 Scene interaction
+- 3.9 Transition library
+- 3.10 Animation library
 
 ## Next
 
-1. Complete 3.9 — Transition library.
-2. Complete 3.10 — Animation library.
-3. Perform 3.11 — Final UX approval.
+1. Perform 3.11 — Final UX approval.
+2. Resolve any final Phase 3 gaps before implementation.
+3. Begin Phase 4 repository and development setup after approval.
 4. Keep this file updated after every completed task.
