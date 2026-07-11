@@ -7,12 +7,12 @@ Updated: 2026-07-11
 - Phase 0 repository foundation substantially complete
 - Phase 1 complete
 - Phase 2 complete
-- Phase 3 in progress
+- Phase 3 complete and approved
 - Phase 4 not started
 
 ## Current gate
 
-Phase 3 is nearly complete. Navigation, room, device, color, climate, media, vacuum, scene, transition and animation specifications are complete and committed. The remaining task is 3.11 — Final UX approval.
+Phase 3 UX and visual design is approved for implementation. The next gate is Phase 4 development setup and the first vertical interactive prototype.
 
 ## Completed
 
@@ -41,10 +41,24 @@ Phase 3 is nearly complete. Navigation, room, device, color, climate, media, vac
 - 3.8 Scene interaction
 - 3.9 Transition library
 - 3.10 Animation library
+- 3.11 Final UX approval and validation
+
+## Phase 4 entry conditions
+
+The first vertical prototype must validate:
+
+1. persistent shell and WebGL stage;
+2. room-to-device transition;
+3. one real Home Assistant entity;
+4. color sphere manipulation and brightness gesture;
+5. optimistic and confirmed state reconciliation;
+6. reduced-motion behavior;
+7. iPad performance and responsive layout;
+8. VoiceOver and keyboard basics.
 
 ## Next
 
-1. Perform 3.11 — Final UX approval.
-2. Resolve any final Phase 3 gaps before implementation.
-3. Begin Phase 4 repository and development setup after approval.
-4. Keep this file updated after every completed task.
+1. Select the project license.
+2. Complete Phase 4.1 repository/build setup and CI.
+3. Build the vertical interactive prototype before expanding device coverage.
+4. Track UX validation gates from 3.11 during implementation.
