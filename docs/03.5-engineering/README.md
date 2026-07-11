@@ -19,7 +19,7 @@ Development must not invent new runtime ownership, timing, gesture, rendering, a
 - [x] **3.5.6 Performance and resource budgets**
 - [x] **3.5.7 3D asset pipeline and validation**
 - [x] **3.5.8 Plugin and extension API**
-- [ ] **3.5.9 Blueprint/runtime schema reference**
+- [x] **3.5.9 Blueprint/runtime schema reference**
 - [ ] **3.5.10 Engineering validation and implementation gate**
 
 ## Completed documents
@@ -32,6 +32,7 @@ Development must not invent new runtime ownership, timing, gesture, rendering, a
 - [3.5.6 Performance and Resource Budgets](3.5.6_PERFORMANCE_AND_RESOURCE_BUDGETS.md)
 - [3.5.7 3D Asset Pipeline and Validation](3.5.7_3D_ASSET_PIPELINE_AND_VALIDATION.md)
 - [3.5.8 Plugin and Extension API](3.5.8_PLUGIN_AND_EXTENSION_API.md)
+- [3.5.9 Blueprint and Runtime Schema Reference](3.5.9_BLUEPRINT_RUNTIME_SCHEMA_REFERENCE.md)
 
 ## Required outputs
 
