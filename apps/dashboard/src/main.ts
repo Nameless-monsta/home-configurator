@@ -28,7 +28,7 @@ if (!root) throw new Error('Application root was not found');
 
 const ui = new UiFoundation({
   root,
-  version: '0.6.7',
+  version: '0.6.8',
   subtitle: 'Select a device to open its capability-driven control panel.',
 });
 
