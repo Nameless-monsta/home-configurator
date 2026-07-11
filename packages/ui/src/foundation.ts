@@ -1,9 +1,9 @@
-import { classifyLayout } from './layout.js';
+import { createResponsiveProfile } from './responsive.js';
 import type {
   UiFoundationOptions,
   UiFoundationSnapshot,
-  UiLayoutMode,
   UiOverlay,
+  UiResponsiveProfile,
 } from './types.js';
 
 const escapeHtml = (value: string): string =>
@@ -18,7 +18,7 @@ export class UiFoundation {
   readonly #resizeObserver: ResizeObserver;
   readonly #listeners = new Set<(snapshot: UiFoundationSnapshot) => void>();
   #overlay: UiOverlay = null;
-  #layout: UiLayoutMode;
+  #responsive: UiResponsiveProfile;
   #runtimeStatus = 'Booting';
   #diagnostics: Readonly<Record<string, number | string>> = {};
 
@@ -27,7 +27,10 @@ export class UiFoundation {
 
   public constructor(options: UiFoundationOptions) {
     this.#root = options.root;
-    this.#layout = classifyLayout(this.#root.clientWidth || window.innerWidth);
+    this.#responsive = this.#createProfile(
+      this.#root.clientWidth || window.innerWidth,
+      this.#root.clientHeight || window.innerHeight,
+    );
     this.#root.innerHTML = this.#markup(options);
 
     const stage = this.#root.querySelector<HTMLElement>('[data-ui-stage]');
@@ -39,8 +42,13 @@ export class UiFoundation {
     this.#root.addEventListener('click', this.#handleClick);
     this.#root.addEventListener('keydown', this.#handleKeydown);
     this.#resizeObserver = new ResizeObserver((entries) => {
-      const width = entries[0]?.contentRect.width ?? this.#root.clientWidth;
-      this.#setLayout(classifyLayout(width));
+      const rectangle = entries[0]?.contentRect;
+      this.#setResponsive(
+        this.#createProfile(
+          rectangle?.width ?? this.#root.clientWidth,
+          rectangle?.height ?? this.#root.clientHeight,
+        ),
+      );
     });
     this.#resizeObserver.observe(this.#root);
     this.#renderState();
@@ -49,7 +57,8 @@ export class UiFoundation {
   public snapshot(): UiFoundationSnapshot {
     return {
       overlay: this.#overlay,
-      layout: this.#layout,
+      layout: this.#responsive.layout,
+      responsive: this.#responsive,
       runtimeStatus: this.#runtimeStatus,
       diagnostics: this.#diagnostics,
     };
@@ -99,14 +108,33 @@ export class UiFoundation {
     this.#listeners.clear();
   }
 
-  #setLayout(layout: UiLayoutMode): void {
-    if (layout === this.#layout) return;
-    this.#layout = layout;
+  #createProfile(width: number, height: number): UiResponsiveProfile {
+    return createResponsiveProfile({
+      width,
+      height,
+      coarsePointer: window.matchMedia('(pointer: coarse)').matches,
+    });
+  }
+
+  #setResponsive(responsive: UiResponsiveProfile): void {
+    const current = this.#responsive;
+    if (
+      current.width === responsive.width &&
+      current.height === responsive.height &&
+      current.coarsePointer === responsive.coarsePointer
+    ) {
+      return;
+    }
+    this.#responsive = responsive;
     this.#renderState();
   }
 
   #renderState(): void {
-    this.#root.dataset['uiLayout'] = this.#layout;
+    this.#root.dataset['uiLayout'] = this.#responsive.layout;
+    this.#root.dataset['uiViewport'] = this.#responsive.viewport;
+    this.#root.dataset['uiOrientation'] = this.#responsive.orientation;
+    this.#root.dataset['uiShort'] = String(this.#responsive.short);
+    this.#root.dataset['uiPointer'] = this.#responsive.coarsePointer ? 'coarse' : 'fine';
     const overlay = this.#root.querySelector<HTMLElement>('[data-ui-overlay]');
     if (overlay) {
       overlay.hidden = this.#overlay !== 'diagnostics';
