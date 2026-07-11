@@ -5,6 +5,7 @@ import {
   type Scene,
   type Texture,
   type WebGLRenderer,
+  type WebGLRenderTarget,
 } from 'three';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 
@@ -17,6 +18,7 @@ export class EnvironmentManager {
   readonly #scene: Scene;
   readonly #diagnostics: Diagnostics;
   readonly #loader = new RGBELoader();
+  #target?: WebGLRenderTarget;
   #texture?: Texture;
   #uri?: string;
 
@@ -43,7 +45,8 @@ export class EnvironmentManager {
     try {
       const target = generator.fromEquirectangular(source);
       const texture = target.texture;
-      this.#texture?.dispose();
+      this.#target?.dispose();
+      this.#target = target;
       this.#texture = texture;
       this.#uri = uri;
       this.#scene.environment = texture;
@@ -64,7 +67,8 @@ export class EnvironmentManager {
   public clear(): void {
     if (this.#scene.environment === this.#texture) this.#scene.environment = null;
     if (this.#scene.background === this.#texture) this.#scene.background = null;
-    this.#texture?.dispose();
+    this.#target?.dispose();
+    this.#target = undefined;
     this.#texture = undefined;
     this.#uri = undefined;
   }
