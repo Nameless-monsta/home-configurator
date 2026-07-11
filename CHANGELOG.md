@@ -6,14 +6,23 @@ All notable changes to Home Configurator will be documented here.
 
 ### Added
 
-- Project vision and roadmap
-- Phase 1 research and interaction specification
-- Phase 2 architecture documents
-- Architecture Decision Record system
-- Repository documentation structure
+- Project vision, roadmap and documentation structure
+- Phase 1 iyO research and interaction specification
+- Phase 2 product architecture and ADR system
+- Phase 3 UX specifications and validation
+- Phase 3.5 engineering contracts and implementation gate
+- TypeScript monorepo, package boundaries and GitHub Actions CI
+- Runtime Core with lifecycle, services, events, scheduling, diagnostics, plugins and asset management
+- Graphics Engine with persistent Three.js rendering, camera framing, scene graph, lighting, quality tiers, post-processing, GLTF assets, HDR environments, LOD, context recovery and GPU-resource disposal
+- Runnable responsive dashboard milestone stage
 
-### Planned
+### In progress
 
-- Phase 3 UX and visual design
-- Monorepo package scaffolding
-- Home Assistant custom view and integration implementation
+- Interaction Engine
+- Home Assistant Engine
+- UI Engine
+- First interactive Home Assistant prototype
+
+### Pending decision
+
+- Public project license
