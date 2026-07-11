@@ -68,10 +68,14 @@ export class ConfiguratorModel {
   public setValue(fieldId: string, value: ConfiguratorValue): void {
     const document = this.#document;
     if (!document || this.#saving) return;
-    const field = document.sections.flatMap((section) => section.fields).find((item) => item.id === fieldId);
+    const field = document.sections
+      .flatMap((section) => section.fields)
+      .find((item) => item.id === fieldId);
     if (!field || field.disabled || field.readOnly) return;
 
-    const currentValue = this.#pendingValues[fieldId] ?? field.value;
+    const currentValue = Object.prototype.hasOwnProperty.call(this.#pendingValues, fieldId)
+      ? this.#pendingValues[fieldId]!
+      : field.value;
     if (Object.is(currentValue, value)) return;
 
     this.#pendingValues[fieldId] = value;
@@ -157,7 +161,7 @@ export class ConfiguratorModel {
         ...section,
         fields: section.fields.map((field) =>
           Object.prototype.hasOwnProperty.call(values, field.id)
-            ? { ...field, value: values[field.id] ?? null }
+            ? { ...field, value: values[field.id]! }
             : field,
         ),
       })),
