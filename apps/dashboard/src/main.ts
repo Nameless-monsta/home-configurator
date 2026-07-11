@@ -16,6 +16,7 @@ import {
   type UiNavigationLocation,
 } from '@home-configurator/ui';
 
+import { HomeAssistantConfiguratorAdapter } from './configurator-command-adapter.js';
 import { toDevicePanelSource } from './device-panel-adapter.js';
 import './styles.css';
 import './navigation.css';
@@ -28,8 +29,8 @@ if (!root) throw new Error('Application root was not found');
 
 const ui = new UiFoundation({
   root,
-  version: '0.6.8',
-  subtitle: 'Select a device to open its capability-driven control panel.',
+  version: '0.7.1',
+  subtitle: 'Select a device, change its controls and apply the command to Home Assistant.',
 });
 
 let latestHomeSnapshot: ConfirmedRuntimeSnapshot | null = null;
@@ -44,24 +45,6 @@ const createDocument = (
     ? panelRegistry.buildDocument(toDevicePanelSource(snapshot, device))
     : null;
 };
-
-const configurator = new UiConfigurator({
-  root,
-  adapter: {
-    commit: async () => Promise.resolve(),
-    invoke: async () => Promise.resolve(),
-  },
-});
-
-const navigation = new UiNavigation({
-  root,
-  onNavigate: (location) => configurator.setDocument(createDocument(latestHomeSnapshot, location)),
-});
-
-const motion = new UiMotionOrchestrator({
-  root,
-  reducedMotion: () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-});
 
 const runtime = createRuntime({
   config: { application: { environment: import.meta.env.DEV ? 'development' : 'production' } },
@@ -217,6 +200,30 @@ const homeAssistant = new HomeAssistantEngine({
   }),
 });
 
+let latestCommandState = 'idle';
+const configuratorAdapter = new HomeAssistantConfiguratorAdapter({
+  homeAssistant,
+  onReceipt: (command, receipt) => {
+    latestCommandState = `${command.capability}:${receipt.state}`;
+    runtime.diagnostics.increment(`prototype.commands.${receipt.state}`);
+  },
+});
+
+const configurator = new UiConfigurator({
+  root,
+  adapter: configuratorAdapter,
+});
+
+const navigation = new UiNavigation({
+  root,
+  onNavigate: (location) => configurator.setDocument(createDocument(latestHomeSnapshot, location)),
+});
+
+const motion = new UiMotionOrchestrator({
+  root,
+  reducedMotion: () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+});
+
 let runtimePhase = 'idle';
 let homeAssistantStatus = 'uninitialized';
 let rooms = 0;
@@ -254,6 +261,7 @@ runtime.diagnostics.subscribe((snapshot) => {
     devices,
     room: location.roomId ?? 'none',
     device: location.deviceId ?? 'none',
+    command: latestCommandState,
     dirty: String(configurator.snapshot().dirty),
     frame: snapshot.gauges['scheduler.frame'] ?? 0,
     gestures: snapshot.counters['interaction.completed'] ?? 0,

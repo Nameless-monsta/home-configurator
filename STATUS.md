@@ -13,9 +13,9 @@ Updated: 2026-07-12
 
 ## Current gate
 
-Phase 4.6 is complete. Home Configurator now has a validated UI Engine covering the application foundation, room and device navigation, generic configurator framework, reusable controls, capability-driven device panels, iyO motion behaviour, responsive phone/tablet/desktop layouts and automated accessibility contract validation.
+Phase 4.6 is complete. Home Configurator now has a full-screen UI shell, room and device navigation, a capability-driven configurator, reusable controls, device panels, iyO motion orchestration, responsive behaviour and accessibility validation.
 
-The next implementation gate is 4.7 — First Interactive Prototype.
+Milestone 4.7.1 — Prototype Command Bridge is implemented and CI validated on draft pull request #17. The dashboard configurator now dispatches semantic Home Assistant commands through the existing engine, including power, brightness, colour, colour temperature, climate, media and cover controls. The milestone remains pending merge into `main`.
 
 ## Completed
 
@@ -52,6 +52,7 @@ The next implementation gate is 4.7 — First Interactive Prototype.
 - [x] 4.5 Home Assistant Engine
 - [x] 4.6 UI Engine
 - [ ] 4.7 First Interactive Prototype
+  - [ ] 4.7.1 Prototype Command Bridge — implemented and CI validated, pending merge
 - [ ] 4.8 Performance optimisation
 - [ ] 4.9 Documentation
 - [ ] 4.10 HACS release
@@ -60,8 +61,9 @@ The next implementation gate is 4.7 — First Interactive Prototype.
 
 - Phase 4.3 passed formatting, linting, strict TypeScript, package tests and all production builds.
 - Phase 4.4 passed formatting, linting, strict TypeScript, package tests and all production builds.
-- Phase 4.5 passed formatting, linting, strict TypeScript, package tests and all production builds.
-- Phase 4.6 passed formatting, linting, strict TypeScript, package tests and all production builds across milestones 4.6.1–4.6.8. Final validation merged through PR #16.
+- Phase 4.5 passed formatting, linting, strict TypeScript, tests and production builds on GitHub Actions run 173.
+- Phase 4.6 passed formatting, linting, strict TypeScript, unit and contract tests and all production builds.
+- Milestone 4.7.1 passed Prettier, ESLint, strict TypeScript, all unit and contract tests, and all production builds on GitHub Actions run 256.
 
 ## First interactive prototype
 
@@ -69,10 +71,10 @@ The first interactive prototype must validate:
 
 1. persistent shell and WebGL stage;
 2. room-to-device transition;
-3. one real Home Assistant color-capable light;
-4. color sphere manipulation and two-finger brightness gesture;
+3. one real Home Assistant colour-capable light;
+4. colour sphere manipulation and two-finger brightness gesture;
 5. optimistic and confirmed state reconciliation;
-6. reduced-motion behavior;
+6. reduced-motion behaviour;
 7. iPad performance and responsive layout;
 8. VoiceOver and keyboard basics;
 9. generic model fallback;
@@ -80,6 +82,6 @@ The first interactive prototype must validate:
 
 ## Next
 
-1. Start 4.7 — First Interactive Prototype.
-2. Select the project license before public distribution.
-3. Record any implementation-driven contract change through the relevant specification and an ADR.
+1. Review and merge pull request #17 for 4.7.1 — Prototype Command Bridge.
+2. Start 4.7.2 with authoritative prototype state confirmation and selected-device model binding.
+3. Select the project licence before public distribution.
