@@ -72,6 +72,7 @@
 - [x] Home Assistant Engine
 - [x] UI Engine
 - [ ] First Interactive Prototype
+  - [ ] Prototype Command Bridge
 - [ ] Performance optimisation
 - [ ] Documentation
 - [ ] HACS release

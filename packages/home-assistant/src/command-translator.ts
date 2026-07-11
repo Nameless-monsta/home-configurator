@@ -200,6 +200,9 @@ export const translateSemanticCommand = (
     if (command.action === 'open') {
       return { domain: 'cover', service: 'open_cover', target, data: {} };
     }
+    if (command.action === 'stop') {
+      return { domain: 'cover', service: 'stop_cover', target, data: {} };
+    }
     if (command.action === 'close') {
       return { domain: 'cover', service: 'close_cover', target, data: {} };
     }
