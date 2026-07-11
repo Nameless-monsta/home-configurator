@@ -13,7 +13,7 @@ Updated: 2026-07-11
 
 ## Current gate
 
-The approved UX is being translated into implementation-ready engineering contracts. Runtime execution, camera ownership, renderer/frame pipeline, input arbitration and the Home Assistant runtime are now locked. Phase 4 remains gated until performance, asset, plugin and schema contracts are validated.
+The approved UX is being translated into implementation-ready engineering contracts. Runtime execution, camera ownership, renderer/frame pipeline, input arbitration, the Home Assistant runtime, measurable performance budgets and the 3D asset pipeline are now locked. Phase 4 remains gated until plugin, schema and final engineering validation are complete.
 
 ## Completed
 
@@ -38,6 +38,8 @@ The approved UX is being translated into implementation-ready engineering contra
 - 3.5.3 Renderer and frame pipeline
 - 3.5.4 Input and gesture arbitration
 - 3.5.5 Home Assistant runtime contract
+- 3.5.6 Performance and resource budgets
+- 3.5.7 3D asset pipeline and validation
 
 ## Phase 3.5 workstream
 
@@ -46,8 +48,8 @@ The approved UX is being translated into implementation-ready engineering contra
 - [x] 3.5.3 Renderer and frame pipeline
 - [x] 3.5.4 Input and gesture arbitration
 - [x] 3.5.5 Home Assistant runtime contract
-- [ ] 3.5.6 Performance and resource budgets
-- [ ] 3.5.7 3D asset pipeline and validation
+- [x] 3.5.6 Performance and resource budgets
+- [x] 3.5.7 3D asset pipeline and validation
 - [ ] 3.5.8 Plugin and extension API
 - [ ] 3.5.9 Blueprint/runtime schema reference
 - [ ] 3.5.10 Engineering validation and implementation gate
@@ -67,7 +69,7 @@ The first vertical prototype must validate:
 
 ## Next
 
-1. Complete 3.5.6 — Performance and resource budgets.
-2. Continue through the asset, plugin and schema contracts.
+1. Complete 3.5.8 — Plugin and extension API.
+2. Complete the blueprint/runtime schema reference.
 3. Select the project license before public distribution.
 4. Begin Phase 4 only after the Phase 3.5 implementation gate is approved.
