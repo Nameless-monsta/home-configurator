@@ -6,31 +6,37 @@
 ## Workstream
 
 - [x] **4.1 Repository, build and CI setup**
-- [ ] **4.2 Vertical runtime skeleton**
-- [ ] **4.3 Persistent Three.js stage**
-- [ ] **4.4 Navigation and transition slice**
-- [ ] **4.5 Light controller and color sphere**
-- [ ] **4.6 Home Assistant live integration**
-- [ ] **4.7 Responsive and accessibility validation**
-- [ ] **4.8 Performance validation**
+- [x] **4.2 Runtime Core**
+- [ ] **4.3 Graphics Engine**
+- [ ] **4.4 Interaction Engine**
+- [ ] **4.5 Home Assistant Engine**
+- [ ] **4.6 UI Engine**
+- [ ] **4.7 First Interactive Prototype**
+- [ ] **4.8 Performance optimisation**
 - [ ] **4.9 Documentation**
 - [ ] **4.10 HACS release**
 
-## 4.1 implementation baseline
+## Completed milestones
 
-The repository now uses:
+### 4.1 — Repository, build and CI setup
 
-- Node.js 22;
-- pnpm workspaces;
-- Turbo task orchestration;
-- strict TypeScript;
-- ESLint flat configuration;
-- Prettier;
-- Vitest;
-- GitHub Actions validation;
-- package-level build, lint, type-check and test contracts.
+The repository uses Node.js 22, pnpm workspaces, Turbo, strict TypeScript, ESLint, Prettier, Vitest and GitHub Actions validation.
 
-The initial `@home-configurator/shared` package is included as a working pipeline fixture and the first source of common runtime types.
+### 4.2 — Runtime Core
+
+The implemented runtime now provides:
+
+- deterministic bootstrap and shutdown;
+- typed dependency injection and service registration;
+- typed event delivery;
+- centralized frame scheduling;
+- runtime diagnostics;
+- configuration loading;
+- plugin and asset lifecycles;
+- a Home Assistant adapter boundary with a mock implementation;
+- a runnable Vite dashboard shell.
+
+See [4.2 Runtime Core](4.2_RUNTIME_CORE.md).
 
 ## Required validation command
 
