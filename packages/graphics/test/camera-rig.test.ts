@@ -6,10 +6,7 @@ import { CameraRig } from '../src/index.js';
 describe('CameraRig', () => {
   it('interpolates to a target pose deterministically', () => {
     const rig = new CameraRig();
-    rig.transitionTo(
-      { position: [2, 1, 6], target: [0.5, 0.2, 0], fov: 42 },
-      { durationMs: 1000 },
-    );
+    rig.transitionTo({ position: [2, 1, 6], target: [0.5, 0.2, 0], fov: 42 }, { durationMs: 1000 });
 
     expect(rig.transitioning).toBe(true);
     rig.tick(1000);
