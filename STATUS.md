@@ -13,9 +13,9 @@ Updated: 2026-07-11
 
 ## Current gate
 
-Phase 4 has started. The repository now has a working TypeScript monorepo baseline with pnpm workspaces, Turbo task orchestration, strict TypeScript, ESLint, Prettier, Vitest and GitHub Actions validation.
+Phase 4.2 is complete. Home Configurator now has a runnable runtime core with deterministic lifecycle management, typed services and events, a frame scheduler, diagnostics, plugin and asset lifecycles, a Home Assistant adapter boundary and a Vite development shell.
 
-The next implementation gate is the vertical runtime skeleton.
+The next implementation gate is 4.3 — Graphics Engine.
 
 ## Completed
 
@@ -37,23 +37,37 @@ The next implementation gate is the vertical runtime skeleton.
 - Phase 3 UX specifications and final validation
 - Phase 3.5 engineering specifications and implementation gate
 - 4.1 repository, build and CI setup
+- 4.2 runtime core
 
 ## Phase 4 workstream
 
 - [x] 4.1 Repository, build and CI setup
-- [ ] 4.2 Vertical runtime skeleton
-- [ ] 4.3 Persistent Three.js stage
-- [ ] 4.4 Navigation and transition slice
-- [ ] 4.5 Light controller and color sphere
-- [ ] 4.6 Home Assistant live integration
-- [ ] 4.7 Responsive and accessibility validation
-- [ ] 4.8 Performance validation
+- [x] 4.2 Runtime Core
+- [ ] 4.3 Graphics Engine
+- [ ] 4.4 Interaction Engine
+- [ ] 4.5 Home Assistant Engine
+- [ ] 4.6 UI Engine
+- [ ] 4.7 First Interactive Prototype
+- [ ] 4.8 Performance optimisation
 - [ ] 4.9 Documentation
 - [ ] 4.10 HACS release
 
-## First vertical prototype
+## Runtime validation
 
-The first vertical prototype must validate:
+The 4.2 milestone has been validated with:
+
+1. repository formatting checks;
+2. strict ESLint validation;
+3. strict TypeScript validation;
+4. four passing runtime unit tests;
+5. two passing shared-package unit tests;
+6. runtime declaration and ESM build;
+7. dashboard production build;
+8. direct runtime lifecycle smoke test.
+
+## First interactive prototype
+
+The first interactive prototype must validate:
 
 1. persistent shell and WebGL stage;
 2. room-to-device transition;
@@ -68,7 +82,7 @@ The first vertical prototype must validate:
 
 ## Next
 
-1. Complete 4.2 — Vertical runtime skeleton.
-2. Generate and commit the first lockfile once the dependency graph is exercised.
+1. Complete 4.3 — Graphics Engine.
+2. Generate and commit the first lockfile when release policy stops ignoring it.
 3. Select the project license before public distribution.
 4. Record any implementation-driven contract change through the relevant specification and an ADR.
