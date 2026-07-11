@@ -1,11 +1,11 @@
 # Phase 3.5 — Engineering Specifications
 
-**Status:** In progress  
+**Status:** Complete and approved  
 **Purpose:** Convert approved product architecture and UX into implementation-ready runtime contracts before production development begins.
 
 ## Why this phase exists
 
-Phase 1 established the interaction reference. Phase 2 defined the product architecture. Phase 3 approved the UX. Phase 3.5 now freezes the engineering rules that code must implement.
+Phase 1 established the interaction reference. Phase 2 defined the product architecture. Phase 3 approved the UX. Phase 3.5 freezes the engineering rules that code must implement.
 
 Development must not invent new runtime ownership, timing, gesture, rendering, asset, plugin, or Home Assistant reconciliation behavior without updating these specifications.
 
@@ -20,7 +20,7 @@ Development must not invent new runtime ownership, timing, gesture, rendering, a
 - [x] **3.5.7 3D asset pipeline and validation**
 - [x] **3.5.8 Plugin and extension API**
 - [x] **3.5.9 Blueprint/runtime schema reference**
-- [ ] **3.5.10 Engineering validation and implementation gate**
+- [x] **3.5.10 Engineering validation and implementation gate**
 
 ## Completed documents
 
@@ -33,10 +33,11 @@ Development must not invent new runtime ownership, timing, gesture, rendering, a
 - [3.5.7 3D Asset Pipeline and Validation](3.5.7_3D_ASSET_PIPELINE_AND_VALIDATION.md)
 - [3.5.8 Plugin and Extension API](3.5.8_PLUGIN_AND_EXTENSION_API.md)
 - [3.5.9 Blueprint and Runtime Schema Reference](3.5.9_BLUEPRINT_RUNTIME_SCHEMA_REFERENCE.md)
+- [3.5.10 Engineering Validation and Implementation Gate](3.5.10_ENGINEERING_VALIDATION_AND_IMPLEMENTATION_GATE.md)
 
 ## Required outputs
 
-Every specification must define:
+Every specification defines:
 
 - ownership boundaries;
 - lifecycle and state machine;
@@ -63,16 +64,16 @@ Runtime execution model
 → Final engineering validation
 ```
 
-The order is intentional. Later contracts depend on ownership and lifecycle rules established earlier.
-
 ## Phase exit gate
 
-Phase 4 may begin only when:
+All conditions are satisfied:
 
 1. all runtime owners are explicit;
 2. frame, command, transition, and reconciliation ordering is deterministic;
-3. input conflicts have one arbitration model;
+3. input conflicts use one arbitration model;
 4. render and performance budgets are measurable;
 5. asset and plugin contracts are versioned;
 6. Home Assistant disconnect, retry, stale state, and command failure behavior are defined;
 7. a contributor can implement the first vertical slice without inventing architecture.
+
+**Gate result:** Phase 4 implementation approved.
