@@ -12,7 +12,7 @@ Updated: 2026-07-11
 
 ## Current gate
 
-Phase 3 is in progress. Navigation shell and room navigation specifications are complete and committed. The next design task is the device configurator.
+Phase 3 is in progress. Navigation shell, room navigation, device configurator, color sphere and climate interaction specifications are complete and committed. The next design task is media interaction.
 
 ## Completed
 
@@ -33,9 +33,13 @@ Phase 3 is in progress. Navigation shell and room navigation specifications are 
 - HACS packaging strategy
 - 3.1 Navigation shell
 - 3.2 Room navigation
+- 3.3 Device configurator
+- 3.4 Color sphere interaction
+- 3.5 Climate interaction
 
 ## Next
 
-1. Complete 3.3 — Device configurator.
-2. Continue into color, climate, media and vacuum interactions.
-3. Keep this file updated after every completed task.
+1. Complete 3.6 — Media interaction.
+2. Continue into vacuum and scene interactions.
+3. Consolidate transitions and animations in 3.9 and 3.10.
+4. Keep this file updated after every completed task.
