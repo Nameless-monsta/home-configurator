@@ -5,7 +5,7 @@ import { WebGLContextGuard } from '../src/index.js';
 
 describe('WebGLContextGuard', () => {
   it('tracks context loss and restoration', () => {
-    const canvas = new EventTarget() as HTMLCanvasElement;
+    const canvas = new EventTarget() as unknown as HTMLCanvasElement;
     const diagnostics = new Diagnostics();
     const restored = vi.fn();
     const guard = new WebGLContextGuard({ canvas, diagnostics, onRestored: restored });
