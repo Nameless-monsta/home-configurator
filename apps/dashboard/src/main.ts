@@ -269,7 +269,9 @@ void Promise.all([runtime.start(), homeAssistant.connect()]).then(() => {
   ui.setHome(homeAssistant?.getConfirmedSnapshot() ?? homeAssistantTransportFixtureFallback());
 });
 
-const homeAssistantTransportFixtureFallback = (): ReturnType<HomeAssistantEngine['getConfirmedSnapshot']> => ({
+const homeAssistantTransportFixtureFallback = (): ReturnType<
+  HomeAssistantEngine['getConfirmedSnapshot']
+> => ({
   status: 'uninitialized',
   rooms: [],
   devices: [],

@@ -53,6 +53,9 @@ importers:
       '@home-configurator/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
+      '@home-configurator/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
     devDependencies:
       vite:
         specifier: ^7.0.5
@@ -96,6 +99,12 @@ importers:
   packages/runtime: {}
 
   packages/shared: {}
+
+  packages/ui:
+    dependencies:
+      '@home-configurator/home-assistant':
+        specifier: workspace:*
+        version: link:../home-assistant
 
 packages:
 
