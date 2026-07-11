@@ -10,8 +10,8 @@ export class SelectionEngine {
   readonly #raycaster = new Raycaster();
   readonly #pointer = new Vector2();
   readonly #objects = new Map<string, Object3D>();
-  #selectedId?: string;
-  #hoveredId?: string;
+  #selectedId: string | undefined;
+  #hoveredId: string | undefined;
 
   public constructor(camera: Camera, diagnostics: Diagnostics) {
     this.#camera = camera;
