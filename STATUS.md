@@ -13,9 +13,9 @@ Updated: 2026-07-11
 
 ## Current gate
 
-Phase 4.3 is complete. Home Configurator now has a persistent Three.js graphics engine with centralized rendering, camera transitions and framing, scene ownership, warm studio lighting, quality tiers, post-processing, GLTF loading, HDR environments, LOD, GPU-resource disposal, WebGL context recovery and live diagnostics.
+Phase 4.5 is complete. Home Configurator now has an authenticated Home Assistant transport, coherent registry and state synchronization, automatic room and device discovery, semantic capability bindings, service-call translation, optimistic reconciliation, stale-state handling and reconnect behavior.
 
-The next implementation gate is 4.4 — Interaction Engine.
+The next implementation gate is 4.6 — UI Engine.
 
 ## Completed
 
@@ -39,23 +39,27 @@ The next implementation gate is 4.4 — Interaction Engine.
 - 4.1 repository, build and CI setup
 - 4.2 Runtime Core
 - 4.3 Graphics Engine
+- 4.4 Interaction Engine
+- 4.5 Home Assistant Engine
 
 ## Phase 4 workstream
 
 - [x] 4.1 Repository, build and CI setup
 - [x] 4.2 Runtime Core
 - [x] 4.3 Graphics Engine
-- [ ] 4.4 Interaction Engine
-- [ ] 4.5 Home Assistant Engine
+- [x] 4.4 Interaction Engine
+- [x] 4.5 Home Assistant Engine
 - [ ] 4.6 UI Engine
 - [ ] 4.7 First Interactive Prototype
 - [ ] 4.8 Performance optimisation
 - [ ] 4.9 Documentation
 - [ ] 4.10 HACS release
 
-## Graphics validation
+## Validation history
 
-The final Phase 4.3 validation passed on GitHub Actions run 129. Formatting, linting, strict TypeScript, package tests and all production builds completed successfully.
+- Phase 4.3 passed formatting, linting, strict TypeScript, package tests and all production builds.
+- Phase 4.4 passed formatting, linting, strict TypeScript, package tests and all production builds.
+- Phase 4.5 passed formatting, linting, strict TypeScript, package tests and all production builds on GitHub Actions run 173.
 
 ## First interactive prototype
 
@@ -74,6 +78,6 @@ The first interactive prototype must validate:
 
 ## Next
 
-1. Complete 4.4 — Interaction Engine.
+1. Start 4.6 — UI Engine.
 2. Select the project license before public distribution.
 3. Record any implementation-driven contract change through the relevant specification and an ADR.
