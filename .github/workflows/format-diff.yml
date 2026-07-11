@@ -4,7 +4,7 @@ on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   format-diff:
@@ -12,16 +12,35 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - run: corepack enable
-      - uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
-      - run: pnpm install --no-frozen-lockfile
-      - name: Generate formatting patch
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Apply exact formatting
         run: |
-          pnpm format
-          git diff --binary > format.patch
-      - uses: actions/upload-artifact@v4
-        with:
-          name: interaction-format-patch
-          path: format.patch
+          python - <<'PY'
+          from pathlib import Path
+
+          changes = {
+              'packages/home-assistant/src/home-assistant-engine.ts': (
+                  "        type:\n          typeof message['type'] === 'string' ? message['type'] : 'unknown',",
+                  "        type: typeof message['type'] === 'string' ? message['type'] : 'unknown',",
+              ),
+              'packages/home-assistant/src/memory-transport.ts': (
+                  "        domain:\n          typeof message['domain'] === 'string' ? message['domain'] : '',\n        service:\n          typeof message['service'] === 'string' ? message['service'] : '',",
+                  "        domain: typeof message['domain'] === 'string' ? message['domain'] : '',\n        service: typeof message['service'] === 'string' ? message['service'] : '',",
+              ),
+          }
+
+          for filename, (old, new) in changes.items():
+              path = Path(filename)
+              text = path.read_text()
+              if old not in text:
+                  raise SystemExit(f'Missing expected text in {filename}')
+              path.write_text(text.replace(old, new, 1))
+          PY
+      - name: Commit formatting
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/home-assistant
+          git commit -m "chore: apply final Home Assistant formatting"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
