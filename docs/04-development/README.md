@@ -11,7 +11,7 @@
 - [x] **4.4 Interaction Engine**
 - [x] **4.5 Home Assistant Engine**
 - [ ] **4.6 UI Engine**
-  - [ ] **4.6.1 UI Foundation — implementation complete, CI validation running**
+  - [x] **4.6.1 UI Foundation**
   - [ ] **4.6.2 Navigation System**
   - [ ] **4.6.3 Configurator Framework**
   - [ ] **4.6.4 Control Library**
@@ -54,13 +54,17 @@ Authenticated WebSocket transport, automatic room and device discovery, capabili
 
 See [4.5 Home Assistant Engine](4.5_HOME_ASSISTANT_ENGINE.md).
 
-## Active milestone
-
 ### 4.6.1 — UI Foundation
 
-Full-screen shell, layout classification, safe areas, overlay ownership, theme tokens, diagnostics, reduced motion and accessibility foundations.
+Full-screen shell, layout classification, safe areas, overlay ownership, theme tokens, diagnostics, reduced motion and accessibility foundations. GitHub Actions validation passed formatting, linting, strict TypeScript, tests and production builds.
 
 See [4.6.1 UI Foundation](4.6.1_UI_FOUNDATION.md).
+
+## Active milestone
+
+### 4.6.2 — Navigation System
+
+Room and device navigation, keyboard traversal, history and navigation-state presentation.
 
 ## Required validation command
 
