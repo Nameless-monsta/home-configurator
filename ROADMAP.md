@@ -68,10 +68,11 @@
 - [x] Repository, build and CI setup
 - [x] Runtime Core
 - [x] Graphics Engine
-- [ ] Interaction Engine
-- [ ] Home Assistant Engine
-- [ ] UI Engine
+- [x] Interaction Engine
+- [x] Home Assistant Engine
+- [x] UI Engine
 - [ ] First Interactive Prototype
+  - [ ] Prototype Command Bridge
 - [ ] Performance optimisation
 - [ ] Documentation
 - [ ] HACS release
