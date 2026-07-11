@@ -2,7 +2,10 @@ import type { Diagnostics } from '@home-configurator/runtime';
 
 import type { NavigationLocation } from './types.js';
 
-export type NavigationListener = (location: NavigationLocation, previous: NavigationLocation) => void;
+export type NavigationListener = (
+  location: NavigationLocation,
+  previous: NavigationLocation,
+) => void;
 
 export class NavigationEngine {
   readonly #diagnostics: Diagnostics;
@@ -67,7 +70,10 @@ export class NavigationEngine {
   }
 
   #validate(location: NavigationLocation): void {
-    if ((location.level === 'room' || location.level === 'device' || location.level === 'control') && !location.roomId) {
+    if (
+      (location.level === 'room' || location.level === 'device' || location.level === 'control') &&
+      !location.roomId
+    ) {
       throw new Error(`Navigation level ${location.level} requires roomId`);
     }
     if ((location.level === 'device' || location.level === 'control') && !location.deviceId) {
