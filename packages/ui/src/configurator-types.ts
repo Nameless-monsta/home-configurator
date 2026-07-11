@@ -1,12 +1,6 @@
 export type ConfiguratorValue = string | number | boolean | null;
 
-export type ConfiguratorFieldKind =
-  | 'toggle'
-  | 'slider'
-  | 'number'
-  | 'select'
-  | 'text'
-  | 'status';
+export type ConfiguratorFieldKind = 'toggle' | 'slider' | 'number' | 'select' | 'text' | 'status';
 
 export interface ConfiguratorOption {
   readonly value: string;
@@ -75,10 +69,7 @@ export interface ConfiguratorSnapshot {
 }
 
 export interface ConfiguratorAdapter {
-  commit(
-    documentId: string,
-    changes: Readonly<Record<string, ConfiguratorValue>>,
-  ): Promise<void>;
+  commit(documentId: string, changes: Readonly<Record<string, ConfiguratorValue>>): Promise<void>;
   invoke(documentId: string, actionId: string): Promise<void>;
 }
 

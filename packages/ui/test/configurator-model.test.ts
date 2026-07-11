@@ -54,7 +54,9 @@ describe('ConfiguratorModel', () => {
     model.setDocument(document);
     model.setValue('nullable', null);
 
-    expect(Object.prototype.hasOwnProperty.call(model.snapshot().pendingValues, 'nullable')).toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(model.snapshot().pendingValues, 'nullable')).toBe(
+      true,
+    );
     expect(model.snapshot().pendingValues['nullable']).toBeNull();
   });
 

@@ -119,7 +119,11 @@ export class UiConfigurator {
     title: string,
     description: string | undefined,
     fields: readonly ConfiguratorField[],
-    actions: readonly { readonly id: string; readonly label: string; readonly disabled?: boolean }[],
+    actions: readonly {
+      readonly id: string;
+      readonly label: string;
+      readonly disabled?: boolean;
+    }[],
     snapshot: ConfiguratorSnapshot,
   ): string {
     const collapsed = this.#collapsed.has(id);

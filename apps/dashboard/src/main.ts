@@ -40,16 +40,35 @@ const createDocument = (
   return {
     id: device.id,
     title: device.name,
-    subtitle: [device.manufacturer, device.model].filter(Boolean).join(' ') || 'Home Assistant device',
+    subtitle:
+      [device.manufacturer, device.model].filter(Boolean).join(' ') || 'Home Assistant device',
     available: device.available,
     sections: [
       {
         id: 'identity',
         title: 'Identity',
         fields: [
-          { id: 'manufacturer', label: 'Manufacturer', kind: 'status', value: device.manufacturer ?? 'Unknown', readOnly: true },
-          { id: 'model', label: 'Model', kind: 'status', value: device.model ?? 'Unknown', readOnly: true },
-          { id: 'entities', label: 'Entities', kind: 'status', value: device.entityIds.length, readOnly: true },
+          {
+            id: 'manufacturer',
+            label: 'Manufacturer',
+            kind: 'status',
+            value: device.manufacturer ?? 'Unknown',
+            readOnly: true,
+          },
+          {
+            id: 'model',
+            label: 'Model',
+            kind: 'status',
+            value: device.model ?? 'Unknown',
+            readOnly: true,
+          },
+          {
+            id: 'entities',
+            label: 'Entities',
+            kind: 'status',
+            value: device.entityIds.length,
+            readOnly: true,
+          },
         ],
       },
       {
@@ -60,7 +79,10 @@ const createDocument = (
           id: `capability.${capability}`,
           label: capability,
           kind: 'status' as const,
-          value: device.optimistic[capability] === undefined ? 'Available' : String(device.optimistic[capability]),
+          value:
+            device.optimistic[capability] === undefined
+              ? 'Available'
+              : String(device.optimistic[capability]),
           readOnly: true,
         })),
       },
@@ -141,10 +163,20 @@ const entityState = (
   entityId: string,
   state: string,
   attributes: Readonly<Record<string, unknown>>,
-): HAState => ({ entity_id: entityId, state, attributes, last_changed: observedAt, last_updated: observedAt });
+): HAState => ({
+  entity_id: entityId,
+  state,
+  attributes,
+  last_changed: observedAt,
+  last_updated: observedAt,
+});
 
 const homeAssistant = new HomeAssistantEngine({
-  config: { url: 'http://homeassistant.demo', accessToken: 'memory-transport-only', reconnect: { enabled: false } },
+  config: {
+    url: 'http://homeassistant.demo',
+    accessToken: 'memory-transport-only',
+    reconnect: { enabled: false },
+  },
   diagnostics: runtime.diagnostics,
   transport: new MemoryHomeAssistantTransport({
     floors: [{ floor_id: 'ground', name: 'Ground Floor', level: 0 }],
@@ -154,20 +186,53 @@ const homeAssistant = new HomeAssistantEngine({
       { area_id: 'kitchen', name: 'Kitchen', floor_id: 'ground' },
     ],
     devices: [
-      { id: 'ikea-lamp', name: 'IKEA Lamp', area_id: 'living-room', manufacturer: 'IKEA', model: 'TRÅDFRI' },
+      {
+        id: 'ikea-lamp',
+        name: 'IKEA Lamp',
+        area_id: 'living-room',
+        manufacturer: 'IKEA',
+        model: 'TRÅDFRI',
+      },
       { id: 'living-tv', name: 'Living Room TV', area_id: 'living-room' },
       { id: 'bedroom-ac', name: 'Bedroom AC', area_id: 'bedroom' },
       { id: 'kitchen-lights', name: 'Kitchen Lights', area_id: 'kitchen' },
     ],
     entities: [
-      { entity_id: 'light.ikea_lamp', unique_id: 'ikea-lamp-light', platform: 'zha', device_id: 'ikea-lamp' },
-      { entity_id: 'media_player.living_room_tv', unique_id: 'living-tv-player', platform: 'webostv', device_id: 'living-tv' },
-      { entity_id: 'climate.bedroom_ac', unique_id: 'bedroom-ac-climate', platform: 'climate', device_id: 'bedroom-ac' },
-      { entity_id: 'switch.kitchen_lights', unique_id: 'kitchen-lights-switch', platform: 'switch', device_id: 'kitchen-lights' },
+      {
+        entity_id: 'light.ikea_lamp',
+        unique_id: 'ikea-lamp-light',
+        platform: 'zha',
+        device_id: 'ikea-lamp',
+      },
+      {
+        entity_id: 'media_player.living_room_tv',
+        unique_id: 'living-tv-player',
+        platform: 'webostv',
+        device_id: 'living-tv',
+      },
+      {
+        entity_id: 'climate.bedroom_ac',
+        unique_id: 'bedroom-ac-climate',
+        platform: 'climate',
+        device_id: 'bedroom-ac',
+      },
+      {
+        entity_id: 'switch.kitchen_lights',
+        unique_id: 'kitchen-lights-switch',
+        platform: 'switch',
+        device_id: 'kitchen-lights',
+      },
     ],
     states: [
-      entityState('light.ikea_lamp', 'on', { friendly_name: 'IKEA Lamp', brightness: 168, supported_color_modes: ['hs', 'color_temp'] }),
-      entityState('media_player.living_room_tv', 'playing', { friendly_name: 'Living Room TV', volume_level: 0.34 }),
+      entityState('light.ikea_lamp', 'on', {
+        friendly_name: 'IKEA Lamp',
+        brightness: 168,
+        supported_color_modes: ['hs', 'color_temp'],
+      }),
+      entityState('media_player.living_room_tv', 'playing', {
+        friendly_name: 'Living Room TV',
+        volume_level: 0.34,
+      }),
       entityState('climate.bedroom_ac', 'cool', { friendly_name: 'Bedroom AC', temperature: 22 }),
       entityState('switch.kitchen_lights', 'off', { friendly_name: 'Kitchen Lights' }),
     ],
