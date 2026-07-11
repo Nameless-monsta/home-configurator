@@ -1,8 +1,8 @@
-import { createRuntime } from "@home-configurator/runtime";
-import "./styles.css";
+import { createRuntime } from '@home-configurator/runtime';
+import './styles.css';
 
-const root = document.querySelector<HTMLElement>("#app");
-if (!root) throw new Error("Application root was not found");
+const root = document.querySelector<HTMLElement>('#app');
+if (!root) throw new Error('Application root was not found');
 
 root.innerHTML = `
   <section class="runtime-shell">
@@ -27,13 +27,13 @@ root.innerHTML = `
   </section>
 `;
 
-const statusNode = root.querySelector<HTMLElement>("[data-runtime-status]");
-const phaseNode = root.querySelector<HTMLElement>("[data-phase]");
-const frameNode = root.querySelector<HTMLElement>("[data-frame]");
-const eventsNode = root.querySelector<HTMLElement>("[data-events]");
+const statusNode = root.querySelector<HTMLElement>('[data-runtime-status]');
+const phaseNode = root.querySelector<HTMLElement>('[data-phase]');
+const frameNode = root.querySelector<HTMLElement>('[data-frame]');
+const eventsNode = root.querySelector<HTMLElement>('[data-events]');
 
 const runtime = createRuntime({
-  config: { application: { environment: import.meta.env.DEV ? "development" : "production" } },
+  config: { application: { environment: import.meta.env.DEV ? 'development' : 'production' } },
 });
 
 let eventCount = 0;
@@ -42,17 +42,17 @@ runtime.events.onAny(() => {
   if (eventsNode) eventsNode.textContent = String(eventCount);
 });
 
-runtime.events.on("runtime.phase", ({ current }) => {
+runtime.events.on('runtime.phase', ({ current }) => {
   if (phaseNode) phaseNode.textContent = current;
-  if (statusNode) statusNode.textContent = current === "running" ? "Online" : current;
+  if (statusNode) statusNode.textContent = current === 'running' ? 'Online' : current;
 });
 
 runtime.diagnostics.subscribe((snapshot) => {
-  if (frameNode) frameNode.textContent = String(snapshot.gauges["scheduler.frame"] ?? 0);
+  if (frameNode) frameNode.textContent = String(snapshot.gauges['scheduler.frame'] ?? 0);
 });
 
 void runtime.start();
 
-window.addEventListener("pagehide", () => {
+window.addEventListener('pagehide', () => {
   void runtime.stop();
 });
