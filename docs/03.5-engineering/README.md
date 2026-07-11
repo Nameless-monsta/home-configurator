@@ -1,0 +1,66 @@
+# Phase 3.5 — Engineering Specifications
+
+**Status:** In progress  
+**Purpose:** Convert approved product architecture and UX into implementation-ready runtime contracts before production development begins.
+
+## Why this phase exists
+
+Phase 1 established the interaction reference. Phase 2 defined the product architecture. Phase 3 approved the UX. Phase 3.5 now freezes the engineering rules that code must implement.
+
+Development must not invent new runtime ownership, timing, gesture, rendering, asset, plugin, or Home Assistant reconciliation behavior without updating these specifications.
+
+## Workstream
+
+- [x] **3.5.1 Runtime execution model**
+- [ ] **3.5.2 Camera engine contract**
+- [ ] **3.5.3 Renderer and frame pipeline**
+- [ ] **3.5.4 Input and gesture arbitration**
+- [ ] **3.5.5 Home Assistant runtime contract**
+- [ ] **3.5.6 Performance and resource budgets**
+- [ ] **3.5.7 3D asset pipeline and validation**
+- [ ] **3.5.8 Plugin and extension API**
+- [ ] **3.5.9 Blueprint/runtime schema reference**
+- [ ] **3.5.10 Engineering validation and implementation gate**
+
+## Required outputs
+
+Every specification must define:
+
+- ownership boundaries;
+- lifecycle and state machine;
+- public interfaces;
+- event and command flow;
+- failure behavior;
+- responsive and accessibility implications;
+- performance constraints;
+- diagnostics;
+- deterministic acceptance criteria.
+
+## Execution order
+
+```text
+Runtime execution model
+→ Camera engine
+→ Renderer pipeline
+→ Input arbitration
+→ Home Assistant runtime
+→ Performance budgets
+→ Asset pipeline
+→ Plugin API
+→ Blueprint/runtime schema
+→ Final engineering validation
+```
+
+The order is intentional. Later contracts depend on ownership and lifecycle rules established earlier.
+
+## Phase exit gate
+
+Phase 4 may begin only when:
+
+1. all runtime owners are explicit;
+2. frame, command, transition, and reconciliation ordering is deterministic;
+3. input conflicts have one arbitration model;
+4. render and performance budgets are measurable;
+5. asset and plugin contracts are versioned;
+6. Home Assistant disconnect, retry, stale state, and command failure behavior are defined;
+7. a contributor can implement the first vertical slice without inventing architecture.
