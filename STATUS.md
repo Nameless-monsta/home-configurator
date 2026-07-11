@@ -13,9 +13,9 @@ Updated: 2026-07-11
 
 ## Current gate
 
-Phase 4.3 is complete. Home Configurator now has a persistent Three.js graphics engine with centralized rendering, camera transitions and framing, scene ownership, warm studio lighting, quality tiers, post-processing, GLTF loading, HDR environments, LOD, GPU-resource disposal, WebGL context recovery and live diagnostics.
+Phase 4.4 is complete. Home Configurator now has centralized input ownership, semantic raycasting, deterministic gesture arbitration, selection, navigation, transitions, animations, camera focus and accessible keyboard alternatives.
 
-The next implementation gate is 4.4 — Interaction Engine.
+Phase 4.5 — Home Assistant Engine is implemented and undergoing CI validation.
 
 ## Completed
 
@@ -39,23 +39,25 @@ The next implementation gate is 4.4 — Interaction Engine.
 - 4.1 repository, build and CI setup
 - 4.2 Runtime Core
 - 4.3 Graphics Engine
+- 4.4 Interaction Engine
 
 ## Phase 4 workstream
 
 - [x] 4.1 Repository, build and CI setup
 - [x] 4.2 Runtime Core
 - [x] 4.3 Graphics Engine
-- [ ] 4.4 Interaction Engine
-- [ ] 4.5 Home Assistant Engine
+- [x] 4.4 Interaction Engine
+- [ ] 4.5 Home Assistant Engine — implementation complete, CI validation running
 - [ ] 4.6 UI Engine
 - [ ] 4.7 First Interactive Prototype
 - [ ] 4.8 Performance optimisation
 - [ ] 4.9 Documentation
 - [ ] 4.10 HACS release
 
-## Graphics validation
+## Validation history
 
-The final Phase 4.3 validation passed on GitHub Actions run 129. Formatting, linting, strict TypeScript, package tests and all production builds completed successfully.
+- Phase 4.3 passed formatting, linting, strict TypeScript, package tests and all production builds.
+- Phase 4.4 passed formatting, linting, strict TypeScript, package tests and all production builds.
 
 ## First interactive prototype
 
@@ -74,6 +76,7 @@ The first interactive prototype must validate:
 
 ## Next
 
-1. Complete 4.4 — Interaction Engine.
-2. Select the project license before public distribution.
-3. Record any implementation-driven contract change through the relevant specification and an ADR.
+1. Complete CI validation for 4.5 — Home Assistant Engine.
+2. Start 4.6 — UI Engine after the 4.5 gate is green.
+3. Select the project license before public distribution.
+4. Record any implementation-driven contract change through the relevant specification and an ADR.
