@@ -15,7 +15,7 @@ Updated: 2026-07-11
 
 Phase 4.5 is complete. Home Configurator now has an authenticated Home Assistant transport, coherent registry and state synchronization, automatic room and device discovery, semantic capability bindings, service-call translation, optimistic reconciliation, stale-state handling and reconnect behavior.
 
-The next implementation gate is 4.6 — UI Engine.
+Phase 4.6 — UI Engine is implemented and undergoing CI validation.
 
 ## Completed
 
@@ -49,7 +49,7 @@ The next implementation gate is 4.6 — UI Engine.
 - [x] 4.3 Graphics Engine
 - [x] 4.4 Interaction Engine
 - [x] 4.5 Home Assistant Engine
-- [ ] 4.6 UI Engine
+- [ ] 4.6 UI Engine — implementation complete, CI validation running
 - [ ] 4.7 First Interactive Prototype
 - [ ] 4.8 Performance optimisation
 - [ ] 4.9 Documentation
@@ -78,6 +78,7 @@ The first interactive prototype must validate:
 
 ## Next
 
-1. Start 4.6 — UI Engine.
-2. Select the project license before public distribution.
-3. Record any implementation-driven contract change through the relevant specification and an ADR.
+1. Complete CI validation for 4.6 — UI Engine.
+2. Start 4.7 — First Interactive Prototype after the 4.6 gate is green.
+3. Select the project license before public distribution.
+4. Record any implementation-driven contract change through the relevant specification and an ADR.
