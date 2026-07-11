@@ -2,74 +2,103 @@ import { attachGraphicsRuntime } from '@home-configurator/graphics';
 import {
   HomeAssistantEngine,
   MemoryHomeAssistantTransport,
+  type CapabilityKind,
   type HAState,
+  type SemanticCommand,
 } from '@home-configurator/home-assistant';
 import { InteractionEngine, semanticOrbitHandler } from '@home-configurator/interaction';
 import { createRuntime } from '@home-configurator/runtime';
+import { HomeConfiguratorUi } from '@home-configurator/ui';
 
 import './styles.css';
 
 const root = document.querySelector<HTMLElement>('#app');
 if (!root) throw new Error('Application root was not found');
 
-root.innerHTML = `
-  <section class="runtime-shell">
-    <header class="runtime-header">
-      <span>Home Configurator</span>
-      <span class="runtime-status" data-runtime-status>Booting</span>
-    </header>
-    <main class="runtime-stage" data-stage tabindex="0" aria-label="Interactive Home Configurator 3D stage. Drag to rotate the selected object.">
-      <canvas class="graphics-canvas" data-graphics-canvas aria-hidden="true"></canvas>
-      <div class="stage-caption">
-        <p class="stage-kicker">Automatic Home Assistant discovery online</p>
-        <h1 class="runtime-title">Home Assistant Engine</h1>
-        <p class="runtime-subtitle">Areas, devices, entities and capabilities are resolved into a portable semantic home model.</p>
-      </div>
-    </main>
-    <footer class="runtime-footer">
-      <span>v0.5.0</span>
-      <div class="runtime-diagnostics" aria-label="Runtime diagnostics">
-        <span>Runtime<strong data-phase>idle</strong></span>
-        <span>HA<strong data-ha-status>uninitialized</strong></span>
-        <span>Rooms<strong data-rooms>0</strong></span>
-        <span>Devices<strong data-devices>0</strong></span>
-        <span>Entities<strong data-entities>0</strong></span>
-        <span>Frame<strong data-frame>0</strong></span>
-        <span>Gestures<strong data-gestures>0</strong></span>
-      </div>
-    </footer>
-  </section>
-`;
-
-const canvas = root.querySelector<HTMLCanvasElement>('[data-graphics-canvas]');
-const stage = root.querySelector<HTMLElement>('[data-stage]');
-if (!canvas || !stage) throw new Error('Graphics stage was not created');
-
-const statusNode = root.querySelector<HTMLElement>('[data-runtime-status]');
-const phaseNode = root.querySelector<HTMLElement>('[data-phase]');
-const homeAssistantStatusNode = root.querySelector<HTMLElement>('[data-ha-status]');
-const roomsNode = root.querySelector<HTMLElement>('[data-rooms]');
-const devicesNode = root.querySelector<HTMLElement>('[data-devices]');
-const entitiesNode = root.querySelector<HTMLElement>('[data-entities]');
-const frameNode = root.querySelector<HTMLElement>('[data-frame]');
-const gesturesNode = root.querySelector<HTMLElement>('[data-gestures]');
-
 const runtime = createRuntime({
   config: { application: { environment: import.meta.env.DEV ? 'development' : 'production' } },
 });
+
+let homeAssistant: HomeAssistantEngine | undefined;
+let interaction: InteractionEngine | undefined;
+let commandSequence = 0;
+
+const commandPayload = (
+  capability: CapabilityKind,
+  action: string,
+): Pick<SemanticCommand, 'action' | 'value'> => {
+  if (capability === 'brightness') return { action, value: 0.72 };
+  if (capability === 'color') return { action, value: [32, 58] };
+  if (capability === 'colorTemperature') return { action, value: 3200 };
+  if (capability === 'targetTemperature') return { action, value: 22 };
+  if (capability === 'hvacMode') return { action, value: 'cool' };
+  if (capability === 'fanMode') return { action, value: 'auto' };
+  if (capability === 'volume') return { action, value: 0.45 };
+  if (capability === 'mediaPlayback') return { action: 'toggle' };
+  if (capability === 'mediaSource') return { action, value: 'Apple TV' };
+  if (capability === 'coverPosition') return { action, value: 50 };
+  if (capability === 'lock') return { action: 'lock' };
+  return { action };
+};
+
+const ui = new HomeConfiguratorUi({
+  root,
+  version: '0.6.0',
+  onRoomSelected: () => {
+    interaction?.navigation.go({ level: 'room' });
+  },
+  onDeviceSelected: () => {
+    interaction?.navigation.go({ level: 'device' });
+    interaction?.focusSelection();
+  },
+  onDeviceAction: (deviceId, capabilityName, actionName) => {
+    if (!homeAssistant) return;
+    const capability = capabilityName as CapabilityKind;
+    const device = homeAssistant
+      .getConfirmedSnapshot()
+      .devices.find((candidate) => candidate.id === deviceId);
+    if (!device || !device.capabilities.includes(capability) || capability === 'sensor') return;
+
+    let action = actionName;
+    let value: unknown;
+    if (capability === 'power') {
+      const binding = device.bindings.find((candidate) => candidate.capabilities.includes('power'));
+      const state = binding
+        ? homeAssistant.getConfirmedSnapshot().states[binding.entityId]?.state
+        : undefined;
+      action = state === 'on' ? 'off' : 'on';
+    } else {
+      const payload = commandPayload(capability, actionName);
+      action = payload.action;
+      value = payload.value;
+    }
+
+    commandSequence += 1;
+    void homeAssistant.dispatch({
+      id: `ui-${commandSequence}`,
+      deviceId,
+      capability,
+      action,
+      ...(value === undefined ? {} : { value }),
+      issuedAt: Date.now(),
+      policy: 'reject-offline',
+    });
+  },
+});
+
 const graphicsHandle = attachGraphicsRuntime({
   runtime,
-  canvas,
-  viewportElement: stage,
+  canvas: ui.canvas,
+  viewportElement: ui.stage,
   qualityTier: 'balanced',
 });
 const hero = graphicsHandle.engine.createFallbackHero();
 graphicsHandle.engine.cameraRig.frameObject(hero, { padding: 1.65, reducedMotion: true });
 
-const interaction = new InteractionEngine({
+interaction = new InteractionEngine({
   runtime,
   graphics: graphicsHandle.engine,
-  surface: stage,
+  surface: ui.stage,
   reducedMotion: () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
 });
 interaction.selection.register('device.demo-lamp', hero);
@@ -80,7 +109,7 @@ interaction.registerTarget({
   gestures: ['tap', 'orbit', 'pinch', 'wheel', 'keyboard-action'],
   onIntent: (intent) => {
     orbit(intent);
-    if (intent.type === 'tap.commit' || intent.type === 'activate') interaction.focusSelection();
+    if (intent.type === 'tap.commit' || intent.type === 'activate') interaction?.focusSelection();
     if (intent.type === 'adjust-left') hero.rotation.y -= 0.12;
     if (intent.type === 'adjust-right') hero.rotation.y += 0.12;
     if (intent.type === 'adjust-up') hero.rotation.x -= 0.08;
@@ -203,7 +232,8 @@ const homeAssistantTransport = new MemoryHomeAssistantTransport({
     }),
   ],
 });
-const homeAssistant = new HomeAssistantEngine({
+
+homeAssistant = new HomeAssistantEngine({
   config: {
     url: 'http://homeassistant.demo',
     accessToken: 'memory-transport-only',
@@ -213,34 +243,49 @@ const homeAssistant = new HomeAssistantEngine({
   transport: homeAssistantTransport,
 });
 
+let runtimePhase = 'idle';
+let homeAssistantStatus = 'uninitialized';
 runtime.events.on('runtime.phase', ({ current }) => {
-  if (phaseNode) phaseNode.textContent = current;
-  if (statusNode) statusNode.textContent = current === 'running' ? 'Online' : current;
+  runtimePhase = current;
+  ui.setRuntimeStatus(current === 'running' ? 'Online' : current);
 });
 
 homeAssistant.subscribe(({ snapshot }) => {
-  if (homeAssistantStatusNode) homeAssistantStatusNode.textContent = snapshot.status;
-  if (roomsNode) roomsNode.textContent = String(snapshot.rooms.length);
-  if (devicesNode) devicesNode.textContent = String(snapshot.devices.length);
-  if (entitiesNode) entitiesNode.textContent = String(Object.keys(snapshot.states).length);
+  homeAssistantStatus = snapshot.status;
+  ui.setHome(snapshot);
 });
 
 runtime.diagnostics.subscribe((snapshot) => {
-  if (frameNode) frameNode.textContent = String(snapshot.gauges['scheduler.frame'] ?? 0);
-  if (gesturesNode) {
-    gesturesNode.textContent = String(snapshot.counters['interaction.completed'] ?? 0);
-  }
+  ui.setDiagnostics({
+    runtimePhase,
+    homeAssistantStatus,
+    frame: snapshot.gauges['scheduler.frame'] ?? 0,
+    gestures: snapshot.counters['interaction.completed'] ?? 0,
+    drawCalls: snapshot.gauges['graphics.drawCalls'] ?? 0,
+  });
 });
 
-void Promise.all([runtime.start(), homeAssistant.connect()]);
+void Promise.all([runtime.start(), homeAssistant.connect()]).then(() => {
+  ui.setHome(homeAssistant?.getConfirmedSnapshot() ?? homeAssistantTransportFixtureFallback());
+});
+
+const homeAssistantTransportFixtureFallback = (): ReturnType<HomeAssistantEngine['getConfirmedSnapshot']> => ({
+  status: 'uninitialized',
+  rooms: [],
+  devices: [],
+  states: {},
+  observedAt: 0,
+  stale: true,
+});
 
 let disposed = false;
 const shutdown = async (): Promise<void> => {
   if (disposed) return;
   disposed = true;
-  interaction.dispose();
-  await homeAssistant.disconnect();
-  homeAssistant.dispose();
+  ui.dispose();
+  interaction?.dispose();
+  await homeAssistant?.disconnect();
+  homeAssistant?.dispose();
   await runtime.stop();
   graphicsHandle.dispose();
 };
