@@ -1,6 +1,7 @@
 export * from './configurator-model.js';
 export * from './configurator-types.js';
 export * from './configurator.js';
+export * from './control-library.js';
 export * from './foundation.js';
 export * from './layout.js';
 export * from './navigation-model.js';
