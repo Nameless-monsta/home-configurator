@@ -1,4 +1,4 @@
-name: Test Log
+name: Lint Log
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  test-log:
+  lint-log:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -17,9 +17,9 @@ jobs:
         with:
           node-version-file: .nvmrc
       - run: pnpm install --no-frozen-lockfile
-      - name: Capture test output
-        run: pnpm test:ci > test.log 2>&1 || true
+      - name: Capture lint output
+        run: pnpm lint > lint.log 2>&1 || true
       - uses: actions/upload-artifact@v4
         with:
-          name: interaction-test-log
-          path: test.log
+          name: interaction-lint-log
+          path: lint.log
