@@ -34,10 +34,24 @@ export interface UiValidationReport {
 }
 
 const interactiveTags = new Set(['button', 'input', 'select', 'textarea', 'a']);
-const interactiveRoles = new Set(['button', 'checkbox', 'combobox', 'link', 'listbox', 'menuitem', 'option', 'radio', 'slider', 'switch', 'tab']);
+const interactiveRoles = new Set([
+  'button',
+  'checkbox',
+  'combobox',
+  'link',
+  'listbox',
+  'menuitem',
+  'option',
+  'radio',
+  'slider',
+  'switch',
+  'tab',
+]);
 
 const isInteractive = (node: UiValidationNode): boolean =>
-  node.focusable === true || interactiveTags.has(node.tag) || (node.role ? interactiveRoles.has(node.role) : false);
+  node.focusable === true ||
+  interactiveTags.has(node.tag) ||
+  (node.role ? interactiveRoles.has(node.role) : false);
 
 const nodeLabel = (node: UiValidationNode, index: number): string =>
   node.id ? `${node.tag}#${node.id}` : `${node.tag}[${index}]`;
@@ -87,7 +101,11 @@ export const validateUiTree = (root: UiValidationNode): UiValidationReport => {
       });
     }
 
-    for (const id of [...(node.labelledBy ?? []), ...(node.describedBy ?? []), ...(node.controls ?? [])]) {
+    for (const id of [
+      ...(node.labelledBy ?? []),
+      ...(node.describedBy ?? []),
+      ...(node.controls ?? []),
+    ]) {
       references.push({ id, path });
     }
 
