@@ -58,7 +58,13 @@ export class UiMotionController {
     this.cancel(element);
     if (this.#reducedMotion() || definition.speed === 'instant' || !('animate' in element)) {
       const finalFrame = definition.keyframes.at(-1);
-      if (finalFrame && element instanceof HTMLElement) Object.assign(element.style, finalFrame);
+      if (
+        finalFrame &&
+        typeof HTMLElement !== 'undefined' &&
+        element instanceof HTMLElement
+      ) {
+        Object.assign(element.style, finalFrame);
+      }
       return null;
     }
     const animation = element.animate(definition.keyframes, {
