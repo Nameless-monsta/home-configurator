@@ -1,4 +1,4 @@
-import { LOD, type Camera } from 'three';
+import type { Camera, LOD } from 'three';
 
 import type { Diagnostics } from '@home-configurator/runtime';
 
