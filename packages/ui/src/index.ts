@@ -5,6 +5,8 @@ export * from './control-library.js';
 export * from './device-panels.js';
 export * from './foundation.js';
 export * from './layout.js';
+export * from './motion-orchestrator.js';
+export * from './motion.js';
 export * from './navigation-model.js';
 export * from './navigation-types.js';
 export * from './navigation.js';

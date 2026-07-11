@@ -11,6 +11,7 @@ import {
   DevicePanelRegistry,
   UiConfigurator,
   UiFoundation,
+  UiMotionOrchestrator,
   UiNavigation,
   type UiNavigationLocation,
 } from '@home-configurator/ui';
@@ -19,13 +20,14 @@ import { toDevicePanelSource } from './device-panel-adapter.js';
 import './styles.css';
 import './navigation.css';
 import './configurator.css';
+import './motion.css';
 
 const root = document.querySelector<HTMLElement>('#app');
 if (!root) throw new Error('Application root was not found');
 
 const ui = new UiFoundation({
   root,
-  version: '0.6.5',
+  version: '0.6.6',
   subtitle: 'Select a device to open its capability-driven control panel.',
 });
 
@@ -53,6 +55,11 @@ const configurator = new UiConfigurator({
 const navigation = new UiNavigation({
   root,
   onNavigate: (location) => configurator.setDocument(createDocument(latestHomeSnapshot, location)),
+});
+
+const motion = new UiMotionOrchestrator({
+  root,
+  reducedMotion: () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
 });
 
 const runtime = createRuntime({
@@ -258,6 +265,7 @@ let disposed = false;
 const shutdown = async (): Promise<void> => {
   if (disposed) return;
   disposed = true;
+  motion.dispose();
   configurator.dispose();
   navigation.dispose();
   ui.dispose();

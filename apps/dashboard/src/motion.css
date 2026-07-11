@@ -1,0 +1,52 @@
+[data-ui-motion='ready'] .ui-configurator,
+[data-ui-motion='ready'] .ui-navigation,
+[data-ui-motion='ready'] .ui-overlay-panel,
+[data-ui-motion='ready'] .ui-configurator-section,
+[data-ui-motion='ready'] .ui-navigation-menu {
+  will-change: transform, opacity;
+  transform-origin: center top;
+}
+
+[data-ui-motion='ready'] button,
+[data-ui-motion='ready'] input,
+[data-ui-motion='ready'] select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+[data-ui-motion='ready'] .ui-configurator-section-toggle i,
+[data-ui-motion='ready'] .ui-control-toggle span,
+[data-ui-motion='ready'] .ui-control-segmented button,
+[data-ui-motion='ready'] .ui-navigation button {
+  transition:
+    transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 140ms ease,
+    color 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+[data-ui-motion='ready']
+  .ui-configurator-section[data-collapsed='true']
+  .ui-configurator-section-toggle
+  i {
+  transform: rotate(-90deg);
+}
+
+[data-ui-motion='ready'] .ui-control-toggle[aria-checked='true'] span {
+  transform: translateX(4px) scale(1.04);
+}
+
+[data-ui-motion='ready'] button:active:not(:disabled) {
+  transform: scale(0.975);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-ui-motion='ready'] *,
+  [data-ui-motion='ready'] *::before,
+  [data-ui-motion='ready'] *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
