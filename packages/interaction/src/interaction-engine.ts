@@ -39,7 +39,10 @@ export class InteractionEngine {
     this.#graphics = options.graphics;
     this.#surface = options.surface;
     this.input = new InputEngine({ diagnostics: this.#runtime.diagnostics });
-    this.selection = new SelectionEngine(this.#graphics.cameraRig.camera, this.#runtime.diagnostics);
+    this.selection = new SelectionEngine(
+      this.#graphics.cameraRig.camera,
+      this.#runtime.diagnostics,
+    );
     this.navigation = new NavigationEngine(this.#runtime.diagnostics);
     this.transitions = new TransitionDirector(this.#runtime.diagnostics, options.reducedMotion);
     this.animations = new AnimationDirector(this.#runtime.diagnostics);
@@ -58,7 +61,10 @@ export class InteractionEngine {
     return unregister;
   }
 
-  public navigate(location: NavigationLocation, cameraRig: CameraRig = this.#graphics.cameraRig): boolean {
+  public navigate(
+    location: NavigationLocation,
+    cameraRig: CameraRig = this.#graphics.cameraRig,
+  ): boolean {
     const moved = this.navigation.navigate(location);
     if (!moved) return false;
     if (location.cameraPose) cameraRig.transitionTo(location.cameraPose, { durationMs: 900 });
@@ -75,7 +81,8 @@ export class InteractionEngine {
   public snapshot(): InteractionDiagnosticsSnapshot {
     const selection = this.selection.snapshot();
     return {
-      activePointers: this.#runtime.diagnostics.snapshot().gauges['interaction.activePointers'] ?? 0,
+      activePointers:
+        this.#runtime.diagnostics.snapshot().gauges['interaction.activePointers'] ?? 0,
       activeSessions: this.input.getActiveSessions().length,
       ...(selection.selectedId ? { selectedId: selection.selectedId } : {}),
       navigationLevel: this.navigation.location.level,
@@ -137,7 +144,8 @@ export class InteractionEngine {
   readonly #onPointerUp = (event: PointerEvent): void => {
     const bounds = this.#surface.getBoundingClientRect();
     this.input.handlePointer(normalizePointerEvent(event, 'up', bounds));
-    if (this.#surface.hasPointerCapture?.(event.pointerId)) this.#surface.releasePointerCapture(event.pointerId);
+    if (this.#surface.hasPointerCapture?.(event.pointerId))
+      this.#surface.releasePointerCapture(event.pointerId);
   };
 
   readonly #onPointerCancel = (event: PointerEvent): void => {
@@ -173,10 +181,11 @@ const keyboardAction = (event: KeyboardEvent): string | undefined => {
   return map[event.key];
 };
 
-export const semanticOrbitHandler = (
-  object: { rotation: { x: number; y: number } },
-  sensitivity = 0.006,
-): ((intent: SemanticIntent) => void) =>
+export const semanticOrbitHandler =
+  (
+    object: { rotation: { x: number; y: number } },
+    sensitivity = 0.006,
+  ): ((intent: SemanticIntent) => void) =>
   (intent) => {
     if (intent.type !== 'orbit.update') return;
     object.rotation.y += (intent.deltaX ?? 0) * sensitivity;
