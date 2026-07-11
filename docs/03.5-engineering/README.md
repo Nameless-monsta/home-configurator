@@ -14,8 +14,8 @@ Development must not invent new runtime ownership, timing, gesture, rendering, a
 - [x] **3.5.1 Runtime execution model**
 - [x] **3.5.2 Camera engine contract**
 - [x] **3.5.3 Renderer and frame pipeline**
-- [ ] **3.5.4 Input and gesture arbitration**
-- [ ] **3.5.5 Home Assistant runtime contract**
+- [x] **3.5.4 Input and gesture arbitration**
+- [x] **3.5.5 Home Assistant runtime contract**
 - [ ] **3.5.6 Performance and resource budgets**
 - [ ] **3.5.7 3D asset pipeline and validation**
 - [ ] **3.5.8 Plugin and extension API**
@@ -27,6 +27,8 @@ Development must not invent new runtime ownership, timing, gesture, rendering, a
 - [3.5.1 Runtime Execution Model](3.5.1_RUNTIME_EXECUTION_MODEL.md)
 - [3.5.2 Camera Engine Contract](3.5.2_CAMERA_ENGINE_CONTRACT.md)
 - [3.5.3 Renderer and Frame Pipeline](3.5.3_RENDERER_AND_FRAME_PIPELINE.md)
+- [3.5.4 Input and Gesture Arbitration](3.5.4_INPUT_AND_GESTURE_ARBITRATION.md)
+- [3.5.5 Home Assistant Runtime Contract](3.5.5_HOME_ASSISTANT_RUNTIME_CONTRACT.md)
 
 ## Required outputs
 
