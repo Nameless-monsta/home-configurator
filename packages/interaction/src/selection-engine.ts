@@ -34,9 +34,9 @@ export class SelectionEngine {
     this.#raycaster.setFromCamera(this.#pointer, this.#camera);
     const intersections = this.#raycaster.intersectObjects([...this.#objects.values()], true);
     for (const intersection of intersections) {
-      let object: Object3D | null = intersection.object;
+      let object: Object3D | null = intersection.object as Object3D;
       while (object) {
-        const semanticId = object.userData['semanticId'];
+        const semanticId: unknown = object.userData['semanticId'];
         if (typeof semanticId === 'string' && this.#objects.has(semanticId)) return semanticId;
         object = object.parent;
       }
