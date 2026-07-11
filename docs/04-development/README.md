@@ -9,7 +9,7 @@
 - [x] **4.2 Runtime Core**
 - [x] **4.3 Graphics Engine**
 - [x] **4.4 Interaction Engine**
-- [ ] **4.5 Home Assistant Engine**
+- [ ] **4.5 Home Assistant Engine — implementation complete, CI validation running**
 - [ ] **4.6 UI Engine**
 - [ ] **4.7 First Interactive Prototype**
 - [ ] **4.8 Performance optimisation**
@@ -39,6 +39,14 @@ See [4.3 Graphics Engine](4.3_GRAPHICS_ENGINE.md).
 Central input ownership, semantic raycasting, gesture arbitration, selection, navigation, transitions, animations, camera focus and accessible keyboard alternatives. GitHub Actions validation passed formatting, linting, strict TypeScript, tests and production builds.
 
 See [4.4 Interaction Engine](4.4_INTERACTION_ENGINE.md).
+
+## Active milestone
+
+### 4.5 — Home Assistant Engine
+
+Authenticated WebSocket transport, automatic room and device discovery, capability abstraction, live state synchronization, command translation, optimistic reconciliation, reconnect behavior and diagnostics.
+
+See [4.5 Home Assistant Engine](4.5_HOME_ASSISTANT_ENGINE.md).
 
 ## Required validation command
 
