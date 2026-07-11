@@ -188,7 +188,9 @@
   height: 22px;
   border-radius: 50%;
   background: var(--ui-muted);
-  transition: transform 160ms ease, background 160ms ease;
+  transition:
+    transform 160ms ease,
+    background 160ms ease;
 }
 
 .ui-control-toggle[aria-checked='true'] span {

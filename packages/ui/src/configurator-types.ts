@@ -1,14 +1,7 @@
 export type ConfiguratorValue = string | number | boolean | null;
 
 export type ConfiguratorFieldKind =
-  | 'toggle'
-  | 'slider'
-  | 'number'
-  | 'select'
-  | 'segmented'
-  | 'text'
-  | 'color'
-  | 'status';
+  'toggle' | 'slider' | 'number' | 'select' | 'segmented' | 'text' | 'color' | 'status';
 
 export interface ConfiguratorOption {
   readonly value: string;

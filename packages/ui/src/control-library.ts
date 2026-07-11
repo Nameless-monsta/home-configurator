@@ -25,8 +25,7 @@ const escapeHtml = (value: string): string =>
 const fieldAttributes = (context: ControlRenderContext): string =>
   `data-configurator-field="${escapeHtml(context.field.id)}" ${context.disabled ? 'disabled' : ''}`;
 
-const primitiveText = (value: ConfiguratorValue): string =>
-  value === null ? '' : String(value);
+const primitiveText = (value: ConfiguratorValue): string => (value === null ? '' : String(value));
 
 const inputRenderer = (
   type: 'text' | 'number' | 'color',
@@ -61,7 +60,7 @@ const toggleRenderer: ControlRenderer = {
 const sliderRenderer: ControlRenderer = {
   render: (context) => {
     const { field, value } = context;
-    const numericValue = typeof value === 'number' ? value : field.minimum ?? 0;
+    const numericValue = typeof value === 'number' ? value : (field.minimum ?? 0);
     return `<div class="ui-control-slider">
       <input type="range" ${fieldAttributes(context)} value="${numericValue}" min="${
         field.minimum ?? 0
@@ -89,16 +88,19 @@ const selectRenderer: ControlRenderer = {
 };
 
 const segmentedRenderer: ControlRenderer = {
-  render: (context) => `<div class="ui-control-segmented" role="radiogroup" aria-label="${escapeHtml(
+  render: (
+    context,
+  ) => `<div class="ui-control-segmented" role="radiogroup" aria-label="${escapeHtml(
     context.field.label,
   )}">
     ${(context.field.options ?? [])
       .map(
-        (option) => `<button type="button" role="radio" aria-checked="${String(
-          option.value === context.value,
-        )}" ${fieldAttributes(context)} data-control-value="${escapeHtml(option.value)}">${escapeHtml(
-          option.label,
-        )}</button>`,
+        (option) =>
+          `<button type="button" role="radio" aria-checked="${String(
+            option.value === context.value,
+          )}" ${fieldAttributes(context)} data-control-value="${escapeHtml(option.value)}">${escapeHtml(
+            option.label,
+          )}</button>`,
       )
       .join('')}
   </div>`,
@@ -106,9 +108,10 @@ const segmentedRenderer: ControlRenderer = {
 };
 
 const statusRenderer: ControlRenderer = {
-  render: (context) => `<output class="ui-control-status">${escapeHtml(
-    context.value === null ? '—' : String(context.value),
-  )}${context.field.unit ? escapeHtml(context.field.unit) : ''}</output>`,
+  render: (context) =>
+    `<output class="ui-control-status">${escapeHtml(
+      context.value === null ? '—' : String(context.value),
+    )}${context.field.unit ? escapeHtml(context.field.unit) : ''}</output>`,
   read: () => null,
 };
 
@@ -118,11 +121,20 @@ export class ControlLibrary {
   public constructor() {
     this.register('toggle', toggleRenderer);
     this.register('slider', sliderRenderer);
-    this.register('number', inputRenderer('number', (target) => Number(target.value)));
+    this.register(
+      'number',
+      inputRenderer('number', (target) => Number(target.value)),
+    );
     this.register('select', selectRenderer);
     this.register('segmented', segmentedRenderer);
-    this.register('text', inputRenderer('text', (target) => target.value));
-    this.register('color', inputRenderer('color', (target) => target.value));
+    this.register(
+      'text',
+      inputRenderer('text', (target) => target.value),
+    );
+    this.register(
+      'color',
+      inputRenderer('color', (target) => target.value),
+    );
     this.register('status', statusRenderer);
   }
 

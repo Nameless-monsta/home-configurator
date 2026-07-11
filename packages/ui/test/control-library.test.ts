@@ -40,7 +40,11 @@ describe('ControlLibrary', () => {
   it('escapes user-facing labels and values', () => {
     const library = new ControlLibrary();
     const markup = library.render({
-      field: field({ kind: 'segmented', label: '<Room>', options: [{ value: 'a', label: '<Auto>' }] }),
+      field: field({
+        kind: 'segmented',
+        label: '<Room>',
+        options: [{ value: 'a', label: '<Auto>' }],
+      }),
       value: 'a',
       disabled: false,
     });
@@ -81,9 +85,9 @@ describe('ControlLibrary', () => {
 
     library.register('text', custom);
 
-    expect(
-      library.render({ field: field(), value: 'replacement', disabled: false }),
-    ).toBe('<custom-control>replacement</custom-control>');
+    expect(library.render({ field: field(), value: 'replacement', disabled: false })).toBe(
+      '<custom-control>replacement</custom-control>',
+    );
     expect(library.read('text', inputTarget('ignored'))).toBe('custom');
   });
 });
