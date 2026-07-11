@@ -1,10 +1,10 @@
 import { ConfiguratorModel } from './configurator-model.js';
+import { ControlLibrary } from './control-library.js';
 import type {
   ConfiguratorDocument,
   ConfiguratorField,
   ConfiguratorRendererOptions,
   ConfiguratorSnapshot,
-  ConfiguratorValue,
 } from './configurator-types.js';
 
 const escapeHtml = (value: string): string =>
@@ -17,6 +17,7 @@ const escapeHtml = (value: string): string =>
 export class UiConfigurator {
   readonly #host: HTMLElement;
   readonly #model: ConfiguratorModel;
+  readonly #controls = new ControlLibrary();
   readonly #unsubscribe: () => void;
   readonly #collapsed = new Set<string>();
 
@@ -56,10 +57,17 @@ export class UiConfigurator {
   }
 
   readonly #handleClick = (event: Event): void => {
-    const target =
-      event.target instanceof Element
-        ? event.target.closest<HTMLElement>('[data-configurator-action]')
-        : null;
+    const element = event.target instanceof Element ? event.target : null;
+    const control = element?.closest<HTMLButtonElement>('button[data-configurator-field]');
+    if (control) {
+      const field = this.#findField(control.dataset['configuratorField']);
+      if (field && !control.disabled) {
+        this.#model.setValue(field.id, this.#controls.read(field.kind, control));
+      }
+      return;
+    }
+
+    const target = element?.closest<HTMLElement>('[data-configurator-action]');
     const action = target?.dataset['configuratorAction'];
     const id = target?.dataset['configuratorId'];
     if (action === 'undo') this.#model.undo();
@@ -77,15 +85,18 @@ export class UiConfigurator {
   readonly #handleInput = (event: Event): void => {
     const target = event.target;
     if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
-    const fieldId = target.dataset['configuratorField'];
-    if (!fieldId) return;
-    let value: ConfiguratorValue = target.value;
-    if (target instanceof HTMLInputElement && target.type === 'checkbox') value = target.checked;
-    if (target instanceof HTMLInputElement && ['range', 'number'].includes(target.type)) {
-      value = Number(target.value);
-    }
-    this.#model.setValue(fieldId, value);
+    const field = this.#findField(target.dataset['configuratorField']);
+    if (!field) return;
+    this.#model.setValue(field.id, this.#controls.read(field.kind, target));
   };
+
+  #findField(fieldId: string | undefined): ConfiguratorField | undefined {
+    if (!fieldId) return undefined;
+    return this.#model
+      .snapshot()
+      .document?.sections.flatMap((section) => section.fields)
+      .find((field) => field.id === fieldId);
+  }
 
   #render(snapshot: ConfiguratorSnapshot): void {
     const document = snapshot.document;
@@ -145,28 +156,13 @@ export class UiConfigurator {
       ? snapshot.pendingValues[field.id]!
       : field.value;
     const issue = snapshot.issues.find((item) => item.fieldId === field.id);
-    const disabled = field.disabled || field.readOnly || snapshot.saving;
+    const disabled = Boolean(field.disabled || field.readOnly || snapshot.saving);
     return `
-      <label class="ui-configurator-field" data-kind="${field.kind}" data-invalid="${String(Boolean(issue))}">
-        <span><strong>${escapeHtml(field.label)}</strong>${field.description ? `<small>${escapeHtml(field.description)}</small>` : ''}</span>
-        ${this.#renderControl(field, value, Boolean(disabled))}
+      <div class="ui-configurator-field" data-kind="${field.kind}" data-invalid="${String(Boolean(issue))}">
+        <div class="ui-configurator-field-label"><strong>${escapeHtml(field.label)}</strong>${field.description ? `<small>${escapeHtml(field.description)}</small>` : ''}</div>
+        ${this.#controls.render({ field, value, disabled })}
         ${issue ? `<em role="alert">${escapeHtml(issue.message)}</em>` : ''}
-      </label>
+      </div>
     `;
-  }
-
-  #renderControl(field: ConfiguratorField, value: ConfiguratorValue, disabled: boolean): string {
-    const attrs = `data-configurator-field="${escapeHtml(field.id)}" ${disabled ? 'disabled' : ''}`;
-    if (field.kind === 'toggle')
-      return `<input type="checkbox" ${attrs} ${value === true ? 'checked' : ''}>`;
-    if (field.kind === 'slider')
-      return `<div class="ui-configurator-range"><input type="range" ${attrs} value="${String(value ?? 0)}" min="${field.minimum ?? 0}" max="${field.maximum ?? 100}" step="${field.step ?? 1}"><output>${escapeHtml(String(value ?? 0))}${field.unit ? escapeHtml(field.unit) : ''}</output></div>`;
-    if (field.kind === 'number')
-      return `<input type="number" ${attrs} value="${String(value ?? '')}" ${field.minimum === undefined ? '' : `min="${field.minimum}"`} ${field.maximum === undefined ? '' : `max="${field.maximum}"`} ${field.step === undefined ? '' : `step="${field.step}"`}>`;
-    if (field.kind === 'select')
-      return `<select ${attrs}>${(field.options ?? []).map((option) => `<option value="${escapeHtml(option.value)}" ${option.value === value ? 'selected' : ''}>${escapeHtml(option.label)}</option>`).join('')}</select>`;
-    if (field.kind === 'status')
-      return `<output>${escapeHtml(String(value ?? '—'))}${field.unit ? escapeHtml(field.unit) : ''}</output>`;
-    return `<input type="text" ${attrs} value="${escapeHtml(String(value ?? ''))}">`;
   }
 }
