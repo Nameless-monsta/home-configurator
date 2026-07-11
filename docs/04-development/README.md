@@ -7,7 +7,7 @@
 
 - [x] **4.1 Repository, build and CI setup**
 - [x] **4.2 Runtime Core**
-- [ ] **4.3 Graphics Engine**
+- [x] **4.3 Graphics Engine**
 - [ ] **4.4 Interaction Engine**
 - [ ] **4.5 Home Assistant Engine**
 - [ ] **4.6 UI Engine**
@@ -20,23 +20,19 @@
 
 ### 4.1 — Repository, build and CI setup
 
-The repository uses Node.js 22, pnpm workspaces, Turbo, strict TypeScript, ESLint, Prettier, Vitest and GitHub Actions validation.
+Node.js 22, pnpm workspaces, Turbo, strict TypeScript, ESLint, Prettier, Vitest and GitHub Actions validation.
 
 ### 4.2 — Runtime Core
 
-The implemented runtime now provides:
-
-- deterministic bootstrap and shutdown;
-- typed dependency injection and service registration;
-- typed event delivery;
-- centralized frame scheduling;
-- runtime diagnostics;
-- configuration loading;
-- plugin and asset lifecycles;
-- a Home Assistant adapter boundary with a mock implementation;
-- a runnable Vite dashboard shell.
+Deterministic lifecycle, dependency injection, event bus, scheduler, diagnostics, configuration, plugin and asset managers, plus the Home Assistant adapter boundary.
 
 See [4.2 Runtime Core](4.2_RUNTIME_CORE.md).
+
+### 4.3 — Graphics Engine
+
+Persistent Three.js stage, responsive camera, scene graph, studio lighting, quality tiers, GLTF loader, fallback hero, diagnostics and dashboard integration.
+
+See [4.3 Graphics Engine](4.3_GRAPHICS_ENGINE.md).
 
 ## Required validation command
 
