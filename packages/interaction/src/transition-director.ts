@@ -13,7 +13,7 @@ export class TransitionDirector implements SchedulerTask {
   public readonly priority = 80;
   readonly #diagnostics: Diagnostics;
   readonly #reducedMotion: () => boolean;
-  #active?: ActiveTransition;
+  #active: ActiveTransition | undefined;
 
   public constructor(diagnostics: Diagnostics, reducedMotion: () => boolean = () => false) {
     this.#diagnostics = diagnostics;
