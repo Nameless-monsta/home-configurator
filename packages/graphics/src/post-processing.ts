@@ -1,5 +1,6 @@
 import { Vector2, type Camera, type Scene, type WebGLRenderer } from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
@@ -14,6 +15,7 @@ export class PostProcessingPipeline {
   readonly #camera: Camera;
   readonly #composer: EffectComposer;
   readonly #bloom: UnrealBloomPass;
+  readonly #output: OutputPass;
   #enabled: boolean;
 
   public constructor(
@@ -29,7 +31,9 @@ export class PostProcessingPipeline {
     this.#composer = new EffectComposer(renderer);
     this.#composer.addPass(new RenderPass(scene, camera));
     this.#bloom = new UnrealBloomPass(new Vector2(1, 1), options.bloomStrength, 0.55, 0.88);
+    this.#output = new OutputPass();
     this.#composer.addPass(this.#bloom);
+    this.#composer.addPass(this.#output);
   }
 
   public get enabled(): boolean {
@@ -59,6 +63,7 @@ export class PostProcessingPipeline {
 
   public dispose(): void {
     this.#bloom.dispose();
+    this.#output.dispose();
     this.#composer.dispose();
   }
 }
