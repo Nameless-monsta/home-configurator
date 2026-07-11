@@ -8,7 +8,7 @@
 - [x] **4.1 Repository, build and CI setup**
 - [x] **4.2 Runtime Core**
 - [x] **4.3 Graphics Engine**
-- [ ] **4.4 Interaction Engine — implementation complete, CI validation running**
+- [x] **4.4 Interaction Engine**
 - [ ] **4.5 Home Assistant Engine**
 - [ ] **4.6 UI Engine**
 - [ ] **4.7 First Interactive Prototype**
@@ -34,11 +34,9 @@ Persistent Three.js stage, responsive camera, scene graph, studio lighting, qual
 
 See [4.3 Graphics Engine](4.3_GRAPHICS_ENGINE.md).
 
-## Active milestone
-
 ### 4.4 — Interaction Engine
 
-Central input ownership, semantic raycasting, gesture arbitration, selection, navigation, transitions, animations, camera focus and accessible keyboard alternatives.
+Central input ownership, semantic raycasting, gesture arbitration, selection, navigation, transitions, animations, camera focus and accessible keyboard alternatives. GitHub Actions validation passed formatting, linting, strict TypeScript, tests and production builds.
 
 See [4.4 Interaction Engine](4.4_INTERACTION_ENGINE.md).
 
