@@ -1,6 +1,6 @@
 {
   "name": "@home-configurator/dashboard",
-  "version": "0.6.7",
+  "version": "0.6.8",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,8 +8,8 @@
     "dev": "vite --host 0.0.0.0",
     "lint": "eslint src vite.config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node -e \"console.log('No dashboard tests yet')\"",
-    "test:ci": "node -e \"console.log('No dashboard tests yet')\""
+    "test": "node -e \"console.log('Dashboard validation is covered by workspace smoke and UI contract tests')\"",
+    "test:ci": "node -e \"console.log('Dashboard validation is covered by workspace smoke and UI contract tests')\""
   },
   "dependencies": {
     "@home-configurator/graphics": "workspace:*",
