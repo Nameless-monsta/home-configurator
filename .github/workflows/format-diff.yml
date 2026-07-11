@@ -1,0 +1,27 @@
+name: Format Diff
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  format-diff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: pnpm install --no-frozen-lockfile
+      - name: Generate formatting patch
+        run: |
+          pnpm format
+          git diff --binary > format.patch
+      - uses: actions/upload-artifact@v4
+        with:
+          name: format-patch-r3
+          path: format.patch
