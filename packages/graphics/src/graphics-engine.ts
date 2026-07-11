@@ -2,6 +2,7 @@ import {
   ACESFilmicToneMapping,
   Color,
   CylinderGeometry,
+  DoubleSide,
   Group,
   Mesh,
   MeshPhysicalMaterial,
@@ -11,6 +12,7 @@ import {
   SphereGeometry,
   SRGBColorSpace,
   WebGLRenderer,
+  type Object3D,
 } from 'three';
 
 import type { Diagnostics, FrameContext, SchedulerTask } from '@home-configurator/runtime';
@@ -163,7 +165,7 @@ export class GraphicsEngine implements SchedulerTask {
       transmission: 0.12,
       transparent: true,
       opacity: 0.94,
-      side: 2,
+      side: DoubleSide,
     });
     const bulbMaterial = new MeshPhysicalMaterial({
       color: 0xffe6c2,
@@ -195,7 +197,7 @@ export class GraphicsEngine implements SchedulerTask {
     return hero;
   }
 
-  public async loadModel(id: string, uri: string, parentId?: string): Promise<Group | undefined> {
+  public async loadModel(id: string, uri: string, parentId?: string): Promise<Object3D> {
     const asset = await this.assets.load(id, uri);
     this.resources.trackObject(asset.scene);
     if (parentId) {
@@ -203,7 +205,7 @@ export class GraphicsEngine implements SchedulerTask {
     } else {
       this.graph.add({ id, object: asset.scene });
     }
-    return asset.scene instanceof Group ? asset.scene : undefined;
+    return asset.scene;
   }
 
   public loadEnvironment(
