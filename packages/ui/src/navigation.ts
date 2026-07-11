@@ -18,7 +18,7 @@ export class UiNavigation {
   readonly #root: HTMLElement;
   readonly #host: HTMLElement;
   readonly #model: UiNavigationModel;
-  readonly #onNavigate?: (location: UiNavigationLocation) => void;
+  readonly #onNavigate: ((location: UiNavigationLocation) => void) | undefined;
   readonly #unsubscribe: () => void;
 
   public constructor(options: UiNavigationOptions) {
@@ -33,7 +33,7 @@ export class UiNavigation {
     if (!shell || !stage) throw new Error('UI Foundation shell is required before navigation');
     shell.insertBefore(this.#host, stage);
 
-    this.#model = new UiNavigationModel(options.rooms, options.devices);
+    this.#model = new UiNavigationModel(options.rooms ?? [], options.devices ?? []);
     this.#host.addEventListener('click', this.#handleClick);
     this.#host.addEventListener('keydown', this.#handleKeydown);
     this.#unsubscribe = this.#model.subscribe((snapshot) => {
