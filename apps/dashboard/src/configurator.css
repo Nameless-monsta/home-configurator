@@ -1,0 +1,241 @@
+.ui-configurator {
+  position: fixed;
+  top: max(88px, calc(env(safe-area-inset-top) + 72px));
+  right: max(22px, env(safe-area-inset-right));
+  bottom: max(22px, env(safe-area-inset-bottom));
+  z-index: 10;
+  width: min(380px, calc(100vw - 44px));
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  border: 1px solid var(--ui-line);
+  background: rgba(14, 13, 12, 0.88);
+  backdrop-filter: blur(22px);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.42);
+}
+
+.ui-configurator-header,
+.ui-configurator-footer,
+.ui-configurator-section-toggle,
+.ui-configurator-field,
+.ui-configurator-actions {
+  display: flex;
+  align-items: center;
+}
+
+.ui-configurator-header {
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px;
+  border-bottom: 1px solid var(--ui-line);
+}
+
+.ui-configurator-header p,
+.ui-configurator-empty p {
+  margin: 0 0 7px;
+  color: var(--ui-muted);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.ui-configurator-header h2,
+.ui-configurator-empty h2 {
+  margin: 0;
+  font-size: 27px;
+  font-weight: 300;
+}
+
+.ui-configurator-header span,
+.ui-configurator-empty span,
+.ui-configurator-section-toggle small,
+.ui-configurator-field small {
+  display: block;
+  margin-top: 5px;
+  color: var(--ui-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.ui-configurator-history {
+  display: flex;
+  gap: 7px;
+}
+
+.ui-configurator button,
+.ui-configurator input,
+.ui-configurator select {
+  color: inherit;
+  font: inherit;
+}
+
+.ui-configurator-history button,
+.ui-configurator-footer button,
+.ui-configurator-actions button {
+  border: 1px solid var(--ui-line);
+  background: rgba(255, 255, 255, 0.025);
+  cursor: pointer;
+}
+
+.ui-configurator-history button {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+}
+
+.ui-configurator button:disabled,
+.ui-configurator input:disabled,
+.ui-configurator select:disabled {
+  opacity: 0.36;
+  cursor: default;
+}
+
+.ui-configurator-notice {
+  padding: 12px 22px;
+  border-bottom: 1px solid var(--ui-line);
+  color: #c5a992;
+  font-size: 11px;
+}
+
+.ui-configurator-sections {
+  overflow: auto;
+}
+
+.ui-configurator-section {
+  border-bottom: 1px solid var(--ui-line);
+}
+
+.ui-configurator-section-toggle {
+  width: 100%;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 22px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ui-configurator-section-toggle strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.ui-configurator-section-toggle i {
+  color: var(--ui-muted);
+  font-style: normal;
+}
+
+.ui-configurator-section[data-collapsed='true'] .ui-configurator-section-toggle i {
+  transform: rotate(-90deg);
+}
+
+.ui-configurator-section-body {
+  padding: 0 22px 18px;
+}
+
+.ui-configurator-section-body[hidden] {
+  display: none;
+}
+
+.ui-configurator-field {
+  position: relative;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 54px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(236, 232, 225, 0.08);
+}
+
+.ui-configurator-field > span {
+  min-width: 0;
+}
+
+.ui-configurator-field > span strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.ui-configurator-field input[type='text'],
+.ui-configurator-field input[type='number'],
+.ui-configurator-field select {
+  width: 132px;
+  padding: 8px 9px;
+  border: 1px solid var(--ui-line);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.ui-configurator-field input[type='checkbox'] {
+  width: 42px;
+  height: 22px;
+  accent-color: #ece8e1;
+}
+
+.ui-configurator-range {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 170px;
+}
+
+.ui-configurator-range output,
+.ui-configurator-field > output {
+  color: #ece8e1;
+  font-size: 12px;
+}
+
+.ui-configurator-field em {
+  position: absolute;
+  right: 0;
+  bottom: 1px;
+  color: #d6a69a;
+  font-size: 9px;
+  font-style: normal;
+}
+
+.ui-configurator-actions {
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 14px;
+}
+
+.ui-configurator-actions button,
+.ui-configurator-footer button {
+  padding: 10px 14px;
+}
+
+.ui-configurator-footer {
+  justify-content: flex-end;
+  gap: 9px;
+  padding: 16px 22px;
+  border-top: 1px solid var(--ui-line);
+}
+
+.ui-configurator-footer .is-primary {
+  background: #ece8e1;
+  color: #11100f;
+}
+
+.ui-configurator-empty {
+  align-self: center;
+  padding: 28px;
+  text-align: center;
+}
+
+.ui-configurator button:focus-visible,
+.ui-configurator input:focus-visible,
+.ui-configurator select:focus-visible {
+  outline: 1px solid #ece8e1;
+  outline-offset: 3px;
+}
+
+[data-ui-layout='compact'] .ui-configurator {
+  top: auto;
+  left: max(16px, env(safe-area-inset-left));
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  width: auto;
+  max-height: min(58svh, 560px);
+}
