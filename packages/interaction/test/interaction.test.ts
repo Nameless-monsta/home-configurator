@@ -42,7 +42,12 @@ describe('InputEngine', () => {
   it('cancels safely when pointer count changes', () => {
     const diagnostics = new Diagnostics();
     const engine = new InputEngine({ diagnostics });
-    engine.registerTarget({ id: 'device', layer: 'object', gestures: ['orbit'], onIntent: vi.fn() });
+    engine.registerTarget({
+      id: 'device',
+      layer: 'object',
+      gestures: ['orbit'],
+      onIntent: vi.fn(),
+    });
     engine.setActiveTarget('device');
     engine.handlePointer(pointer(1, 'down', 0, 0, 0));
     engine.handlePointer(pointer(2, 'down', 10, 0, 0));
@@ -58,7 +63,9 @@ describe('NavigationEngine', () => {
     expect(navigation.location.level).toBe('device');
     expect(navigation.back()).toBe(true);
     expect(navigation.location.level).toBe('room');
-    expect(() => navigation.navigate({ level: 'device', deviceId: 'lamp' })).toThrow('requires roomId');
+    expect(() => navigation.navigate({ level: 'device', deviceId: 'lamp' })).toThrow(
+      'requires roomId',
+    );
   });
 });
 
@@ -66,7 +73,11 @@ describe('TransitionDirector', () => {
   it('finishes deterministic transitions', () => {
     const updates: number[] = [];
     const director = new TransitionDirector(new Diagnostics());
-    director.play({ id: 'room-device', durationMs: 100, onUpdate: (progress) => updates.push(progress) });
+    director.play({
+      id: 'room-device',
+      durationMs: 100,
+      onUpdate: (progress) => updates.push(progress),
+    });
     director.tick({ timestampMs: 50, deltaMs: 50, frame: 1 });
     director.tick({ timestampMs: 100, deltaMs: 50, frame: 2 });
     expect(director.active).toBe(false);
