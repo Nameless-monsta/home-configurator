@@ -1,0 +1,46 @@
+name: Apply Device Panels Type Fix
+
+on:
+  push:
+    branches:
+      - feature/device-panels-v0.6.5
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/device-panels-v0.6.5
+      - name: Apply exact optional property fix
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('packages/ui/src/device-panels.ts')
+          text = path.read_text()
+          text = text.replace(
+              "      subtitle: source.subtitle,\n      available: source.available,",
+              "      ...(source.subtitle === undefined ? {} : { subtitle: source.subtitle }),\n      available: source.available,",
+          )
+          path.write_text(text)
+          PY
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm prettier --write packages/ui/src/device-panels.ts
+      - name: Commit fix
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/ui/src/device-panels.ts
+          git commit -m "fix(ui): preserve exact optional panel subtitle"
+          git push origin HEAD:feature/device-panels-v0.6.5
