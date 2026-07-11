@@ -10,4 +10,5 @@ export * from './motion.js';
 export * from './navigation-model.js';
 export * from './navigation-types.js';
 export * from './navigation.js';
+export * from './responsive.js';
 export * from './types.js';
