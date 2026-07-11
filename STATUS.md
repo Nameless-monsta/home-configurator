@@ -1,6 +1,6 @@
 # Project Status
 
-Updated: 2026-07-11
+Updated: 2026-07-12
 
 ## Overall
 
@@ -13,9 +13,9 @@ Updated: 2026-07-11
 
 ## Current gate
 
-Phase 4.5 is complete. Home Configurator now has an authenticated Home Assistant transport, coherent registry and state synchronization, automatic room and device discovery, semantic capability bindings, service-call translation, optimistic reconciliation, stale-state handling and reconnect behavior.
+Phase 4.6 is complete. Home Configurator now has a full-screen UI shell, room and device navigation, a capability-driven configurator, reusable controls, device panels, iyO motion orchestration, responsive behavior and accessibility validation.
 
-The next implementation gate is 4.6 — UI Engine.
+The active implementation gate is 4.7.1 — Prototype Command Bridge. This replaces the dashboard's no-op configurator adapter with semantic Home Assistant commands and establishes the first end-to-end device-control path.
 
 ## Completed
 
@@ -41,6 +41,7 @@ The next implementation gate is 4.6 — UI Engine.
 - 4.3 Graphics Engine
 - 4.4 Interaction Engine
 - 4.5 Home Assistant Engine
+- 4.6 UI Engine
 
 ## Phase 4 workstream
 
@@ -49,8 +50,9 @@ The next implementation gate is 4.6 — UI Engine.
 - [x] 4.3 Graphics Engine
 - [x] 4.4 Interaction Engine
 - [x] 4.5 Home Assistant Engine
-- [ ] 4.6 UI Engine
+- [x] 4.6 UI Engine
 - [ ] 4.7 First Interactive Prototype
+  - [ ] 4.7.1 Prototype Command Bridge
 - [ ] 4.8 Performance optimisation
 - [ ] 4.9 Documentation
 - [ ] 4.10 HACS release
@@ -59,7 +61,8 @@ The next implementation gate is 4.6 — UI Engine.
 
 - Phase 4.3 passed formatting, linting, strict TypeScript, package tests and all production builds.
 - Phase 4.4 passed formatting, linting, strict TypeScript, package tests and all production builds.
-- Phase 4.5 passed formatting, linting, strict TypeScript, package tests and all production builds on GitHub Actions run 173.
+- Phase 4.5 passed formatting, linting, strict TypeScript, tests and production builds on GitHub Actions run 173.
+- Phase 4.6 passed formatting, linting, strict TypeScript, unit and contract tests and all production builds.
 
 ## First interactive prototype
 
@@ -78,6 +81,6 @@ The first interactive prototype must validate:
 
 ## Next
 
-1. Start 4.6 — UI Engine.
-2. Select the project license before public distribution.
-3. Record any implementation-driven contract change through the relevant specification and an ADR.
+1. Validate and merge 4.7.1 — Prototype Command Bridge.
+2. Add authoritative prototype state confirmation and selected-device model binding.
+3. Select the project license before public distribution.
