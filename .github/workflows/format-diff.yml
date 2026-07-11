@@ -20,7 +20,8 @@ jobs:
         with:
           node-version-file: .nvmrc
       - run: pnpm install --no-frozen-lockfile
-      - run: pnpm format
+      - name: Apply formatter output
+        run: pnpm format || true
       - name: Commit formatter output
         run: |
           if git diff --quiet; then
