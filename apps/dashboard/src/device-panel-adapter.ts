@@ -3,10 +3,7 @@ import type {
   ConfirmedRuntimeSnapshot,
   HAState,
 } from '@home-configurator/home-assistant';
-import type {
-  DevicePanelCapability,
-  DevicePanelSource,
-} from '@home-configurator/ui';
+import type { DevicePanelCapability, DevicePanelSource } from '@home-configurator/ui';
 
 const numberAttribute = (state: HAState | undefined, key: string): number | undefined => {
   const value = state?.attributes[key];
@@ -55,7 +52,11 @@ export const toDevicePanelSource = (
     if (Array.isArray(rgb) && rgb.length >= 3 && rgb.every((item) => typeof item === 'number')) {
       values['color'] = `#${rgb
         .slice(0, 3)
-        .map((item) => Math.max(0, Math.min(255, Math.round(item))).toString(16).padStart(2, '0'))
+        .map((item) =>
+          Math.max(0, Math.min(255, Math.round(item)))
+            .toString(16)
+            .padStart(2, '0'),
+        )
         .join('')}`;
     }
   }
@@ -81,15 +82,19 @@ export const toDevicePanelSource = (
   }
 
   for (const state of sensorStates) {
-    const label = stringAttribute(state, 'friendly_name') ?? state.entity_id.split('.')[1] ?? state.entity_id;
+    const label =
+      stringAttribute(state, 'friendly_name') ?? state.entity_id.split('.')[1] ?? state.entity_id;
     const unit = stringAttribute(state, 'unit_of_measurement');
-    values[label.toLowerCase().replaceAll(' ', '_')] = unit ? `${state.state} ${unit}` : state.state;
+    values[label.toLowerCase().replaceAll(' ', '_')] = unit
+      ? `${state.state} ${unit}`
+      : state.state;
   }
 
   return {
     id: device.id,
     name: device.name,
-    subtitle: [device.manufacturer, device.model].filter(Boolean).join(' ') || 'Home Assistant device',
+    subtitle:
+      [device.manufacturer, device.model].filter(Boolean).join(' ') || 'Home Assistant device',
     available: device.available,
     capabilities,
     values,

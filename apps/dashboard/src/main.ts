@@ -37,7 +37,9 @@ const createDocument = (
   location: UiNavigationLocation,
 ) => {
   const device = snapshot?.devices.find((item) => item.id === location.deviceId);
-  return snapshot && device ? panelRegistry.buildDocument(toDevicePanelSource(snapshot, device)) : null;
+  return snapshot && device
+    ? panelRegistry.buildDocument(toDevicePanelSource(snapshot, device))
+    : null;
 };
 
 const configurator = new UiConfigurator({

@@ -119,8 +119,8 @@ describe('DevicePanelRegistry', () => {
     };
     registry.register(replacement);
 
-    expect(
-      registry.buildDocument(source({ capabilities: ['brightness'] })).sections[0]?.id,
-    ).toBe('custom-light');
+    expect(registry.buildDocument(source({ capabilities: ['brightness'] })).sections[0]?.id).toBe(
+      'custom-light',
+    );
   });
 });
