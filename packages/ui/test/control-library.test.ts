@@ -12,10 +12,10 @@ const field = (overrides: Partial<ConfiguratorField> = {}): ConfiguratorField =>
 });
 
 const inputTarget = (value: string): HTMLInputElement =>
-  ({ value, dataset: {} }) as HTMLInputElement;
+  ({ value, dataset: {} }) as unknown as HTMLInputElement;
 
 const buttonTarget = (value: string): HTMLButtonElement =>
-  ({ value: '', dataset: { controlValue: value } }) as HTMLButtonElement;
+  ({ value: '', dataset: { controlValue: value } }) as unknown as HTMLButtonElement;
 
 describe('ControlLibrary', () => {
   it('renders each default control kind', () => {
