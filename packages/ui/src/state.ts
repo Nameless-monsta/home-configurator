@@ -43,10 +43,7 @@ export const reduceUiState = (state: UiState, action: UiAction): UiState => {
   }
 };
 
-export const createUiSnapshot = (
-  state: UiState,
-  home: ConfirmedRuntimeSnapshot,
-): UiSnapshot => {
+export const createUiSnapshot = (state: UiState, home: ConfirmedRuntimeSnapshot): UiSnapshot => {
   const selectedRoom = state.selection.roomId
     ? home.rooms.find((room) => room.id === state.selection.roomId)
     : undefined;
