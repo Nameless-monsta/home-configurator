@@ -2,25 +2,132 @@ import { attachGraphicsRuntime } from '@home-configurator/graphics';
 import {
   HomeAssistantEngine,
   MemoryHomeAssistantTransport,
+  type ConfirmedRuntimeSnapshot,
   type HAState,
 } from '@home-configurator/home-assistant';
 import { InteractionEngine, semanticOrbitHandler } from '@home-configurator/interaction';
 import { createRuntime } from '@home-configurator/runtime';
-import { UiFoundation, UiNavigation } from '@home-configurator/ui';
+import {
+  UiConfigurator,
+  UiFoundation,
+  UiNavigation,
+  type ConfiguratorDocument,
+  type ConfiguratorValue,
+  type UiNavigationLocation,
+} from '@home-configurator/ui';
 
 import './styles.css';
 import './navigation.css';
+import './configurator.css';
 
 const root = document.querySelector<HTMLElement>('#app');
 if (!root) throw new Error('Application root was not found');
 
 const ui = new UiFoundation({
   root,
-  version: '0.6.2',
-  subtitle: 'Navigate rooms and devices while the spatial stage remains persistent.',
+  version: '0.6.3',
+  subtitle: 'Select a device and inspect its generic capability-driven configuration.',
 });
 
-const navigation = new UiNavigation({ root });
+let latestHomeSnapshot: ConfirmedRuntimeSnapshot | null = null;
+
+const formatCapabilityValue = (value: unknown): ConfiguratorValue => {
+  if (value === undefined) return 'Available';
+  if (
+    value === null ||
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
+    return value;
+  }
+  return 'Configured';
+};
+
+const createDocument = (
+  snapshot: ConfirmedRuntimeSnapshot | null,
+  location: UiNavigationLocation,
+): ConfiguratorDocument | null => {
+  const device = snapshot?.devices.find((item) => item.id === location.deviceId);
+  if (!device) return null;
+  return {
+    id: device.id,
+    title: device.name,
+    subtitle:
+      [device.manufacturer, device.model].filter(Boolean).join(' ') || 'Home Assistant device',
+    available: device.available,
+    sections: [
+      {
+        id: 'identity',
+        title: 'Identity',
+        fields: [
+          {
+            id: 'manufacturer',
+            label: 'Manufacturer',
+            kind: 'status',
+            value: device.manufacturer ?? 'Unknown',
+            readOnly: true,
+          },
+          {
+            id: 'model',
+            label: 'Model',
+            kind: 'status',
+            value: device.model ?? 'Unknown',
+            readOnly: true,
+          },
+          {
+            id: 'entities',
+            label: 'Entities',
+            kind: 'status',
+            value: device.entityIds.length,
+            readOnly: true,
+          },
+        ],
+      },
+      {
+        id: 'capabilities',
+        title: 'Capabilities',
+        description: 'Generic capability hosts. Device-specific controls arrive in 4.6.5.',
+        fields: device.capabilities.map((capability) => ({
+          id: `capability.${capability}`,
+          label: capability,
+          kind: 'status' as const,
+          value: formatCapabilityValue(device.optimistic[capability]),
+          readOnly: true,
+        })),
+      },
+      {
+        id: 'preferences',
+        title: 'UI Preferences',
+        description: 'Framework-owned demo values used to validate history and saving.',
+        fields: [
+          { id: 'favorite', label: 'Favourite device', kind: 'toggle', value: false },
+          { id: 'displayName', label: 'Display name', kind: 'text', value: device.name },
+        ],
+        actions: [{ id: 'identify', label: 'Identify device' }],
+      },
+    ],
+  };
+};
+
+const configurator = new UiConfigurator({
+  root,
+  adapter: {
+    commit: async () => Promise.resolve(),
+    invoke: async () => Promise.resolve(),
+  },
+  validate: (_document, values) => {
+    const displayName = values['displayName'];
+    return typeof displayName === 'string' && displayName.trim().length === 0
+      ? [{ fieldId: 'displayName', message: 'Display name cannot be empty.' }]
+      : [];
+  },
+});
+
+const navigation = new UiNavigation({
+  root,
+  onNavigate: (location) => configurator.setDocument(createDocument(latestHomeSnapshot, location)),
+});
 
 const runtime = createRuntime({
   config: { application: { environment: import.meta.env.DEV ? 'development' : 'production' } },
@@ -52,7 +159,7 @@ interaction.registerTarget({
   },
 });
 interaction.animations.play({
-  id: 'navigation-float',
+  id: 'configurator-float',
   durationMs: 4200,
   loop: true,
   onUpdate: (progress) => {
@@ -135,13 +242,8 @@ const homeAssistant = new HomeAssistantEngine({
         friendly_name: 'Living Room TV',
         volume_level: 0.34,
       }),
-      entityState('climate.bedroom_ac', 'cool', {
-        friendly_name: 'Bedroom AC',
-        temperature: 22,
-      }),
-      entityState('switch.kitchen_lights', 'off', {
-        friendly_name: 'Kitchen Lights',
-      }),
+      entityState('climate.bedroom_ac', 'cool', { friendly_name: 'Bedroom AC', temperature: 22 }),
+      entityState('switch.kitchen_lights', 'off', { friendly_name: 'Kitchen Lights' }),
     ],
   }),
 });
@@ -157,15 +259,12 @@ runtime.events.on('runtime.phase', ({ current }) => {
 });
 
 homeAssistant.subscribe(({ snapshot }) => {
+  latestHomeSnapshot = snapshot;
   homeAssistantStatus = snapshot.status;
   rooms = snapshot.rooms.length;
   devices = snapshot.devices.length;
   navigation.setItems(
-    snapshot.rooms.map((room) => ({
-      id: room.id,
-      name: room.name,
-      deviceIds: room.deviceIds,
-    })),
+    snapshot.rooms.map((room) => ({ id: room.id, name: room.name, deviceIds: room.deviceIds })),
     snapshot.devices.map((device) => ({
       id: device.id,
       name: device.name,
@@ -174,6 +273,7 @@ homeAssistant.subscribe(({ snapshot }) => {
       meta: [device.manufacturer, device.model].filter(Boolean).join(' '),
     })),
   );
+  configurator.setDocument(createDocument(snapshot, navigation.snapshot()));
 });
 
 runtime.diagnostics.subscribe((snapshot) => {
@@ -185,6 +285,7 @@ runtime.diagnostics.subscribe((snapshot) => {
     devices,
     room: location.roomId ?? 'none',
     device: location.deviceId ?? 'none',
+    dirty: String(configurator.snapshot().dirty),
     frame: snapshot.gauges['scheduler.frame'] ?? 0,
     gestures: snapshot.counters['interaction.completed'] ?? 0,
   });
@@ -196,6 +297,7 @@ let disposed = false;
 const shutdown = async (): Promise<void> => {
   if (disposed) return;
   disposed = true;
+  configurator.dispose();
   navigation.dispose();
   ui.dispose();
   interaction.dispose();
@@ -205,6 +307,4 @@ const shutdown = async (): Promise<void> => {
   graphicsHandle.dispose();
 };
 
-window.addEventListener('pagehide', () => {
-  void shutdown();
-});
+window.addEventListener('pagehide', () => void shutdown());
