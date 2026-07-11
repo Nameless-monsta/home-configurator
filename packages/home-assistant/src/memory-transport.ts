@@ -73,10 +73,8 @@ export class MemoryHomeAssistantTransport implements HomeAssistantTransport {
     else if (type === 'get_config') result = this.#config;
     else if (type === 'call_service') {
       this.serviceCalls.push({
-        domain:
-          typeof message['domain'] === 'string' ? message['domain'] : '',
-        service:
-          typeof message['service'] === 'string' ? message['service'] : '',
+        domain: typeof message['domain'] === 'string' ? message['domain'] : '',
+        service: typeof message['service'] === 'string' ? message['service'] : '',
         target: message['target'],
         serviceData: message['service_data'],
       });
