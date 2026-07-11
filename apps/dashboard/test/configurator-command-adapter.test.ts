@@ -12,9 +12,9 @@ const createHarness = (receipt: (command: SemanticCommand) => CommandReceipt = a
   const commands: SemanticCommand[] = [];
   const adapter = new HomeAssistantConfiguratorAdapter({
     homeAssistant: {
-      dispatch: async (command) => {
+      dispatch: (command) => {
         commands.push(command);
-        return receipt(command);
+        return Promise.resolve(receipt(command));
       },
     },
     now: () => 42,
