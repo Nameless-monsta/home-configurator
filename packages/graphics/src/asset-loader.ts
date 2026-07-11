@@ -52,7 +52,8 @@ export class ModelAssetLoader {
     const pending = this.#loader
       .loadAsync(uri)
       .then((gltf) => {
-        if (gltf.scene.children.length === 0) throw new Error(`Model contains no scene nodes: ${id}`);
+        if (gltf.scene.children.length === 0)
+          throw new Error(`Model contains no scene nodes: ${id}`);
         this.#diagnostics.record('info', 'graphics.assets', `Model ready: ${id}`, { uri });
         return { scene: gltf.scene, animations: gltf.animations, uri };
       })
