@@ -5,8 +5,8 @@
 - [x] Repository created
 - [x] Documentation structure established
 - [x] Project status and architecture indexes added
-- [ ] Package skeletons created
-- [ ] CI and linting configured
+- [x] Package skeletons created
+- [x] CI and linting configured
 - [ ] License selected
 
 ## Phase 1 — iyO research and interaction specification
@@ -53,25 +53,25 @@
 ## Phase 3.5 — Engineering specifications
 
 - [x] Runtime execution model
-- [ ] Camera engine contract
-- [ ] Renderer and frame pipeline
-- [ ] Input and gesture arbitration
-- [ ] Home Assistant runtime contract
-- [ ] Performance and resource budgets
-- [ ] 3D asset pipeline and validation
-- [ ] Plugin and extension API
-- [ ] Blueprint/runtime schema reference
-- [ ] Final engineering validation and implementation gate
+- [x] Camera engine contract
+- [x] Renderer and frame pipeline
+- [x] Input and gesture arbitration
+- [x] Home Assistant runtime contract
+- [x] Performance and resource budgets
+- [x] 3D asset pipeline and validation
+- [x] Plugin and extension API
+- [x] Blueprint/runtime schema reference
+- [x] Final engineering validation and implementation gate
 
 ## Phase 4 — Development
 
-- [ ] Monorepo and package setup
-- [ ] Three.js engine
-- [ ] Navigation engine
-- [ ] Rendering engine
-- [ ] Device controllers
-- [ ] Home Assistant integration
-- [ ] Visual editor
-- [ ] Performance optimization
+- [x] Repository, build and CI setup
+- [ ] Vertical runtime skeleton
+- [ ] Persistent Three.js stage
+- [ ] Navigation and transition slice
+- [ ] Light controller and color sphere
+- [ ] Home Assistant live integration
+- [ ] Responsive and accessibility validation
+- [ ] Performance validation
 - [ ] Documentation
 - [ ] HACS release
