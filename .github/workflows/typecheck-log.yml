@@ -1,0 +1,25 @@
+name: Typecheck Log
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck-log:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: pnpm install --no-frozen-lockfile
+      - name: Capture typecheck output
+        run: pnpm typecheck > typecheck.log 2>&1 || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: typecheck-log
+          path: typecheck.log
