@@ -38,17 +38,30 @@
 
 ## Phase 3 — UX and visual design
 
-- [ ] Navigation shell
-- [ ] Room navigation
-- [ ] Device configurator
-- [ ] Color sphere
-- [ ] Climate interaction
-- [ ] Media interaction
-- [ ] Vacuum interaction
-- [ ] Scene interaction
-- [ ] Transition library
-- [ ] Animation library
-- [ ] Final UX approval
+- [x] Navigation shell
+- [x] Room navigation
+- [x] Device configurator
+- [x] Color sphere
+- [x] Climate interaction
+- [x] Media interaction
+- [x] Vacuum interaction
+- [x] Scene interaction
+- [x] Transition library
+- [x] Animation library
+- [x] Final UX approval
+
+## Phase 3.5 — Engineering specifications
+
+- [x] Runtime execution model
+- [ ] Camera engine contract
+- [ ] Renderer and frame pipeline
+- [ ] Input and gesture arbitration
+- [ ] Home Assistant runtime contract
+- [ ] Performance and resource budgets
+- [ ] 3D asset pipeline and validation
+- [ ] Plugin and extension API
+- [ ] Blueprint/runtime schema reference
+- [ ] Final engineering validation and implementation gate
 
 ## Phase 4 — Development
 
