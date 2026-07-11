@@ -20,7 +20,8 @@
   - [x] **4.6.7 Responsive Behaviour**
   - [x] **4.6.8 UI Validation and Merge**
 - [ ] **4.7 First Interactive Prototype**
-  - [ ] **4.7.1 Prototype Command Bridge** — implemented and CI validated, pending merge
+  - [x] **4.7.1 Prototype Command Bridge**
+  - [ ] **4.7.2 Authoritative State and Model Binding**
 - [ ] **4.8 Performance optimisation**
 - [ ] **4.9 Documentation**
 - [ ] **4.10 HACS release**
@@ -61,13 +62,17 @@ Full-screen shell, navigation, capability-driven configurator, control library, 
 
 See the 4.6.1–4.6.8 implementation reports in this directory.
 
-## Active milestone
-
 ### 4.7.1 — Prototype Command Bridge
 
-Implementation and CI validation are complete on draft pull request #17. The milestone remains pending merge into `main`.
+Semantic Home Assistant command dispatch is integrated into the configurator. Pull request #18 passed the full validation pipeline and was merged into `main`.
 
 See [4.7.1 Prototype Command Bridge](4.7.1_PROTOTYPE_COMMAND_BRIDGE.md).
+
+## Active milestone
+
+### 4.7.2 — Authoritative State and Model Binding
+
+Publish authoritative prototype confirmations and bind the selected Home Assistant light's power, colour and brightness to the 3D model.
 
 ## Required validation command
 
