@@ -1,4 +1,4 @@
-import type { Object3D, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
+import type { Object3D, PerspectiveCamera, Scene, Texture, WebGLRenderer } from 'three';
 
 export type GraphicsQualityTier = 'essential' | 'balanced' | 'full';
 
@@ -14,11 +14,24 @@ export interface CameraPose {
   readonly fov: number;
 }
 
+export interface CameraTransitionOptions {
+  readonly durationMs?: number;
+  readonly reducedMotion?: boolean;
+}
+
+export interface CameraFramingOptions extends CameraTransitionOptions {
+  readonly padding?: number;
+}
+
 export interface SceneNodeDescriptor {
   readonly id: string;
   readonly parentId?: string;
   readonly object: Object3D;
   readonly visible?: boolean;
+}
+
+export interface EnvironmentLoadOptions {
+  readonly useAsBackground?: boolean;
 }
 
 export interface GraphicsDiagnosticsSnapshot {
@@ -27,12 +40,23 @@ export interface GraphicsDiagnosticsSnapshot {
   readonly triangles: number;
   readonly points: number;
   readonly lines: number;
+  readonly geometries: number;
+  readonly textures: number;
+  readonly programs: number;
   readonly qualityTier: GraphicsQualityTier;
   readonly pixelRatio: number;
+  readonly contextLost: boolean;
+  readonly postProcessing: boolean;
+  readonly environmentReady: boolean;
 }
 
 export interface GraphicsContext {
   readonly renderer: WebGLRenderer;
   readonly scene: Scene;
   readonly camera: PerspectiveCamera;
+}
+
+export interface LoadedEnvironment {
+  readonly texture: Texture;
+  readonly uri: string;
 }
