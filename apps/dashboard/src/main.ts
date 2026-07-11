@@ -8,14 +8,14 @@ import {
 import { InteractionEngine, semanticOrbitHandler } from '@home-configurator/interaction';
 import { createRuntime } from '@home-configurator/runtime';
 import {
+  DevicePanelRegistry,
   UiConfigurator,
   UiFoundation,
   UiNavigation,
-  type ConfiguratorDocument,
-  type ConfiguratorValue,
   type UiNavigationLocation,
 } from '@home-configurator/ui';
 
+import { toDevicePanelSource } from './device-panel-adapter.js';
 import './styles.css';
 import './navigation.css';
 import './configurator.css';
@@ -25,89 +25,19 @@ if (!root) throw new Error('Application root was not found');
 
 const ui = new UiFoundation({
   root,
-  version: '0.6.3',
-  subtitle: 'Select a device and inspect its generic capability-driven configuration.',
+  version: '0.6.5',
+  subtitle: 'Select a device to open its capability-driven control panel.',
 });
 
 let latestHomeSnapshot: ConfirmedRuntimeSnapshot | null = null;
-
-const formatCapabilityValue = (value: unknown): ConfiguratorValue => {
-  if (value === undefined) return 'Available';
-  if (
-    value === null ||
-    typeof value === 'string' ||
-    typeof value === 'number' ||
-    typeof value === 'boolean'
-  ) {
-    return value;
-  }
-  return 'Configured';
-};
+const panelRegistry = new DevicePanelRegistry();
 
 const createDocument = (
   snapshot: ConfirmedRuntimeSnapshot | null,
   location: UiNavigationLocation,
-): ConfiguratorDocument | null => {
+) => {
   const device = snapshot?.devices.find((item) => item.id === location.deviceId);
-  if (!device) return null;
-  return {
-    id: device.id,
-    title: device.name,
-    subtitle:
-      [device.manufacturer, device.model].filter(Boolean).join(' ') || 'Home Assistant device',
-    available: device.available,
-    sections: [
-      {
-        id: 'identity',
-        title: 'Identity',
-        fields: [
-          {
-            id: 'manufacturer',
-            label: 'Manufacturer',
-            kind: 'status',
-            value: device.manufacturer ?? 'Unknown',
-            readOnly: true,
-          },
-          {
-            id: 'model',
-            label: 'Model',
-            kind: 'status',
-            value: device.model ?? 'Unknown',
-            readOnly: true,
-          },
-          {
-            id: 'entities',
-            label: 'Entities',
-            kind: 'status',
-            value: device.entityIds.length,
-            readOnly: true,
-          },
-        ],
-      },
-      {
-        id: 'capabilities',
-        title: 'Capabilities',
-        description: 'Generic capability hosts. Device-specific controls arrive in 4.6.5.',
-        fields: device.capabilities.map((capability) => ({
-          id: `capability.${capability}`,
-          label: capability,
-          kind: 'status' as const,
-          value: formatCapabilityValue(device.optimistic[capability]),
-          readOnly: true,
-        })),
-      },
-      {
-        id: 'preferences',
-        title: 'UI Preferences',
-        description: 'Framework-owned demo values used to validate history and saving.',
-        fields: [
-          { id: 'favorite', label: 'Favourite device', kind: 'toggle', value: false },
-          { id: 'displayName', label: 'Display name', kind: 'text', value: device.name },
-        ],
-        actions: [{ id: 'identify', label: 'Identify device' }],
-      },
-    ],
-  };
+  return snapshot && device ? panelRegistry.buildDocument(toDevicePanelSource(snapshot, device)) : null;
 };
 
 const configurator = new UiConfigurator({
@@ -115,12 +45,6 @@ const configurator = new UiConfigurator({
   adapter: {
     commit: async () => Promise.resolve(),
     invoke: async () => Promise.resolve(),
-  },
-  validate: (_document, values) => {
-    const displayName = values['displayName'];
-    return typeof displayName === 'string' && displayName.trim().length === 0
-      ? [{ fieldId: 'displayName', message: 'Display name cannot be empty.' }]
-      : [];
   },
 });
 
@@ -193,6 +117,7 @@ const homeAssistant = new HomeAssistantEngine({
       { area_id: 'living-room', name: 'Living Room', floor_id: 'ground' },
       { area_id: 'bedroom', name: 'Bedroom', floor_id: 'ground' },
       { area_id: 'kitchen', name: 'Kitchen', floor_id: 'ground' },
+      { area_id: 'terrace', name: 'Terrace', floor_id: 'ground' },
     ],
     devices: [
       {
@@ -204,7 +129,8 @@ const homeAssistant = new HomeAssistantEngine({
       },
       { id: 'living-tv', name: 'Living Room TV', area_id: 'living-room' },
       { id: 'bedroom-ac', name: 'Bedroom AC', area_id: 'bedroom' },
-      { id: 'kitchen-lights', name: 'Kitchen Lights', area_id: 'kitchen' },
+      { id: 'kitchen-sensor', name: 'Kitchen Environment', area_id: 'kitchen' },
+      { id: 'terrace-shade', name: 'Terrace Shade', area_id: 'terrace' },
     ],
     entities: [
       {
@@ -226,24 +152,57 @@ const homeAssistant = new HomeAssistantEngine({
         device_id: 'bedroom-ac',
       },
       {
-        entity_id: 'switch.kitchen_lights',
-        unique_id: 'kitchen-lights-switch',
-        platform: 'switch',
-        device_id: 'kitchen-lights',
+        entity_id: 'sensor.kitchen_temperature',
+        unique_id: 'kitchen-temperature',
+        platform: 'sensor',
+        device_id: 'kitchen-sensor',
+      },
+      {
+        entity_id: 'sensor.kitchen_humidity',
+        unique_id: 'kitchen-humidity',
+        platform: 'sensor',
+        device_id: 'kitchen-sensor',
+      },
+      {
+        entity_id: 'cover.terrace_shade',
+        unique_id: 'terrace-shade-cover',
+        platform: 'cover',
+        device_id: 'terrace-shade',
       },
     ],
     states: [
       entityState('light.ikea_lamp', 'on', {
         friendly_name: 'IKEA Lamp',
         brightness: 168,
-        supported_color_modes: ['hs', 'color_temp'],
+        color_temp_kelvin: 3200,
+        rgb_color: [255, 191, 128],
+        supported_color_modes: ['rgb', 'color_temp'],
       }),
       entityState('media_player.living_room_tv', 'playing', {
         friendly_name: 'Living Room TV',
         volume_level: 0.34,
+        source: 'tv',
+        media_title: 'Home Configurator Demo',
       }),
-      entityState('climate.bedroom_ac', 'cool', { friendly_name: 'Bedroom AC', temperature: 22 }),
-      entityState('switch.kitchen_lights', 'off', { friendly_name: 'Kitchen Lights' }),
+      entityState('climate.bedroom_ac', 'cool', {
+        friendly_name: 'Bedroom AC',
+        temperature: 22,
+        current_temperature: 23.5,
+        current_humidity: 48,
+        fan_mode: 'auto',
+      }),
+      entityState('sensor.kitchen_temperature', '24.1', {
+        friendly_name: 'Temperature',
+        unit_of_measurement: '°C',
+      }),
+      entityState('sensor.kitchen_humidity', '52', {
+        friendly_name: 'Humidity',
+        unit_of_measurement: '%',
+      }),
+      entityState('cover.terrace_shade', 'open', {
+        friendly_name: 'Terrace Shade',
+        current_position: 72,
+      }),
     ],
   }),
 });
