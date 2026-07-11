@@ -9,6 +9,7 @@ import { createRuntime } from '@home-configurator/runtime';
 import { UiFoundation, UiNavigation } from '@home-configurator/ui';
 
 import './styles.css';
+import './navigation.css';
 
 const root = document.querySelector<HTMLElement>('#app');
 if (!root) throw new Error('Application root was not found');
@@ -19,15 +20,7 @@ const ui = new UiFoundation({
   subtitle: 'Navigate rooms and devices while the spatial stage remains persistent.',
 });
 
-const navigation = new UiNavigation({
-  root,
-  onNavigate: ({ roomId, deviceId }) => {
-    ui.setDiagnostics({
-      room: roomId ?? 'none',
-      device: deviceId ?? 'none',
-    });
-  },
-});
+const navigation = new UiNavigation({ root });
 
 const runtime = createRuntime({
   config: { application: { environment: import.meta.env.DEV ? 'development' : 'production' } },
@@ -157,10 +150,6 @@ let runtimePhase = 'idle';
 let homeAssistantStatus = 'uninitialized';
 let rooms = 0;
 let devices = 0;
-let currentRoom = 'none';
-let currentDevice = 'none';
-
-navigation.setItems([], []);
 
 runtime.events.on('runtime.phase', ({ current }) => {
   runtimePhase = current;
@@ -187,23 +176,15 @@ homeAssistant.subscribe(({ snapshot }) => {
   );
 });
 
-navigation.snapshot();
-const unsubscribeNavigation = navigation['snapshot']
-  ? undefined
-  : undefined;
-void unsubscribeNavigation;
-
 runtime.diagnostics.subscribe((snapshot) => {
   const location = navigation.snapshot();
-  currentRoom = location.roomId ?? 'none';
-  currentDevice = location.deviceId ?? 'none';
   ui.setDiagnostics({
     runtime: runtimePhase,
     homeAssistant: homeAssistantStatus,
     rooms,
     devices,
-    room: currentRoom,
-    device: currentDevice,
+    room: location.roomId ?? 'none',
+    device: location.deviceId ?? 'none',
     frame: snapshot.gauges['scheduler.frame'] ?? 0,
     gestures: snapshot.counters['interaction.completed'] ?? 0,
   });
