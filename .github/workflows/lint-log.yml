@@ -1,4 +1,4 @@
-name: Typecheck Log
+name: Test Log
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  typecheck-log:
+  test-log:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -17,9 +17,9 @@ jobs:
         with:
           node-version-file: .nvmrc
       - run: pnpm install --no-frozen-lockfile
-      - name: Capture typecheck output
-        run: pnpm typecheck > typecheck.log 2>&1 || true
+      - name: Capture test output
+        run: pnpm test:ci > test.log 2>&1 || true
       - uses: actions/upload-artifact@v4
         with:
-          name: interaction-typecheck-log
-          path: typecheck.log
+          name: interaction-test-log
+          path: test.log
