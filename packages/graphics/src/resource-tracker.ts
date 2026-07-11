@@ -1,4 +1,10 @@
-import { BufferGeometry, Mesh, Texture, type Material, type Object3D } from 'three';
+import {
+  BufferGeometry,
+  Mesh,
+  Texture,
+  type Material,
+  type Object3D,
+} from 'three';
 
 export interface DisposableGraphicsResource {
   dispose(): void;
@@ -19,8 +25,9 @@ export class ResourceTracker {
   public trackObject<T extends Object3D>(root: T): T {
     root.traverse((object) => {
       if (!(object instanceof Mesh)) return;
-      if (object.geometry instanceof BufferGeometry) this.track(object.geometry);
-      const materials = Array.isArray(object.material) ? object.material : [object.material];
+      const mesh = object as Mesh<BufferGeometry, Material | Material[]>;
+      if (mesh.geometry instanceof BufferGeometry) this.track(mesh.geometry);
+      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
       for (const material of materials) this.#trackMaterial(material);
     });
     return root;
