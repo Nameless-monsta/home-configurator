@@ -9,13 +9,13 @@ Updated: 2026-07-11
 - Phase 2 complete
 - Phase 3 complete and approved
 - Phase 3.5 complete and approved
-- Phase 4 ready to start
+- Phase 4 in progress
 
 ## Current gate
 
-The engineering specification set is complete and approved. Runtime ownership, camera behavior, renderer/frame ordering, input arbitration, Home Assistant reconciliation, performance budgets, asset validation, plugin boundaries and blueprint/runtime schemas are locked for implementation.
+Phase 4 has started. The repository now has a working TypeScript monorepo baseline with pnpm workspaces, Turbo task orchestration, strict TypeScript, ESLint, Prettier, Vitest and GitHub Actions validation.
 
-Phase 4 may begin with repository/build/CI setup and the first vertical interactive prototype.
+The next implementation gate is the vertical runtime skeleton.
 
 ## Completed
 
@@ -35,31 +35,23 @@ Phase 4 may begin with repository/build/CI setup and the first vertical interact
 - Preset/blueprint architecture
 - HACS packaging strategy
 - Phase 3 UX specifications and final validation
-- 3.5.1 Runtime execution model
-- 3.5.2 Camera engine contract
-- 3.5.3 Renderer and frame pipeline
-- 3.5.4 Input and gesture arbitration
-- 3.5.5 Home Assistant runtime contract
-- 3.5.6 Performance and resource budgets
-- 3.5.7 3D asset pipeline and validation
-- 3.5.8 Plugin and extension API
-- 3.5.9 Blueprint/runtime schema reference
-- 3.5.10 Engineering validation and implementation gate
+- Phase 3.5 engineering specifications and implementation gate
+- 4.1 repository, build and CI setup
 
-## Phase 3.5 workstream
+## Phase 4 workstream
 
-- [x] 3.5.1 Runtime execution model
-- [x] 3.5.2 Camera engine contract
-- [x] 3.5.3 Renderer and frame pipeline
-- [x] 3.5.4 Input and gesture arbitration
-- [x] 3.5.5 Home Assistant runtime contract
-- [x] 3.5.6 Performance and resource budgets
-- [x] 3.5.7 3D asset pipeline and validation
-- [x] 3.5.8 Plugin and extension API
-- [x] 3.5.9 Blueprint/runtime schema reference
-- [x] 3.5.10 Engineering validation and implementation gate
+- [x] 4.1 Repository, build and CI setup
+- [ ] 4.2 Vertical runtime skeleton
+- [ ] 4.3 Persistent Three.js stage
+- [ ] 4.4 Navigation and transition slice
+- [ ] 4.5 Light controller and color sphere
+- [ ] 4.6 Home Assistant live integration
+- [ ] 4.7 Responsive and accessibility validation
+- [ ] 4.8 Performance validation
+- [ ] 4.9 Documentation
+- [ ] 4.10 HACS release
 
-## Phase 4 first vertical prototype
+## First vertical prototype
 
 The first vertical prototype must validate:
 
@@ -76,7 +68,7 @@ The first vertical prototype must validate:
 
 ## Next
 
-1. Select the project license before public distribution.
-2. Complete Phase 4.1 — repository, build and CI setup.
-3. Build the approved vertical interactive prototype before expanding device coverage.
+1. Complete 4.2 — Vertical runtime skeleton.
+2. Generate and commit the first lockfile once the dependency graph is exercised.
+3. Select the project license before public distribution.
 4. Record any implementation-driven contract change through the relevant specification and an ADR.
