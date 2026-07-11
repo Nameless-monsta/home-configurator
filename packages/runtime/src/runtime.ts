@@ -1,32 +1,29 @@
-import { AssetManager } from "./asset-manager.js";
-import { loadRuntimeConfig, type RuntimeConfig, type RuntimeConfigInput } from "./config.js";
-import { Diagnostics } from "./diagnostics.js";
-import { EventBus } from "./event-bus.js";
-import {
-  MockHomeAssistantAdapter,
-  type HomeAssistantAdapter,
-} from "./home-assistant.js";
-import { PluginManager, type RuntimePlugin } from "./plugin-manager.js";
-import { RuntimeScheduler } from "./scheduler.js";
-import { ServiceContainer } from "./service-container.js";
-import { createServiceToken } from "./tokens.js";
-import type { RuntimeClock, RuntimePhase } from "./types.js";
+import { AssetManager } from './asset-manager.js';
+import { loadRuntimeConfig, type RuntimeConfig, type RuntimeConfigInput } from './config.js';
+import { Diagnostics } from './diagnostics.js';
+import { EventBus } from './event-bus.js';
+import { MockHomeAssistantAdapter, type HomeAssistantAdapter } from './home-assistant.js';
+import { PluginManager, type RuntimePlugin } from './plugin-manager.js';
+import { RuntimeScheduler } from './scheduler.js';
+import { ServiceContainer } from './service-container.js';
+import { createServiceToken } from './tokens.js';
+import type { RuntimeClock, RuntimePhase } from './types.js';
 
 export interface RuntimeEvents {
-  "runtime.phase": { readonly previous: RuntimePhase; readonly current: RuntimePhase };
-  "runtime.ready": { readonly startedAt: string };
-  "runtime.failed": { readonly error: Error };
-  "runtime.stopped": { readonly stoppedAt: string };
+  'runtime.phase': { readonly previous: RuntimePhase; readonly current: RuntimePhase };
+  'runtime.ready': { readonly startedAt: string };
+  'runtime.failed': { readonly error: Error };
+  'runtime.stopped': { readonly stoppedAt: string };
 }
 
 export const RuntimeTokens = {
-  config: createServiceToken<RuntimeConfig>("runtime.config"),
-  diagnostics: createServiceToken<Diagnostics>("runtime.diagnostics"),
-  events: createServiceToken<EventBus<RuntimeEvents>>("runtime.events"),
-  scheduler: createServiceToken<RuntimeScheduler>("runtime.scheduler"),
-  plugins: createServiceToken<PluginManager>("runtime.plugins"),
-  assets: createServiceToken<AssetManager>("runtime.assets"),
-  homeAssistant: createServiceToken<HomeAssistantAdapter>("runtime.homeAssistant"),
+  config: createServiceToken<RuntimeConfig>('runtime.config'),
+  diagnostics: createServiceToken<Diagnostics>('runtime.diagnostics'),
+  events: createServiceToken<EventBus<RuntimeEvents>>('runtime.events'),
+  scheduler: createServiceToken<RuntimeScheduler>('runtime.scheduler'),
+  plugins: createServiceToken<PluginManager>('runtime.plugins'),
+  assets: createServiceToken<AssetManager>('runtime.assets'),
+  homeAssistant: createServiceToken<HomeAssistantAdapter>('runtime.homeAssistant'),
 } as const;
 
 export interface RuntimeOptions {
@@ -46,7 +43,7 @@ export class HomeConfiguratorRuntime {
   public readonly assets: AssetManager;
   public readonly homeAssistant: HomeAssistantAdapter;
 
-  #phase: RuntimePhase = "idle";
+  #phase: RuntimePhase = 'idle';
 
   public constructor(options: RuntimeOptions = {}) {
     this.config = loadRuntimeConfig(options.config);
@@ -75,24 +72,24 @@ export class HomeConfiguratorRuntime {
   }
 
   public async start(): Promise<void> {
-    if (this.#phase === "running" || this.#phase === "bootstrapping") return;
-    this.#setPhase("bootstrapping");
+    if (this.#phase === 'running' || this.#phase === 'bootstrapping') return;
+    this.#setPhase('bootstrapping');
 
     try {
-      this.diagnostics.record("info", "runtime", "Runtime bootstrap started", {
+      this.diagnostics.record('info', 'runtime', 'Runtime bootstrap started', {
         environment: this.config.application.environment,
       });
       await this.homeAssistant.start();
       if (this.config.plugins.enabled) await this.plugins.startAll();
       if (this.config.scheduler.enabled) this.scheduler.start();
-      this.#setPhase("running");
-      this.events.emit("runtime.ready", { startedAt: new Date().toISOString() });
-      this.diagnostics.record("info", "runtime", "Runtime ready");
+      this.#setPhase('running');
+      this.events.emit('runtime.ready', { startedAt: new Date().toISOString() });
+      this.diagnostics.record('info', 'runtime', 'Runtime ready');
     } catch (error) {
       const runtimeError = error instanceof Error ? error : new Error(String(error));
-      this.#setPhase("failed");
-      this.events.emit("runtime.failed", { error: runtimeError });
-      this.diagnostics.record("error", "runtime", "Runtime bootstrap failed", {
+      this.#setPhase('failed');
+      this.events.emit('runtime.failed', { error: runtimeError });
+      this.diagnostics.record('error', 'runtime', 'Runtime bootstrap failed', {
         error: runtimeError.message,
       });
       throw runtimeError;
@@ -100,33 +97,33 @@ export class HomeConfiguratorRuntime {
   }
 
   public async stop(): Promise<void> {
-    if (this.#phase === "stopped" || this.#phase === "idle") return;
-    this.#setPhase("stopping");
+    if (this.#phase === 'stopped' || this.#phase === 'idle') return;
+    this.#setPhase('stopping');
     this.scheduler.stop();
     await this.plugins.stopAll();
     await this.homeAssistant.stop();
     this.assets.clear();
-    this.#setPhase("stopped");
-    this.events.emit("runtime.stopped", { stoppedAt: new Date().toISOString() });
-    this.diagnostics.record("info", "runtime", "Runtime stopped");
+    this.#setPhase('stopped');
+    this.events.emit('runtime.stopped', { stoppedAt: new Date().toISOString() });
+    this.diagnostics.record('info', 'runtime', 'Runtime stopped');
   }
 
   #setPhase(current: RuntimePhase): void {
     const previous = this.#phase;
     this.#phase = current;
-    this.events.emit("runtime.phase", { previous, current });
-    this.diagnostics.setGauge("runtime.phase", runtimePhaseValue(current));
+    this.events.emit('runtime.phase', { previous, current });
+    this.diagnostics.setGauge('runtime.phase', runtimePhaseValue(current));
   }
 }
 
 const runtimePhaseValue = (phase: RuntimePhase): number => {
   const order: readonly RuntimePhase[] = [
-    "idle",
-    "bootstrapping",
-    "running",
-    "stopping",
-    "stopped",
-    "failed",
+    'idle',
+    'bootstrapping',
+    'running',
+    'stopping',
+    'stopped',
+    'failed',
   ];
   return order.indexOf(phase);
 };
