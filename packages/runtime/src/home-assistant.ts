@@ -1,5 +1,5 @@
-import type { Diagnostics } from "./diagnostics.js";
-import type { MaybePromise } from "./types.js";
+import type { Diagnostics } from './diagnostics.js';
+import type { MaybePromise } from './types.js';
 
 export interface HomeAssistantEntityState {
   readonly entityId: string;
@@ -25,13 +25,16 @@ export interface HomeAssistantAdapter {
 }
 
 export class MockHomeAssistantAdapter implements HomeAssistantAdapter {
-  public readonly id = "home-assistant.mock";
+  public readonly id = 'home-assistant.mock';
   readonly #diagnostics: Diagnostics;
   readonly #states = new Map<string, HomeAssistantEntityState>();
   readonly #listeners = new Set<(state: HomeAssistantEntityState) => void>();
   #started = false;
 
-  public constructor(diagnostics: Diagnostics, initialStates: readonly HomeAssistantEntityState[] = []) {
+  public constructor(
+    diagnostics: Diagnostics,
+    initialStates: readonly HomeAssistantEntityState[] = [],
+  ) {
     this.#diagnostics = diagnostics;
     for (const state of initialStates) this.#states.set(state.entityId, state);
   }
@@ -39,13 +42,13 @@ export class MockHomeAssistantAdapter implements HomeAssistantAdapter {
   public start(): void {
     if (this.#started) return;
     this.#started = true;
-    this.#diagnostics.record("info", "home-assistant", "Mock adapter connected");
+    this.#diagnostics.record('info', 'home-assistant', 'Mock adapter connected');
   }
 
   public stop(): void {
     if (!this.#started) return;
     this.#started = false;
-    this.#diagnostics.record("info", "home-assistant", "Mock adapter disconnected");
+    this.#diagnostics.record('info', 'home-assistant', 'Mock adapter disconnected');
   }
 
   public getState(entityId: string): HomeAssistantEntityState | undefined {
@@ -58,8 +61,8 @@ export class MockHomeAssistantAdapter implements HomeAssistantAdapter {
   }
 
   public callService(call: HomeAssistantServiceCall): void {
-    if (!this.#started) throw new Error("Mock Home Assistant adapter is not started");
-    this.#diagnostics.record("info", "home-assistant", "Mock service call", {
+    if (!this.#started) throw new Error('Mock Home Assistant adapter is not started');
+    this.#diagnostics.record('info', 'home-assistant', 'Mock service call', {
       domain: call.domain,
       service: call.service,
     });
