@@ -21,7 +21,8 @@ describe('SceneGraph', () => {
 
   it('rejects missing parents', () => {
     const graph = new SceneGraph(new Scene());
-    expect(() => graph.add({ id: 'device.orphan', parentId: 'room.missing', object: new Object3D() }))
-      .toThrow('Scene parent not found');
+    expect(() =>
+      graph.add({ id: 'device.orphan', parentId: 'room.missing', object: new Object3D() }),
+    ).toThrow('Scene parent not found');
   });
 });
