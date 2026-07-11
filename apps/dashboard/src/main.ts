@@ -97,8 +97,10 @@ runtime.events.on('runtime.phase', ({ current }) => {
 runtime.diagnostics.subscribe((snapshot) => {
   if (frameNode) frameNode.textContent = String(snapshot.gauges['scheduler.frame'] ?? 0);
   if (drawsNode) drawsNode.textContent = String(snapshot.gauges['graphics.drawCalls'] ?? 0);
-  if (gesturesNode) gesturesNode.textContent = String(snapshot.counters['interaction.completed'] ?? 0);
-  if (selectionNode) selectionNode.textContent = interaction.selection.snapshot().selectedId ?? 'none';
+  if (gesturesNode)
+    gesturesNode.textContent = String(snapshot.counters['interaction.completed'] ?? 0);
+  if (selectionNode)
+    selectionNode.textContent = interaction.selection.snapshot().selectedId ?? 'none';
   if (levelNode) levelNode.textContent = interaction.navigation.location.level;
 });
 
