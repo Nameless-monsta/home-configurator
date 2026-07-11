@@ -20,7 +20,11 @@ jobs:
           node-version-file: .nvmrc
       - run: pnpm install --no-frozen-lockfile
       - name: Apply formatting
-        run: pnpm format
+        run: pnpm format > format.log 2>&1 || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: home-assistant-format-log
+          path: format.log
       - name: Commit formatting
         run: |
           if git diff --quiet; then
