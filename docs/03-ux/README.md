@@ -8,9 +8,9 @@ Phase 3 is in progress.
 
 - ~~3.1 Navigation shell~~ ✅
 - ~~3.2 Room navigation~~ ✅
-- 3.3 Device configurator
-- 3.4 Color sphere interaction
-- 3.5 Climate interaction
+- ~~3.3 Device configurator~~ ✅
+- ~~3.4 Color sphere interaction~~ ✅
+- ~~3.5 Climate interaction~~ ✅
 - 3.6 Media interaction
 - 3.7 Vacuum interaction
 - 3.8 Scene interaction
@@ -22,5 +22,8 @@ Phase 3 is in progress.
 
 - [3.1 Navigation Shell](3.1_NAVIGATION_SHELL.md)
 - [3.2 Room Navigation](3.2_ROOM_NAVIGATION.md)
+- [3.3 Device Configurator](3.3_DEVICE_CONFIGURATOR.md)
+- [3.4 Color Sphere Interaction](3.4_COLOR_SPHERE_INTERACTION.md)
+- [3.5 Climate Interaction](3.5_CLIMATE_INTERACTION.md)
 
 Every completed task must include interaction states, responsive variants, accessibility behavior, motion references and acceptance criteria.
