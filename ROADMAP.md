@@ -65,13 +65,13 @@
 
 ## Phase 4 — Development
 
-- [x] Repository, build and CI setup
-- [ ] Vertical runtime skeleton
-- [ ] Persistent Three.js stage
-- [ ] Navigation and transition slice
-- [ ] Light controller and color sphere
-- [ ] Home Assistant live integration
-- [ ] Responsive and accessibility validation
-- [ ] Performance validation
-- [ ] Documentation
-- [ ] HACS release
+- [x] 4.1 Repository, build and CI setup
+- [x] 4.2 Runtime Core
+- [ ] 4.3 Graphics Engine
+- [ ] 4.4 Interaction Engine
+- [ ] 4.5 Home Assistant Engine
+- [ ] 4.6 UI Engine
+- [ ] 4.7 First Interactive Prototype
+- [ ] 4.8 Performance optimisation
+- [ ] 4.9 Documentation
+- [ ] 4.10 HACS release
