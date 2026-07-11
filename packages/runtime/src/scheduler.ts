@@ -1,5 +1,5 @@
-import type { Diagnostics } from "./diagnostics.js";
-import type { FrameContext, RuntimeClock } from "./types.js";
+import type { Diagnostics } from './diagnostics.js';
+import type { FrameContext, RuntimeClock } from './types.js';
 
 export interface SchedulerTask {
   readonly id: string;
@@ -10,14 +10,14 @@ export interface SchedulerTask {
 const createDefaultClock = (): RuntimeClock => ({
   now: () => globalThis.performance?.now?.() ?? Date.now(),
   requestFrame: (callback) => {
-    if (typeof globalThis.requestAnimationFrame === "function") {
+    if (typeof globalThis.requestAnimationFrame === 'function') {
       return globalThis.requestAnimationFrame(callback);
     }
     return globalThis.setTimeout(() => callback(Date.now()), 16);
   },
   cancelFrame: (handle) => {
-    if (typeof handle !== "number") return;
-    if (typeof globalThis.cancelAnimationFrame === "function") {
+    if (typeof handle !== 'number') return;
+    if (typeof globalThis.cancelAnimationFrame === 'function') {
       globalThis.cancelAnimationFrame(handle);
     } else {
       globalThis.clearTimeout(handle);
@@ -51,7 +51,7 @@ export class RuntimeScheduler {
     if (this.#running) return;
     this.#running = true;
     this.#lastTimestampMs = this.#clock.now();
-    this.#diagnostics.record("info", "scheduler", "Scheduler started");
+    this.#diagnostics.record('info', 'scheduler', 'Scheduler started');
     this.#scheduleNext();
   }
 
@@ -60,7 +60,7 @@ export class RuntimeScheduler {
     this.#running = false;
     if (this.#frameHandle !== undefined) this.#clock.cancelFrame(this.#frameHandle);
     this.#frameHandle = undefined;
-    this.#diagnostics.record("info", "scheduler", "Scheduler stopped");
+    this.#diagnostics.record('info', 'scheduler', 'Scheduler stopped');
   }
 
   public get running(): boolean {
@@ -88,16 +88,16 @@ export class RuntimeScheduler {
       try {
         task.tick(context);
       } catch (error) {
-        this.#diagnostics.increment("scheduler.taskErrors");
-        this.#diagnostics.record("error", "scheduler", `Task failed: ${task.id}`, {
+        this.#diagnostics.increment('scheduler.taskErrors');
+        this.#diagnostics.record('error', 'scheduler', `Task failed: ${task.id}`, {
           error: error instanceof Error ? error.message : String(error),
         });
       }
     }
 
-    this.#diagnostics.setGauge("scheduler.frame", this.#frame);
-    this.#diagnostics.setGauge("scheduler.deltaMs", deltaMs);
-    this.#diagnostics.setGauge("scheduler.workMs", this.#clock.now() - startedAt);
+    this.#diagnostics.setGauge('scheduler.frame', this.#frame);
+    this.#diagnostics.setGauge('scheduler.deltaMs', deltaMs);
+    this.#diagnostics.setGauge('scheduler.workMs', this.#clock.now() - startedAt);
     this.#scheduleNext();
   }
 }
