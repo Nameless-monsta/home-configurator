@@ -1,6 +1,6 @@
 name: Feature request
 description: Propose a new capability, interaction, model or platform feature
-title: "[Feature]: "
+title: '[Feature]: '
 labels: []
 body:
   - type: textarea
