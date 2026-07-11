@@ -12,7 +12,7 @@ Updated: 2026-07-11
 
 ## Current gate
 
-Phase 3 has started. The navigation shell baseline specification is complete and committed. The next design task is room navigation.
+Phase 3 is in progress. Navigation shell and room navigation specifications are complete and committed. The next design task is the device configurator.
 
 ## Completed
 
@@ -32,9 +32,10 @@ Phase 3 has started. The navigation shell baseline specification is complete and
 - Preset/blueprint architecture
 - HACS packaging strategy
 - 3.1 Navigation shell
+- 3.2 Room navigation
 
 ## Next
 
-1. Complete 3.2 — Room navigation.
-2. Continue into the device configurator and domain interactions.
+1. Complete 3.3 — Device configurator.
+2. Continue into color, climate, media and vacuum interactions.
 3. Keep this file updated after every completed task.
