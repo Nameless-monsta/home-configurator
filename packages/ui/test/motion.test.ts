@@ -2,21 +2,18 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { UiMotionController, iyoMotionTokens } from '../src/motion.js';
 
-const animation = () => {
+const animatedElement = () => {
   const listeners = new Map<string, () => void>();
-  return {
-    cancel: vi.fn(() => listeners.get('cancel')?.()),
+  const cancelSpy = vi.fn(() => listeners.get('cancel')?.());
+  const instance = {
+    cancel: cancelSpy,
     addEventListener: vi.fn((name: string, listener: () => void) => listeners.set(name, listener)),
   };
-};
-
-const animatedElement = () => {
-  const instance = animation();
+  const animateSpy = vi.fn(() => instance);
   return {
-    instance,
-    element: {
-      animate: vi.fn(() => instance),
-    } as unknown as Element,
+    animateSpy,
+    cancelSpy,
+    element: { animate: animateSpy } as unknown as Element,
   };
 };
 
@@ -28,12 +25,12 @@ describe('UiMotionController', () => {
   });
 
   it('uses shared duration and easing when animating', () => {
-    const { element } = animatedElement();
+    const { element, animateSpy } = animatedElement();
     const controller = new UiMotionController({ reducedMotion: () => false });
 
     controller.reveal(element);
 
-    expect(element.animate).toHaveBeenCalledWith(
+    expect(animateSpy).toHaveBeenCalledWith(
       expect.any(Array),
       expect.objectContaining({
         duration: iyoMotionTokens.duration.fast,
@@ -44,14 +41,14 @@ describe('UiMotionController', () => {
   });
 
   it('cancels superseded motion on the same element', () => {
-    const { element, instance } = animatedElement();
+    const { element, animateSpy, cancelSpy } = animatedElement();
     const controller = new UiMotionController({ reducedMotion: () => false });
 
     controller.reveal(element);
     controller.press(element);
 
-    expect(instance.cancel).toHaveBeenCalledOnce();
-    expect(element.animate).toHaveBeenCalledTimes(2);
+    expect(cancelSpy).toHaveBeenCalledOnce();
+    expect(animateSpy).toHaveBeenCalledTimes(2);
   });
 
   it('uses distinct panel entrance and exit choreography', () => {
@@ -62,14 +59,14 @@ describe('UiMotionController', () => {
     controller.enterPanel(entrance.element);
     controller.exitPanel(exit.element);
 
-    expect(entrance.element.animate).toHaveBeenCalledWith(
+    expect(entrance.animateSpy).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({ opacity: 0 }),
         expect.objectContaining({ opacity: 1 }),
       ]),
       expect.objectContaining({ duration: iyoMotionTokens.duration.standard }),
     );
-    expect(exit.element.animate).toHaveBeenCalledWith(
+    expect(exit.animateSpy).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({ opacity: 1 }),
         expect.objectContaining({ opacity: 0 }),
@@ -79,10 +76,10 @@ describe('UiMotionController', () => {
   });
 
   it('skips animation when reduced motion is requested', () => {
-    const { element } = animatedElement();
+    const { element, animateSpy } = animatedElement();
     const controller = new UiMotionController({ reducedMotion: () => true });
 
     expect(controller.reveal(element)).toBeNull();
-    expect(element.animate).not.toHaveBeenCalled();
+    expect(animateSpy).not.toHaveBeenCalled();
   });
 });
