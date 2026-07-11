@@ -1,0 +1,35 @@
+name: Refresh UI Foundation Lockfile
+
+on:
+  push:
+    branches:
+      - feature/ui-foundation-v0.6.1
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    if: ${{ github.event.head_commit.message != 'chore: refresh UI Foundation lockfile' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/ui-foundation-v0.6.1
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm format
+      - name: Commit generated files
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pnpm-lock.yaml packages/ui apps/dashboard package.json docs
+          git commit -m "chore: refresh UI Foundation lockfile"
+          git push origin HEAD:feature/ui-foundation-v0.6.1
