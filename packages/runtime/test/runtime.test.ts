@@ -1,9 +1,9 @@
-import { describe, expect, it } from "vitest";
-import { createRuntime, type RuntimeClock } from "../src/index.js";
+import { describe, expect, it } from 'vitest';
+import { createRuntime, type RuntimeClock } from '../src/index.js';
 
 class FakeClock implements RuntimeClock {
   #now = 0;
-  #callback?: (timestampMs: number) => void;
+  #callback: ((timestampMs: number) => void) | undefined;
 
   public now(): number {
     return this.#now;
@@ -26,18 +26,18 @@ class FakeClock implements RuntimeClock {
   }
 }
 
-describe("HomeConfiguratorRuntime", () => {
-  it("boots, schedules frames, and stops cleanly", async () => {
+describe('HomeConfiguratorRuntime', () => {
+  it('boots, schedules frames, and stops cleanly', async () => {
     const clock = new FakeClock();
-    const runtime = createRuntime({ clock, config: { application: { environment: "test" } } });
+    const runtime = createRuntime({ clock, config: { application: { environment: 'test' } } });
 
     await runtime.start();
-    expect(runtime.phase).toBe("running");
+    expect(runtime.phase).toBe('running');
     clock.step();
-    expect(runtime.diagnostics.snapshot().gauges["scheduler.frame"]).toBe(1);
+    expect(runtime.diagnostics.snapshot().gauges['scheduler.frame']).toBe(1);
 
     await runtime.stop();
-    expect(runtime.phase).toBe("stopped");
+    expect(runtime.phase).toBe('stopped');
     expect(runtime.scheduler.running).toBe(false);
   });
 });
