@@ -73,7 +73,8 @@ export class InputEngine {
   }
 
   public registerTarget(target: InteractionTarget): () => void {
-    if (this.#targets.has(target.id)) throw new Error(`Interaction target already registered: ${target.id}`);
+    if (this.#targets.has(target.id))
+      throw new Error(`Interaction target already registered: ${target.id}`);
     this.#targets.set(target.id, target);
     return () => {
       this.#targets.delete(target.id);
@@ -169,7 +170,10 @@ export class InputEngine {
   }
 
   public getActiveSessions(): readonly GestureSession[] {
-    return [...this.#sessions.values()].map((session) => ({ ...session, pointers: [...session.pointers] }));
+    return [...this.#sessions.values()].map((session) => ({
+      ...session,
+      pointers: [...session.pointers],
+    }));
   }
 
   #resolveTarget(targetId?: string): InteractionTarget | undefined {
@@ -191,7 +195,8 @@ export class InputEngine {
     if (!kind) return;
 
     for (const session of this.#sessions.values()) {
-      if (session.pointers.length !== pointerCount) this.cancelSession(session.id, 'pointer-count mismatch');
+      if (session.pointers.length !== pointerCount)
+        this.cancelSession(session.id, 'pointer-count mismatch');
     }
 
     const pointers = [...this.#pointers.keys()];
@@ -242,7 +247,8 @@ export class InputEngine {
       session.deltaX = record.x - record.startX;
       session.deltaY = record.y - record.startY;
       session.distance = Math.hypot(session.deltaX, session.deltaY);
-      if (session.kind !== 'tap' && session.distance >= this.#dragThreshold) session.state = 'active';
+      if (session.kind !== 'tap' && session.distance >= this.#dragThreshold)
+        session.state = 'active';
     } else {
       const first = records[0];
       const second = records[1];
@@ -250,8 +256,8 @@ export class InputEngine {
       const startDistance = Math.hypot(first.startX - second.startX, first.startY - second.startY);
       const distance = Math.hypot(first.x - second.x, first.y - second.y);
       session.scale = startDistance > 0 ? distance / startDistance : 1;
-      session.deltaY = ((first.y - first.startY) + (second.y - second.startY)) / 2;
-      session.deltaX = ((first.x - first.startX) + (second.x - second.startX)) / 2;
+      session.deltaY = (first.y - first.startY + (second.y - second.startY)) / 2;
+      session.deltaX = (first.x - first.startX + (second.x - second.startX)) / 2;
       session.distance = Math.hypot(session.deltaX, session.deltaY);
       if (Math.abs(session.scale - 1) > 0.02 || session.distance >= this.#dragThreshold) {
         session.state = 'active';
@@ -263,7 +269,9 @@ export class InputEngine {
   }
 
   #finishPointer(pointerId: number, canceled: boolean): void {
-    const session = [...this.#sessions.values()].find((candidate) => candidate.pointers.includes(pointerId));
+    const session = [...this.#sessions.values()].find((candidate) =>
+      candidate.pointers.includes(pointerId),
+    );
     const record = this.#pointers.get(pointerId);
     this.#pointers.delete(pointerId);
     if (!session) return;
