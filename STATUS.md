@@ -13,7 +13,7 @@ Updated: 2026-07-11
 
 ## Current gate
 
-The approved UX is being translated into implementation-ready engineering contracts. Runtime execution, camera ownership, and the renderer/frame pipeline are now locked. Phase 4 remains gated until input, Home Assistant, performance, asset, plugin and schema contracts are validated.
+The approved UX is being translated into implementation-ready engineering contracts. Runtime execution, camera ownership, renderer/frame pipeline, input arbitration and the Home Assistant runtime are now locked. Phase 4 remains gated until performance, asset, plugin and schema contracts are validated.
 
 ## Completed
 
@@ -36,14 +36,16 @@ The approved UX is being translated into implementation-ready engineering contra
 - 3.5.1 Runtime execution model
 - 3.5.2 Camera engine contract
 - 3.5.3 Renderer and frame pipeline
+- 3.5.4 Input and gesture arbitration
+- 3.5.5 Home Assistant runtime contract
 
 ## Phase 3.5 workstream
 
 - [x] 3.5.1 Runtime execution model
 - [x] 3.5.2 Camera engine contract
 - [x] 3.5.3 Renderer and frame pipeline
-- [ ] 3.5.4 Input and gesture arbitration
-- [ ] 3.5.5 Home Assistant runtime contract
+- [x] 3.5.4 Input and gesture arbitration
+- [x] 3.5.5 Home Assistant runtime contract
 - [ ] 3.5.6 Performance and resource budgets
 - [ ] 3.5.7 3D asset pipeline and validation
 - [ ] 3.5.8 Plugin and extension API
@@ -65,7 +67,7 @@ The first vertical prototype must validate:
 
 ## Next
 
-1. Complete 3.5.4 — Input and gesture arbitration.
-2. Continue through Home Assistant runtime and performance contracts.
+1. Complete 3.5.6 — Performance and resource budgets.
+2. Continue through the asset, plugin and schema contracts.
 3. Select the project license before public distribution.
 4. Begin Phase 4 only after the Phase 3.5 implementation gate is approved.
