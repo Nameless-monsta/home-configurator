@@ -8,12 +8,14 @@ Updated: 2026-07-11
 - Phase 1 complete
 - Phase 2 complete
 - Phase 3 complete and approved
-- Phase 3.5 in progress
-- Phase 4 not started
+- Phase 3.5 complete and approved
+- Phase 4 ready to start
 
 ## Current gate
 
-The approved UX is being translated into implementation-ready engineering contracts. Runtime execution, camera ownership, renderer/frame pipeline, input arbitration, the Home Assistant runtime, measurable performance budgets, the 3D asset pipeline, plugin boundaries and the blueprint/runtime schema are now locked. Phase 4 remains gated only by the final engineering validation and implementation gate.
+The engineering specification set is complete and approved. Runtime ownership, camera behavior, renderer/frame ordering, input arbitration, Home Assistant reconciliation, performance budgets, asset validation, plugin boundaries and blueprint/runtime schemas are locked for implementation.
+
+Phase 4 may begin with repository/build/CI setup and the first vertical interactive prototype.
 
 ## Completed
 
@@ -42,6 +44,7 @@ The approved UX is being translated into implementation-ready engineering contra
 - 3.5.7 3D asset pipeline and validation
 - 3.5.8 Plugin and extension API
 - 3.5.9 Blueprint/runtime schema reference
+- 3.5.10 Engineering validation and implementation gate
 
 ## Phase 3.5 workstream
 
@@ -54,24 +57,26 @@ The approved UX is being translated into implementation-ready engineering contra
 - [x] 3.5.7 3D asset pipeline and validation
 - [x] 3.5.8 Plugin and extension API
 - [x] 3.5.9 Blueprint/runtime schema reference
-- [ ] 3.5.10 Engineering validation and implementation gate
+- [x] 3.5.10 Engineering validation and implementation gate
 
-## Phase 4 entry conditions
+## Phase 4 first vertical prototype
 
 The first vertical prototype must validate:
 
 1. persistent shell and WebGL stage;
 2. room-to-device transition;
-3. one real Home Assistant entity;
-4. color sphere manipulation and brightness gesture;
+3. one real Home Assistant color-capable light;
+4. color sphere manipulation and two-finger brightness gesture;
 5. optimistic and confirmed state reconciliation;
 6. reduced-motion behavior;
 7. iPad performance and responsive layout;
-8. VoiceOver and keyboard basics.
+8. VoiceOver and keyboard basics;
+9. generic model fallback;
+10. diagnostics for frame, gesture, transition and command state.
 
 ## Next
 
-1. Run 3.5.10 — Engineering validation and implementation gate.
-2. Resolve any final contract gaps before development.
-3. Select the project license before public distribution.
-4. Begin Phase 4 only after the Phase 3.5 implementation gate is approved.
+1. Select the project license before public distribution.
+2. Complete Phase 4.1 — repository, build and CI setup.
+3. Build the approved vertical interactive prototype before expanding device coverage.
+4. Record any implementation-driven contract change through the relevant specification and an ADR.
