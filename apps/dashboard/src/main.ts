@@ -21,13 +21,14 @@ import './styles.css';
 import './navigation.css';
 import './configurator.css';
 import './motion.css';
+import './responsive.css';
 
 const root = document.querySelector<HTMLElement>('#app');
 if (!root) throw new Error('Application root was not found');
 
 const ui = new UiFoundation({
   root,
-  version: '0.6.6',
+  version: '0.6.7',
   subtitle: 'Select a device to open its capability-driven control panel.',
 });
 
