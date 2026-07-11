@@ -11,6 +11,14 @@
 - [x] **4.4 Interaction Engine**
 - [x] **4.5 Home Assistant Engine**
 - [ ] **4.6 UI Engine**
+  - [x] **4.6.1 UI Foundation**
+  - [ ] **4.6.2 Navigation System**
+  - [ ] **4.6.3 Configurator Framework**
+  - [ ] **4.6.4 Control Library**
+  - [ ] **4.6.5 Device Panels**
+  - [ ] **4.6.6 iyO Motion System**
+  - [ ] **4.6.7 Responsive Behaviour**
+  - [ ] **4.6.8 UI Validation and Merge**
 - [ ] **4.7 First Interactive Prototype**
 - [ ] **4.8 Performance optimisation**
 - [ ] **4.9 Documentation**
@@ -46,11 +54,17 @@ Authenticated WebSocket transport, automatic room and device discovery, capabili
 
 See [4.5 Home Assistant Engine](4.5_HOME_ASSISTANT_ENGINE.md).
 
-## Next milestone
+### 4.6.1 — UI Foundation
 
-### 4.6 — UI Engine
+Full-screen shell, layout classification, safe areas, overlay ownership, theme tokens, diagnostics, reduced motion and accessibility foundations. GitHub Actions validation passed formatting, linting, strict TypeScript, tests and production builds.
 
-The UI milestone will compose the approved iyO-inspired navigation, overlays, configurator controls, responsive shell and accessibility layer over the runtime, graphics, interaction and Home Assistant engines.
+See [4.6.1 UI Foundation](4.6.1_UI_FOUNDATION.md).
+
+## Active milestone
+
+### 4.6.2 — Navigation System
+
+Room and device navigation, keyboard traversal, history and navigation-state presentation.
 
 ## Required validation command
 
