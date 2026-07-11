@@ -1,0 +1,20 @@
+{
+  "name": "@home-configurator/dashboard",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite --host 0.0.0.0",
+    "lint": "eslint src vite.config.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest --passWithNoTests",
+    "test:ci": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@home-configurator/runtime": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "^7.0.5"
+  }
+}
