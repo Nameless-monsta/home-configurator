@@ -18,9 +18,9 @@ export class EnvironmentManager {
   readonly #scene: Scene;
   readonly #diagnostics: Diagnostics;
   readonly #loader = new RGBELoader();
-  #target?: WebGLRenderTarget;
-  #texture?: Texture;
-  #uri?: string;
+  #target: WebGLRenderTarget | undefined;
+  #texture: Texture | undefined;
+  #uri: string | undefined;
 
   public constructor(renderer: WebGLRenderer, scene: Scene, diagnostics: Diagnostics) {
     this.#renderer = renderer;
