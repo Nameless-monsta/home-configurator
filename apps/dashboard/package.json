@@ -1,6 +1,6 @@
 {
   "name": "@home-configurator/dashboard",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@home-configurator/graphics": "workspace:*",
+    "@home-configurator/interaction": "workspace:*",
     "@home-configurator/runtime": "workspace:*"
   },
   "devDependencies": {
