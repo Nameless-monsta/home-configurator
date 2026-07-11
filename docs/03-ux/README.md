@@ -2,7 +2,7 @@
 
 ## Status
 
-Phase 3 is in progress.
+Phase 3 is complete and approved for implementation.
 
 ## Workstream
 
@@ -16,7 +16,7 @@ Phase 3 is in progress.
 - ~~3.8 Scene interaction~~ ✅
 - ~~3.9 Transition library~~ ✅
 - ~~3.10 Animation library~~ ✅
-- 3.11 Final UX approval
+- ~~3.11 Final UX approval and validation~~ ✅
 
 ## Completed documents
 
@@ -30,5 +30,8 @@ Phase 3 is in progress.
 - [3.8 Scene Interaction](3.8_SCENE_INTERACTION.md)
 - [3.9 Transition Library](3.9_TRANSITION_LIBRARY.md)
 - [3.10 Animation Library](3.10_ANIMATION_LIBRARY.md)
+- [3.11 Final UX Approval and Validation](3.11_FINAL_UX_APPROVAL.md)
 
-Every completed task must include interaction states, responsive variants, accessibility behavior, motion references and acceptance criteria.
+## Approval condition
+
+Implementation must validate gesture precision, performance, accessibility, responsive composition and Home Assistant reconciliation on real devices. These gates are documented in 3.11.
