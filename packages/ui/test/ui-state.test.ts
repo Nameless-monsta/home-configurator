@@ -1,7 +1,12 @@
 import type { ConfirmedRuntimeSnapshot } from '@home-configurator/home-assistant';
 import { describe, expect, it } from 'vitest';
 
-import { buildNavigationModel, createUiSnapshot, initialUiState, reduceUiState } from '../src/index.js';
+import {
+  buildNavigationModel,
+  createUiSnapshot,
+  initialUiState,
+  reduceUiState,
+} from '../src/index.js';
 
 const home: ConfirmedRuntimeSnapshot = {
   status: 'ready',
