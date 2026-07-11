@@ -21,6 +21,7 @@ export class UiFoundation {
   #responsive: UiResponsiveProfile;
   #runtimeStatus = 'Booting';
   #diagnostics: Readonly<Record<string, number | string>> = {};
+  #focusReturn: HTMLElement | null = null;
 
   public readonly stage: HTMLElement;
   public readonly canvas: HTMLCanvasElement;
@@ -92,13 +93,20 @@ export class UiFoundation {
   }
 
   public openOverlay(overlay: Exclude<UiOverlay, null>): void {
+    if (document.activeElement instanceof HTMLElement) this.#focusReturn = document.activeElement;
     this.#overlay = overlay;
     this.#renderState();
+    queueMicrotask(() => {
+      this.#root.querySelector<HTMLElement>('[data-ui-action="close-overlay"]')?.focus();
+    });
   }
 
   public closeOverlay(): void {
     this.#overlay = null;
     this.#renderState();
+    const focusReturn = this.#focusReturn;
+    this.#focusReturn = null;
+    queueMicrotask(() => focusReturn?.focus());
   }
 
   public dispose(): void {
@@ -106,6 +114,7 @@ export class UiFoundation {
     this.#root.removeEventListener('click', this.#handleClick);
     this.#root.removeEventListener('keydown', this.#handleKeydown);
     this.#listeners.clear();
+    this.#focusReturn = null;
   }
 
   #createProfile(width: number, height: number): UiResponsiveProfile {
@@ -178,7 +187,7 @@ export class UiFoundation {
             <span>${title}</span>
           </div>
           <div class="ui-header-meta">
-            <span class="ui-runtime-status" data-ui-runtime-status>${escapeHtml(this.#runtimeStatus)}</span>
+            <span class="ui-runtime-status" data-ui-runtime-status aria-live="polite">${escapeHtml(this.#runtimeStatus)}</span>
             <button class="ui-icon-button" type="button" data-ui-action="open-diagnostics" aria-label="Open diagnostics">···</button>
           </div>
         </header>
@@ -194,12 +203,12 @@ export class UiFoundation {
           <span>v${escapeHtml(options.version)}</span>
           <span>Foundation online</span>
         </footer>
-        <section class="ui-overlay" data-ui-overlay hidden aria-hidden="true" aria-label="Diagnostics" role="dialog" aria-modal="true">
+        <section class="ui-overlay" data-ui-overlay hidden aria-hidden="true" aria-labelledby="ui-diagnostics-title" role="dialog" aria-modal="true">
           <div class="ui-overlay-panel">
             <div class="ui-overlay-heading">
               <div>
                 <p>System</p>
-                <h2>Diagnostics</h2>
+                <h2 id="ui-diagnostics-title">Diagnostics</h2>
               </div>
               <button class="ui-icon-button" type="button" data-ui-action="close-overlay" aria-label="Close diagnostics">×</button>
             </div>
