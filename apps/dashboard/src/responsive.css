@@ -19,11 +19,8 @@ body,
 }
 
 [data-ui-viewport='phone'] .ui-shell {
-  padding:
-    max(14px, env(safe-area-inset-top))
-    max(14px, env(safe-area-inset-right))
-    max(14px, env(safe-area-inset-bottom))
-    max(14px, env(safe-area-inset-left));
+  padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
+    max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
 }
 
 [data-ui-viewport='phone'] .ui-header,
@@ -124,11 +121,8 @@ body,
 }
 
 [data-ui-viewport='phone'] .ui-overlay {
-  padding:
-    max(14px, env(safe-area-inset-top))
-    max(14px, env(safe-area-inset-right))
-    max(14px, env(safe-area-inset-bottom))
-    max(14px, env(safe-area-inset-left));
+  padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
+    max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
 }
 
 [data-ui-viewport='phone'] .ui-overlay-panel {
