@@ -13,9 +13,9 @@ Updated: 2026-07-11
 
 ## Current gate
 
-Phase 4.4 is complete. Home Configurator now has centralized input ownership, semantic raycasting, deterministic gesture arbitration, selection, navigation, transitions, animations, camera focus and accessible keyboard alternatives.
+Phase 4.5 is complete. Home Configurator now has an authenticated Home Assistant transport, coherent registry and state synchronization, automatic room and device discovery, semantic capability bindings, service-call translation, optimistic reconciliation, stale-state handling and reconnect behavior.
 
-Phase 4.5 — Home Assistant Engine is implemented and undergoing CI validation.
+The next implementation gate is 4.6 — UI Engine.
 
 ## Completed
 
@@ -40,6 +40,7 @@ Phase 4.5 — Home Assistant Engine is implemented and undergoing CI validation.
 - 4.2 Runtime Core
 - 4.3 Graphics Engine
 - 4.4 Interaction Engine
+- 4.5 Home Assistant Engine
 
 ## Phase 4 workstream
 
@@ -47,7 +48,7 @@ Phase 4.5 — Home Assistant Engine is implemented and undergoing CI validation.
 - [x] 4.2 Runtime Core
 - [x] 4.3 Graphics Engine
 - [x] 4.4 Interaction Engine
-- [ ] 4.5 Home Assistant Engine — implementation complete, CI validation running
+- [x] 4.5 Home Assistant Engine
 - [ ] 4.6 UI Engine
 - [ ] 4.7 First Interactive Prototype
 - [ ] 4.8 Performance optimisation
@@ -58,6 +59,7 @@ Phase 4.5 — Home Assistant Engine is implemented and undergoing CI validation.
 
 - Phase 4.3 passed formatting, linting, strict TypeScript, package tests and all production builds.
 - Phase 4.4 passed formatting, linting, strict TypeScript, package tests and all production builds.
+- Phase 4.5 passed formatting, linting, strict TypeScript, package tests and all production builds on GitHub Actions run 173.
 
 ## First interactive prototype
 
@@ -76,7 +78,6 @@ The first interactive prototype must validate:
 
 ## Next
 
-1. Complete CI validation for 4.5 — Home Assistant Engine.
-2. Start 4.6 — UI Engine after the 4.5 gate is green.
-3. Select the project license before public distribution.
-4. Record any implementation-driven contract change through the relevant specification and an ADR.
+1. Start 4.6 — UI Engine.
+2. Select the project license before public distribution.
+3. Record any implementation-driven contract change through the relevant specification and an ADR.
