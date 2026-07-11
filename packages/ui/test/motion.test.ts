@@ -63,11 +63,17 @@ describe('UiMotionController', () => {
     controller.exitPanel(exit.element);
 
     expect(entrance.element.animate).toHaveBeenCalledWith(
-      expect.arrayContaining([expect.objectContaining({ opacity: 0 }), expect.objectContaining({ opacity: 1 })]),
+      expect.arrayContaining([
+        expect.objectContaining({ opacity: 0 }),
+        expect.objectContaining({ opacity: 1 }),
+      ]),
       expect.objectContaining({ duration: iyoMotionTokens.duration.standard }),
     );
     expect(exit.element.animate).toHaveBeenCalledWith(
-      expect.arrayContaining([expect.objectContaining({ opacity: 1 }), expect.objectContaining({ opacity: 0 })]),
+      expect.arrayContaining([
+        expect.objectContaining({ opacity: 1 }),
+        expect.objectContaining({ opacity: 0 }),
+      ]),
       expect.objectContaining({ duration: iyoMotionTokens.duration.fast }),
     );
   });

@@ -39,7 +39,8 @@ export class UiMotionOrchestrator {
   }
 
   readonly #handlePointerDown = (event: Event): void => {
-    const target = event.target instanceof Element ? event.target.closest('button, [role="button"]') : null;
+    const target =
+      event.target instanceof Element ? event.target.closest('button, [role="button"]') : null;
     if (target && !target.hasAttribute('disabled')) this.#motion.press(target);
   };
 
@@ -64,11 +65,15 @@ export class UiMotionOrchestrator {
       const target = record.target;
       if (record.attributeName === 'hidden') {
         if (target.hasAttribute('hidden')) continue;
-        if (target.matches('[data-ui-overlay], .ui-navigation-menu')) this.#motion.enterPanel(target);
+        if (target.matches('[data-ui-overlay], .ui-navigation-menu'))
+          this.#motion.enterPanel(target);
         else this.#motion.reveal(target);
       }
       if (record.attributeName === 'aria-checked') this.#motion.reveal(target);
-      if (record.attributeName === 'data-menu-open' && target.getAttribute('data-menu-open') === 'true') {
+      if (
+        record.attributeName === 'data-menu-open' &&
+        target.getAttribute('data-menu-open') === 'true'
+      ) {
         this.#motion.enterPanel(target);
       }
     }

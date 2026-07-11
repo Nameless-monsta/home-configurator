@@ -25,7 +25,8 @@
     border-color 140ms ease;
 }
 
-[data-ui-motion='ready'] .ui-configurator-section[data-collapsed='true']
+[data-ui-motion='ready']
+  .ui-configurator-section[data-collapsed='true']
   .ui-configurator-section-toggle
   i {
   transform: rotate(-90deg);
