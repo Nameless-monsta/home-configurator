@@ -3,8 +3,10 @@ import type { HomeConfiguratorRuntime } from '@home-configurator/runtime';
 import { GraphicsEngine, type GraphicsEngineOptions } from './graphics-engine.js';
 import { GraphicsViewportController } from './viewport-controller.js';
 
-export interface AttachGraphicsOptions
-  extends Omit<GraphicsEngineOptions, 'canvas' | 'diagnostics'> {
+export interface AttachGraphicsOptions extends Omit<
+  GraphicsEngineOptions,
+  'canvas' | 'diagnostics'
+> {
   readonly runtime: HomeConfiguratorRuntime;
   readonly canvas: HTMLCanvasElement;
   readonly viewportElement: HTMLElement;
