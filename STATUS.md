@@ -1,6 +1,6 @@
 # Project Status
 
-Updated: 2026-07-11
+Updated: 2026-07-12
 
 ## Overall
 
@@ -13,9 +13,9 @@ Updated: 2026-07-11
 
 ## Current gate
 
-Phase 4.5 is complete. Home Configurator now has an authenticated Home Assistant transport, coherent registry and state synchronization, automatic room and device discovery, semantic capability bindings, service-call translation, optimistic reconciliation, stale-state handling and reconnect behavior.
+Phase 4.6 is complete. Home Configurator now has a validated UI Engine covering the application foundation, room and device navigation, generic configurator framework, reusable controls, capability-driven device panels, iyO motion behaviour, responsive phone/tablet/desktop layouts and automated accessibility contract validation.
 
-The next implementation gate is 4.6 — UI Engine.
+The next implementation gate is 4.7 — First Interactive Prototype.
 
 ## Completed
 
@@ -41,6 +41,7 @@ The next implementation gate is 4.6 — UI Engine.
 - 4.3 Graphics Engine
 - 4.4 Interaction Engine
 - 4.5 Home Assistant Engine
+- 4.6 UI Engine
 
 ## Phase 4 workstream
 
@@ -49,7 +50,7 @@ The next implementation gate is 4.6 — UI Engine.
 - [x] 4.3 Graphics Engine
 - [x] 4.4 Interaction Engine
 - [x] 4.5 Home Assistant Engine
-- [ ] 4.6 UI Engine
+- [x] 4.6 UI Engine
 - [ ] 4.7 First Interactive Prototype
 - [ ] 4.8 Performance optimisation
 - [ ] 4.9 Documentation
@@ -59,7 +60,8 @@ The next implementation gate is 4.6 — UI Engine.
 
 - Phase 4.3 passed formatting, linting, strict TypeScript, package tests and all production builds.
 - Phase 4.4 passed formatting, linting, strict TypeScript, package tests and all production builds.
-- Phase 4.5 passed formatting, linting, strict TypeScript, package tests and all production builds on GitHub Actions run 173.
+- Phase 4.5 passed formatting, linting, strict TypeScript, package tests and all production builds.
+- Phase 4.6 passed formatting, linting, strict TypeScript, package tests and all production builds across milestones 4.6.1–4.6.8. Final validation merged through PR #16.
 
 ## First interactive prototype
 
@@ -78,6 +80,6 @@ The first interactive prototype must validate:
 
 ## Next
 
-1. Start 4.6 — UI Engine.
+1. Start 4.7 — First Interactive Prototype.
 2. Select the project license before public distribution.
 3. Record any implementation-driven contract change through the relevant specification and an ADR.
