@@ -31,6 +31,14 @@ const ui = new UiFoundation({
 
 let latestHomeSnapshot: ConfirmedRuntimeSnapshot | null = null;
 
+const formatCapabilityValue = (value: unknown): ConfiguratorValue => {
+  if (value === undefined) return 'Available';
+  if (value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return value;
+  }
+  return 'Configured';
+};
+
 const createDocument = (
   snapshot: ConfirmedRuntimeSnapshot | null,
   location: UiNavigationLocation,
@@ -79,10 +87,7 @@ const createDocument = (
           id: `capability.${capability}`,
           label: capability,
           kind: 'status' as const,
-          value:
-            device.optimistic[capability] === undefined
-              ? 'Available'
-              : String(device.optimistic[capability]),
+          value: formatCapabilityValue(device.optimistic[capability]),
           readOnly: true,
         })),
       },
@@ -103,9 +108,8 @@ const createDocument = (
 const configurator = new UiConfigurator({
   root,
   adapter: {
-    commit: async (_documentId: string, _changes: Readonly<Record<string, ConfiguratorValue>>) =>
-      Promise.resolve(),
-    invoke: async (_documentId: string, _actionId: string) => Promise.resolve(),
+    commit: async () => Promise.resolve(),
+    invoke: async () => Promise.resolve(),
   },
   validate: (_document, values) => {
     const displayName = values['displayName'];
