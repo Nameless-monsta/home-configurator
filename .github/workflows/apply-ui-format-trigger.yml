@@ -1,0 +1,12 @@
+name: Trigger UI Formatting
+
+on:
+  push:
+    branches:
+      - feature/ui-engine-v0.6.0
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Trigger formatting workflow"
