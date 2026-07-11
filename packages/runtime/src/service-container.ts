@@ -1,4 +1,4 @@
-import type { ServiceToken } from "./tokens.js";
+import type { ServiceToken } from './tokens.js';
 
 export type ServiceFactory<T> = (container: ServiceContainer) => T;
 
@@ -11,7 +11,7 @@ interface Registration<T> {
 export class ServiceResolutionError extends Error {
   public constructor(message: string) {
     super(message);
-    this.name = "ServiceResolutionError";
+    this.name = 'ServiceResolutionError';
   }
 }
 
@@ -32,7 +32,7 @@ export class ServiceContainer {
       throw new ServiceResolutionError(`Service already registered: ${token.description}`);
     }
 
-    this.#registrations.set(token.key, { factory, singleton } as Registration<unknown>);
+    this.#registrations.set(token.key, { factory, singleton });
     return this;
   }
 
@@ -51,21 +51,23 @@ export class ServiceContainer {
       throw new ServiceResolutionError(`Service not registered: ${token.description}`);
     }
 
-    if (registration.singleton && "instance" in registration) {
-      return registration.instance as T;
+    if (registration.singleton && 'instance' in registration) {
+      return registration.instance;
     }
 
     if (this.#resolving.includes(token.key)) {
       const chain = [...this.#resolving, token.key]
-        .map((key) => key.description ?? "unknown")
-        .join(" -> ");
+        .map((key) => key.description ?? 'unknown')
+        .join(' -> ');
       throw new ServiceResolutionError(`Circular service dependency: ${chain}`);
     }
 
     this.#resolving.push(token.key);
     try {
       const instance = registration.factory(this);
-      if (registration.singleton) registration.instance = instance;
+      if (registration.singleton) {
+        registration.instance = instance;
+      }
       return instance;
     } finally {
       this.#resolving.pop();
@@ -74,7 +76,7 @@ export class ServiceContainer {
 
   public resolvedInstances(): readonly unknown[] {
     return [...this.#registrations.values()]
-      .filter((registration) => "instance" in registration)
+      .filter((registration) => 'instance' in registration)
       .map((registration) => registration.instance);
   }
 }
