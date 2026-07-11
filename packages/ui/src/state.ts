@@ -33,7 +33,10 @@ export const reduceUiState = (state: UiState, action: UiAction): UiState => {
         ...state,
         navigationOpen: false,
         overlay: 'configurator',
-        selection: { roomId: action.roomId, deviceId: action.deviceId },
+        selection: {
+          ...(action.roomId ? { roomId: action.roomId } : {}),
+          deviceId: action.deviceId,
+        },
       };
     case 'open-diagnostics':
       return { ...state, navigationOpen: false, overlay: 'diagnostics' };
@@ -43,16 +46,21 @@ export const reduceUiState = (state: UiState, action: UiAction): UiState => {
 export const createUiSnapshot = (
   state: UiState,
   home: ConfirmedRuntimeSnapshot,
-): UiSnapshot => ({
-  state,
-  home,
-  selectedRoom: state.selection.roomId
+): UiSnapshot => {
+  const selectedRoom = state.selection.roomId
     ? home.rooms.find((room) => room.id === state.selection.roomId)
-    : undefined,
-  selectedDevice: state.selection.deviceId
+    : undefined;
+  const selectedDevice = state.selection.deviceId
     ? home.devices.find((device) => device.id === state.selection.deviceId)
-    : undefined,
-});
+    : undefined;
+
+  return {
+    state,
+    home,
+    ...(selectedRoom ? { selectedRoom } : {}),
+    ...(selectedDevice ? { selectedDevice } : {}),
+  };
+};
 
 export const buildNavigationModel = (
   home: ConfirmedRuntimeSnapshot,
