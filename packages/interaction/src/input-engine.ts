@@ -191,13 +191,14 @@ export class InputEngine {
     const target = this.#resolveTarget();
     if (!target) return;
     const pointerCount = this.#pointers.size;
-    const kind = this.#chooseKind(target, pointerCount);
-    if (!kind) return;
 
-    for (const session of this.#sessions.values()) {
+    for (const session of [...this.#sessions.values()]) {
       if (session.pointers.length !== pointerCount)
         this.cancelSession(session.id, 'pointer-count mismatch');
     }
+
+    const kind = this.#chooseKind(target, pointerCount);
+    if (!kind) return;
 
     const pointers = [...this.#pointers.keys()];
     const session: MutableSession = {
