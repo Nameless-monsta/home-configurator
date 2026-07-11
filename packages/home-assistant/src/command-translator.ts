@@ -1,9 +1,4 @@
-import type {
-  CanonicalDevice,
-  CapabilityKind,
-  HAState,
-  SemanticCommand,
-} from './types.js';
+import type { CanonicalDevice, CapabilityKind, HAState, SemanticCommand } from './types.js';
 
 export interface ExpectedState {
   readonly entityId: string;
@@ -22,9 +17,7 @@ export interface TranslatedServiceCall {
 }
 
 const bindingFor = (device: CanonicalDevice, capability: CapabilityKind): string => {
-  const binding = device.bindings.find((candidate) =>
-    candidate.capabilities.includes(capability),
-  );
+  const binding = device.bindings.find((candidate) => candidate.capabilities.includes(capability));
   if (!binding) throw new Error(`Device ${device.id} does not support ${capability}`);
   return binding.entityId;
 };

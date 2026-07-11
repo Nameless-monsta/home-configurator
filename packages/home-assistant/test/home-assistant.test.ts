@@ -145,9 +145,7 @@ describe('HomeAssistantEngine', () => {
         brightness: 128,
       }),
     );
-    expect(engine.getConfirmedSnapshot().devices[0]?.optimistic['brightness']).toBe(
-      undefined,
-    );
+    expect(engine.getConfirmedSnapshot().devices[0]?.optimistic['brightness']).toBe(undefined);
     await engine.disconnect();
     engine.dispose();
   });

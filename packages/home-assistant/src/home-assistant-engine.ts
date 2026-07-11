@@ -1,9 +1,6 @@
 import type { Diagnostics } from '@home-configurator/runtime';
 
-import {
-  affectedDeviceIdsForEntity,
-  discoverCanonicalHome,
-} from './capability-discovery.js';
+import { affectedDeviceIdsForEntity, discoverCanonicalHome } from './capability-discovery.js';
 import {
   stateMatchesExpectation,
   translateSemanticCommand,
@@ -44,10 +41,7 @@ export interface HomeAssistantEngineOptions {
   readonly transport: HomeAssistantTransport;
   readonly now?: () => number;
   readonly random?: () => number;
-  readonly setTimer?: (
-    callback: () => void,
-    delayMs: number,
-  ) => ReturnType<typeof setTimeout>;
+  readonly setTimer?: (callback: () => void, delayMs: number) => ReturnType<typeof setTimeout>;
   readonly clearTimer?: (handle: ReturnType<typeof setTimeout>) => void;
 }
 
@@ -88,10 +82,7 @@ export class HomeAssistantEngine implements HomeAssistantRuntime {
   readonly #transport: HomeAssistantTransport;
   readonly #now: () => number;
   readonly #random: () => number;
-  readonly #setTimer: (
-    callback: () => void,
-    delayMs: number,
-  ) => ReturnType<typeof setTimeout>;
+  readonly #setTimer: (callback: () => void, delayMs: number) => ReturnType<typeof setTimeout>;
   readonly #clearTimer: (handle: ReturnType<typeof setTimeout>) => void;
   readonly #listeners = new Set<(patch: ConfirmedStatePatch) => void>();
   readonly #subscriptions: Unsubscribe[] = [];
@@ -177,9 +168,7 @@ export class HomeAssistantEngine implements HomeAssistantRuntime {
       return commandError(command, 'connection', 'Home Assistant is not connected', true);
     }
 
-    const device = this.#snapshot.devices.find(
-      (candidate) => candidate.id === command.deviceId,
-    );
+    const device = this.#snapshot.devices.find((candidate) => candidate.id === command.deviceId);
     if (!device) {
       return commandError(
         command,
@@ -251,14 +240,8 @@ export class HomeAssistantEngine implements HomeAssistantRuntime {
     }
   }
 
-  public async refresh(
-    scope: 'all' | 'states' | 'registries' = 'all',
-  ): Promise<void> {
-    if (
-      this.#status !== 'ready' &&
-      this.#status !== 'degraded' &&
-      this.#status !== 'syncing'
-    ) {
+  public async refresh(scope: 'all' | 'states' | 'registries' = 'all'): Promise<void> {
+    if (this.#status !== 'ready' && this.#status !== 'degraded' && this.#status !== 'syncing') {
       throw new Error('Home Assistant is not connected');
     }
     if (scope === 'states') {
@@ -293,11 +276,7 @@ export class HomeAssistantEngine implements HomeAssistantRuntime {
       const message = error instanceof Error ? error.message : String(error);
       const authentication = /auth|token|credential/i.test(message);
       this.#setStatus(
-        authentication
-          ? 'auth-failed'
-          : reconnecting
-            ? 'reconnecting'
-            : 'disconnected',
+        authentication ? 'auth-failed' : reconnecting ? 'reconnecting' : 'disconnected',
       );
       this.#diagnostics.record('error', 'home-assistant', 'Connection failed', {
         category: authentication ? 'authentication' : 'connection',
@@ -326,28 +305,21 @@ export class HomeAssistantEngine implements HomeAssistantRuntime {
       [],
     );
     const servicesPromise = includeStaticMetadata
-      ? this.#optionalRequest<Readonly<Record<string, unknown>>>(
-          { type: 'get_services' },
-          {},
-        )
+      ? this.#optionalRequest<Readonly<Record<string, unknown>>>({ type: 'get_services' }, {})
       : Promise.resolve(this.#registry.services);
     const configPromise = includeStaticMetadata
-      ? this.#optionalRequest<Readonly<Record<string, unknown>>>(
-          { type: 'get_config' },
-          {},
-        )
+      ? this.#optionalRequest<Readonly<Record<string, unknown>>>({ type: 'get_config' }, {})
       : Promise.resolve(this.#registry.config);
 
-    const [states, areas, devices, entities, floors, services, config] =
-      await Promise.all([
-        statesPromise,
-        areasPromise,
-        devicesPromise,
-        entitiesPromise,
-        floorsPromise,
-        servicesPromise,
-        configPromise,
-      ]);
+    const [states, areas, devices, entities, floors, services, config] = await Promise.all([
+      statesPromise,
+      areasPromise,
+      devicesPromise,
+      entitiesPromise,
+      floorsPromise,
+      servicesPromise,
+      configPromise,
+    ]);
 
     this.#registry = {
       states,
@@ -375,12 +347,9 @@ export class HomeAssistantEngine implements HomeAssistantRuntime {
 
   async #subscribeLiveEvents(): Promise<void> {
     this.#subscriptions.push(
-      await this.#transport.subscribe<StateChangedEventData>(
-        'state_changed',
-        (event) => {
-          this.#handleStateChanged(event);
-        },
-      ),
+      await this.#transport.subscribe<StateChangedEventData>('state_changed', (event) => {
+        this.#handleStateChanged(event);
+      }),
     );
 
     const registryEvents = [
@@ -393,15 +362,10 @@ export class HomeAssistantEngine implements HomeAssistantRuntime {
       try {
         const unsubscribe = await this.#transport.subscribe(eventType, () => {
           void this.refresh('registries').catch((error: unknown) => {
-            this.#diagnostics.record(
-              'warn',
-              'home-assistant',
-              'Registry refresh failed',
-              {
-                eventType,
-                message: error instanceof Error ? error.message : String(error),
-              },
-            );
+            this.#diagnostics.record('warn', 'home-assistant', 'Registry refresh failed', {
+              eventType,
+              message: error instanceof Error ? error.message : String(error),
+            });
           });
         });
         this.#subscriptions.push(unsubscribe);
@@ -421,9 +385,7 @@ export class HomeAssistantEngine implements HomeAssistantRuntime {
 
   #handleStateChanged(event: HAEvent<StateChangedEventData>): void {
     const { entity_id: entityId, new_state: newState } = event.data;
-    const states = new Map(
-      this.#registry.states.map((state) => [state.entity_id, state] as const),
-    );
+    const states = new Map(this.#registry.states.map((state) => [state.entity_id, state] as const));
     if (newState) states.set(entityId, newState);
     else states.delete(entityId);
     const previousDevices = this.#snapshot.devices;
@@ -460,10 +422,7 @@ export class HomeAssistantEngine implements HomeAssistantRuntime {
       affectedDeviceIds,
     };
     for (const listener of [...this.#listeners]) listener(patch);
-    this.#diagnostics.setGauge(
-      'ha.entities.stale',
-      stale ? this.#registry.states.length : 0,
-    );
+    this.#diagnostics.setGauge('ha.entities.stale', stale ? this.#registry.states.length : 0);
   }
 
   #setStatus(status: HAConnectionStatus): void {
@@ -510,18 +469,10 @@ export class HomeAssistantEngine implements HomeAssistantRuntime {
       return;
     }
     const minimum = Math.max(250, this.#config.reconnect?.minimumDelayMs ?? 1000);
-    const maximum = Math.max(
-      minimum,
-      this.#config.reconnect?.maximumDelayMs ?? 30000,
-    );
-    const jitterRatio = Math.min(
-      1,
-      Math.max(0, this.#config.reconnect?.jitterRatio ?? 0.2),
-    );
+    const maximum = Math.max(minimum, this.#config.reconnect?.maximumDelayMs ?? 30000);
+    const jitterRatio = Math.min(1, Math.max(0, this.#config.reconnect?.jitterRatio ?? 0.2));
     const base = Math.min(maximum, minimum * 2 ** this.#reconnectAttempt++);
-    const delay = Math.round(
-      base * (1 - jitterRatio + this.#random() * jitterRatio * 2),
-    );
+    const delay = Math.round(base * (1 - jitterRatio + this.#random() * jitterRatio * 2));
     this.#diagnostics.increment('ha.reconnect.attempts');
     this.#reconnectTimer = this.#setTimer(() => {
       this.#reconnectTimer = undefined;
@@ -593,37 +544,24 @@ export class HomeAssistantEngine implements HomeAssistantRuntime {
   #clearPending(state: 'canceled'): void {
     for (const pending of this.#pending.values()) {
       this.#clearTimer(pending.timeout);
-      this.#diagnostics.record(
-        'debug',
-        'home-assistant.command',
-        'Pending command cleared',
-        {
-          commandId: pending.command.id,
-          state,
-        },
-      );
+      this.#diagnostics.record('debug', 'home-assistant.command', 'Pending command cleared', {
+        commandId: pending.command.id,
+        state,
+      });
     }
     this.#pending.clear();
     this.#optimisticByDevice.clear();
     this.#diagnostics.setGauge('ha.commands.pending', 0);
   }
 
-  async #optionalRequest<T>(
-    message: Readonly<Record<string, unknown>>,
-    fallback: T,
-  ): Promise<T> {
+  async #optionalRequest<T>(message: Readonly<Record<string, unknown>>, fallback: T): Promise<T> {
     try {
       return await this.#transport.request<T>(message);
     } catch (error) {
-      this.#diagnostics.record(
-        'warn',
-        'home-assistant',
-        'Optional Home Assistant request failed',
-        {
-          type: String(message['type'] ?? 'unknown'),
-          message: error instanceof Error ? error.message : String(error),
-        },
-      );
+      this.#diagnostics.record('warn', 'home-assistant', 'Optional Home Assistant request failed', {
+        type: String(message['type'] ?? 'unknown'),
+        message: error instanceof Error ? error.message : String(error),
+      });
       return fallback;
     }
   }

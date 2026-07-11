@@ -67,9 +67,7 @@ const parseMessage = (data: unknown): IncomingMessage | undefined => {
   if (typeof data !== 'string') return undefined;
   try {
     const parsed: unknown = JSON.parse(data);
-    return typeof parsed === 'object' && parsed !== null
-      ? (parsed as IncomingMessage)
-      : undefined;
+    return typeof parsed === 'object' && parsed !== null ? (parsed as IncomingMessage) : undefined;
   } catch {
     return undefined;
   }
@@ -155,9 +153,7 @@ export class HomeAssistantWebSocketClient implements HomeAssistantTransport {
     return () => {
       this.#subscriptions.delete(id);
       if (this.#socket?.readyState === 1) {
-        void this.request({ type: 'unsubscribe_events', subscription: id }).catch(
-          () => undefined,
-        );
+        void this.request({ type: 'unsubscribe_events', subscription: id }).catch(() => undefined);
       }
     };
   }
@@ -193,20 +189,15 @@ export class HomeAssistantWebSocketClient implements HomeAssistantTransport {
         const message = parseMessage(event.data);
         if (!message) return;
         if (message.type === 'auth_required') {
-          socket.send(
-            JSON.stringify({ type: 'auth', access_token: this.#config.accessToken }),
-          );
+          socket.send(JSON.stringify({ type: 'auth', access_token: this.#config.accessToken }));
           return;
         }
         if (message.type === 'auth_ok') {
           authenticated = true;
           cleanupHandshake();
-          this.#diagnostics.record(
-            'info',
-            'home-assistant.transport',
-            'WebSocket authenticated',
-            { version: message.ha_version ?? 'unknown' },
-          );
+          this.#diagnostics.record('info', 'home-assistant.transport', 'WebSocket authenticated', {
+            version: message.ha_version ?? 'unknown',
+          });
           resolve();
           return;
         }
@@ -248,9 +239,7 @@ export class HomeAssistantWebSocketClient implements HomeAssistantTransport {
     this.#pending.delete(message.id);
     if (message.success === false) {
       pending.reject(
-        new Error(
-          message.error?.message ?? message.error?.code ?? 'Home Assistant request failed',
-        ),
+        new Error(message.error?.message ?? message.error?.code ?? 'Home Assistant request failed'),
       );
     } else {
       pending.resolve(message.result);

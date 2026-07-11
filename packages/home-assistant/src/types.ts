@@ -142,12 +142,7 @@ export interface ConfirmedRuntimeSnapshot {
 
 export interface ConfirmedStatePatch {
   readonly reason:
-    | 'initial-sync'
-    | 'state-changed'
-    | 'registry-changed'
-    | 'optimistic'
-    | 'reconnect'
-    | 'stale';
+    'initial-sync' | 'state-changed' | 'registry-changed' | 'optimistic' | 'reconnect' | 'stale';
   readonly snapshot: ConfirmedRuntimeSnapshot;
   readonly affectedEntityIds: readonly string[];
   readonly affectedDeviceIds: readonly string[];
