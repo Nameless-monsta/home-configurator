@@ -14,21 +14,9 @@ export type GestureKind =
   | 'keyboard-action';
 
 export type GestureState =
-  | 'candidate'
-  | 'claimed'
-  | 'active'
-  | 'committing'
-  | 'complete'
-  | 'canceled';
+  'candidate' | 'claimed' | 'active' | 'committing' | 'complete' | 'canceled';
 
-export type InputLayer =
-  | 'ambient'
-  | 'room'
-  | 'object'
-  | 'map'
-  | 'control'
-  | 'overlay'
-  | 'modal';
+export type InputLayer = 'ambient' | 'room' | 'object' | 'map' | 'control' | 'overlay' | 'modal';
 
 export interface NormalizedPointer {
   readonly id: number;
