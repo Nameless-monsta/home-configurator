@@ -59,7 +59,7 @@ export class InputEngine {
   readonly #pointers = new Map<number, PointerRecord>();
   readonly #targets = new Map<string, InteractionTarget>();
   readonly #sessions = new Map<string, MutableSession>();
-  #activeTargetId?: string;
+  #activeTargetId: string | undefined;
   #mode = 'default';
   #sequence = 0;
   #suspended = false;
