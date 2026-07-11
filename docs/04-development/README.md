@@ -20,7 +20,7 @@
   - [x] **4.6.7 Responsive Behaviour**
   - [x] **4.6.8 UI Validation and Merge**
 - [ ] **4.7 First Interactive Prototype**
-  - [ ] **4.7.1 Prototype Command Bridge**
+  - [ ] **4.7.1 Prototype Command Bridge** — implemented and CI validated, pending merge
 - [ ] **4.8 Performance optimisation**
 - [ ] **4.9 Documentation**
 - [ ] **4.10 HACS release**
@@ -51,13 +51,13 @@ See [4.4 Interaction Engine](4.4_INTERACTION_ENGINE.md).
 
 ### 4.5 — Home Assistant Engine
 
-Authenticated WebSocket transport, automatic room and device discovery, capability abstraction, live state synchronization, command translation, optimistic reconciliation, reconnect behavior and diagnostics. GitHub Actions validation passed formatting, linting, strict TypeScript, tests and production builds.
+Authenticated WebSocket transport, automatic room and device discovery, capability abstraction, live state synchronisation, command translation, optimistic reconciliation, reconnect behaviour and diagnostics. GitHub Actions validation passed formatting, linting, strict TypeScript, tests and production builds.
 
 See [4.5 Home Assistant Engine](4.5_HOME_ASSISTANT_ENGINE.md).
 
 ### 4.6 — UI Engine
 
-Full-screen shell, navigation, capability-driven configurator, control library, device panels, iyO motion orchestration, responsive behavior and accessibility validation are integrated into one dashboard surface.
+Full-screen shell, navigation, capability-driven configurator, control library, device panels, iyO motion orchestration, responsive behaviour and accessibility validation are integrated into one dashboard surface. All 4.6.1–4.6.8 reports are closed and CI validated.
 
 See the 4.6.1–4.6.8 implementation reports in this directory.
 
@@ -65,7 +65,7 @@ See the 4.6.1–4.6.8 implementation reports in this directory.
 
 ### 4.7.1 — Prototype Command Bridge
 
-Replace the configurator's no-op adapter with semantic Home Assistant commands and validate the first real end-to-end control path.
+Implementation and CI validation are complete on draft pull request #17. The milestone remains pending merge into `main`.
 
 See [4.7.1 Prototype Command Bridge](4.7.1_PROTOTYPE_COMMAND_BRIDGE.md).
 
