@@ -1,10 +1,4 @@
-import {
-  BufferGeometry,
-  Mesh,
-  Texture,
-  type Material,
-  type Object3D,
-} from 'three';
+import { BufferGeometry, Mesh, Texture, type Material, type Object3D } from 'three';
 
 export interface DisposableGraphicsResource {
   dispose(): void;
