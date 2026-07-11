@@ -14,8 +14,8 @@ Phase 3 is in progress.
 - ~~3.6 Media interaction~~ ✅
 - ~~3.7 Vacuum interaction~~ ✅
 - ~~3.8 Scene interaction~~ ✅
-- 3.9 Transition library
-- 3.10 Animation library
+- ~~3.9 Transition library~~ ✅
+- ~~3.10 Animation library~~ ✅
 - 3.11 Final UX approval
 
 ## Completed documents
@@ -28,5 +28,7 @@ Phase 3 is in progress.
 - [3.6 Media Interaction](3.6_MEDIA_INTERACTION.md)
 - [3.7 Vacuum Interaction](3.7_VACUUM_INTERACTION.md)
 - [3.8 Scene Interaction](3.8_SCENE_INTERACTION.md)
+- [3.9 Transition Library](3.9_TRANSITION_LIBRARY.md)
+- [3.10 Animation Library](3.10_ANIMATION_LIBRARY.md)
 
 Every completed task must include interaction states, responsive variants, accessibility behavior, motion references and acceptance criteria.
