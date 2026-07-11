@@ -10,16 +10,17 @@
 - [x] **4.3 Graphics Engine**
 - [x] **4.4 Interaction Engine**
 - [x] **4.5 Home Assistant Engine**
-- [ ] **4.6 UI Engine**
+- [x] **4.6 UI Engine**
   - [x] **4.6.1 UI Foundation**
-  - [ ] **4.6.2 Navigation System**
-  - [ ] **4.6.3 Configurator Framework**
-  - [ ] **4.6.4 Control Library**
-  - [ ] **4.6.5 Device Panels**
-  - [ ] **4.6.6 iyO Motion System**
-  - [ ] **4.6.7 Responsive Behaviour**
-  - [ ] **4.6.8 UI Validation and Merge**
+  - [x] **4.6.2 Navigation System**
+  - [x] **4.6.3 Configurator Framework**
+  - [x] **4.6.4 Control Library**
+  - [x] **4.6.5 Device Panels**
+  - [x] **4.6.6 iyO Motion System**
+  - [x] **4.6.7 Responsive Behaviour**
+  - [x] **4.6.8 UI Validation and Merge**
 - [ ] **4.7 First Interactive Prototype**
+  - [ ] **4.7.1 Prototype Command Bridge**
 - [ ] **4.8 Performance optimisation**
 - [ ] **4.9 Documentation**
 - [ ] **4.10 HACS release**
@@ -54,17 +55,19 @@ Authenticated WebSocket transport, automatic room and device discovery, capabili
 
 See [4.5 Home Assistant Engine](4.5_HOME_ASSISTANT_ENGINE.md).
 
-### 4.6.1 — UI Foundation
+### 4.6 — UI Engine
 
-Full-screen shell, layout classification, safe areas, overlay ownership, theme tokens, diagnostics, reduced motion and accessibility foundations. GitHub Actions validation passed formatting, linting, strict TypeScript, tests and production builds.
+Full-screen shell, navigation, capability-driven configurator, control library, device panels, iyO motion orchestration, responsive behavior and accessibility validation are integrated into one dashboard surface.
 
-See [4.6.1 UI Foundation](4.6.1_UI_FOUNDATION.md).
+See the 4.6.1–4.6.8 implementation reports in this directory.
 
 ## Active milestone
 
-### 4.6.2 — Navigation System
+### 4.7.1 — Prototype Command Bridge
 
-Room and device navigation, keyboard traversal, history and navigation-state presentation.
+Replace the configurator's no-op adapter with semantic Home Assistant commands and validate the first real end-to-end control path.
+
+See [4.7.1 Prototype Command Bridge](4.7.1_PROTOTYPE_COMMAND_BRIDGE.md).
 
 ## Required validation command
 
