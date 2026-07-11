@@ -1,0 +1,12 @@
+name: Trigger UI Formatter 2
+
+on:
+  push:
+    branches:
+      - feature/ui-engine-v0.6.0
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "UI formatter trigger"
