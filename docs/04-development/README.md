@@ -10,7 +10,7 @@
 - [x] **4.3 Graphics Engine**
 - [x] **4.4 Interaction Engine**
 - [x] **4.5 Home Assistant Engine**
-- [ ] **4.6 UI Engine**
+- [ ] **4.6 UI Engine — implementation complete, CI validation running**
 - [ ] **4.7 First Interactive Prototype**
 - [ ] **4.8 Performance optimisation**
 - [ ] **4.9 Documentation**
@@ -46,11 +46,13 @@ Authenticated WebSocket transport, automatic room and device discovery, capabili
 
 See [4.5 Home Assistant Engine](4.5_HOME_ASSISTANT_ENGINE.md).
 
-## Next milestone
+## Active milestone
 
 ### 4.6 — UI Engine
 
-The UI milestone will compose the approved iyO-inspired navigation, overlays, configurator controls, responsive shell and accessibility layer over the runtime, graphics, interaction and Home Assistant engines.
+Reusable full-screen shell, restrained top navigation, room/device dropdowns, capability-driven configurator rail, overlay ownership, responsive iPad/iPhone layouts, accessible DOM controls and diagnostics composition.
+
+See [4.6 UI Engine](4.6_UI_ENGINE.md).
 
 ## Required validation command
 
