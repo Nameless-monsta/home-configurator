@@ -1,6 +1,6 @@
 name: Bug report
 description: Report an incorrect behavior or regression
-title: "[Bug]: "
+title: '[Bug]: '
 labels: []
 body:
   - type: textarea
