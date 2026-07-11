@@ -7,10 +7,7 @@ import type {
 
 import { HomeAssistantEngine } from './home-assistant-engine.js';
 import type { HomeAssistantConnectionConfig, HomeAssistantTransport } from './types.js';
-import {
-  HomeAssistantWebSocketClient,
-  type WebSocketFactory,
-} from './websocket-client.js';
+import { HomeAssistantWebSocketClient, type WebSocketFactory } from './websocket-client.js';
 
 export class HomeAssistantRuntimeAdapter implements HomeAssistantAdapter {
   public readonly id = 'home-assistant.live';
