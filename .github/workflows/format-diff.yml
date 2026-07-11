@@ -4,7 +4,7 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   format-diff:
@@ -12,42 +12,16 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - run: corepack enable
+      - uses: actions/setup-node@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
-      - name: Apply exact lint corrections
+          node-version-file: .nvmrc
+      - run: pnpm install --no-frozen-lockfile
+      - name: Generate formatting patch
         run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          replacements = {
-              'packages/home-assistant/src/home-assistant-engine.ts': [
-                  ("type: String(message['type'] ?? 'unknown'),", "type:\n          typeof message['type'] === 'string' ? message['type'] : 'unknown',"),
-              ],
-              'packages/home-assistant/src/memory-transport.ts': [
-                  ("domain: String(message['domain'] ?? ''),", "domain:\n          typeof message['domain'] === 'string' ? message['domain'] : '',"),
-                  ("service: String(message['service'] ?? ''),", "service:\n          typeof message['service'] === 'string' ? message['service'] : '',"),
-                  ("listener(event as HAEvent<unknown>);", "listener(event);"),
-              ],
-              'packages/home-assistant/src/websocket-client.ts': [
-                  ("return typeof parsed === 'object' && parsed !== null ? (parsed as IncomingMessage) : undefined;", "return typeof parsed === 'object' && parsed !== null ? parsed : undefined;"),
-                  ("public async disconnect(): Promise<void> {", "public disconnect(): Promise<void> {"),
-                  ("    this.#subscriptions.clear();\n  }\n\n  public request<T>", "    this.#subscriptions.clear();\n    return Promise.resolve();\n  }\n\n  public request<T>"),
-              ],
-          }
-
-          for filename, changes in replacements.items():
-              path = Path(filename)
-              text = path.read_text()
-              for old, new in changes:
-                  if old not in text:
-                      raise SystemExit(f'Missing expected text in {filename}: {old}')
-                  text = text.replace(old, new, 1)
-              path.write_text(text)
-          PY
-      - name: Commit corrections
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add packages/home-assistant
-          git commit -m "chore: apply Home Assistant lint corrections"
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          pnpm format
+          git diff --binary > format.patch
+      - uses: actions/upload-artifact@v4
+        with:
+          name: interaction-format-patch
+          path: format.patch
