@@ -1,12 +1,6 @@
 export type MaybePromise<T> = T | Promise<T>;
 
-export type RuntimePhase =
-  | "idle"
-  | "bootstrapping"
-  | "running"
-  | "stopping"
-  | "stopped"
-  | "failed";
+export type RuntimePhase = 'idle' | 'bootstrapping' | 'running' | 'stopping' | 'stopped' | 'failed';
 
 export interface Disposable {
   dispose(): MaybePromise<void>;
