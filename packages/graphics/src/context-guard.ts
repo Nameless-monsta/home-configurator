@@ -9,7 +9,7 @@ export interface WebGLContextGuardOptions {
 export class WebGLContextGuard {
   readonly #canvas: HTMLCanvasElement;
   readonly #diagnostics: Diagnostics;
-  readonly #onRestored?: () => void;
+  readonly #onRestored: (() => void) | undefined;
   #lost = false;
   #disposed = false;
 
