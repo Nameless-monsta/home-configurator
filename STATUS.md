@@ -8,11 +8,12 @@ Updated: 2026-07-11
 - Phase 1 complete
 - Phase 2 complete
 - Phase 3 complete and approved
+- Phase 3.5 in progress
 - Phase 4 not started
 
 ## Current gate
 
-Phase 3 UX and visual design is approved for implementation. The next gate is Phase 4 development setup and the first vertical interactive prototype.
+The approved UX is now being translated into implementation-ready engineering contracts. Phase 4 remains gated until runtime ownership, camera, rendering, input, Home Assistant, performance, asset, plugin and schema contracts are validated.
 
 ## Completed
 
@@ -31,17 +32,21 @@ Phase 3 UX and visual design is approved for implementation. The next gate is Ph
 - Model registry architecture
 - Preset/blueprint architecture
 - HACS packaging strategy
-- 3.1 Navigation shell
-- 3.2 Room navigation
-- 3.3 Device configurator
-- 3.4 Color sphere interaction
-- 3.5 Climate interaction
-- 3.6 Media interaction
-- 3.7 Vacuum interaction
-- 3.8 Scene interaction
-- 3.9 Transition library
-- 3.10 Animation library
-- 3.11 Final UX approval and validation
+- Phase 3 UX specifications and final validation
+- 3.5.1 Runtime execution model
+
+## Phase 3.5 workstream
+
+- [x] 3.5.1 Runtime execution model
+- [ ] 3.5.2 Camera engine contract
+- [ ] 3.5.3 Renderer and frame pipeline
+- [ ] 3.5.4 Input and gesture arbitration
+- [ ] 3.5.5 Home Assistant runtime contract
+- [ ] 3.5.6 Performance and resource budgets
+- [ ] 3.5.7 3D asset pipeline and validation
+- [ ] 3.5.8 Plugin and extension API
+- [ ] 3.5.9 Blueprint/runtime schema reference
+- [ ] 3.5.10 Engineering validation and implementation gate
 
 ## Phase 4 entry conditions
 
@@ -58,7 +63,7 @@ The first vertical prototype must validate:
 
 ## Next
 
-1. Select the project license.
-2. Complete Phase 4.1 repository/build setup and CI.
-3. Build the vertical interactive prototype before expanding device coverage.
-4. Track UX validation gates from 3.11 during implementation.
+1. Complete 3.5.2 — Camera engine contract.
+2. Continue through renderer and input contracts before backend implementation.
+3. Select the project license before public distribution.
+4. Begin Phase 4 only after the Phase 3.5 implementation gate is approved.
