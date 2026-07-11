@@ -90,7 +90,8 @@ export class UiConfigurator {
   #render(snapshot: ConfiguratorSnapshot): void {
     const document = snapshot.document;
     if (!document) {
-      this.#host.innerHTML = '<div class="ui-configurator-empty"><p>Configurator</p><h2>Select a device</h2><span>Choose a room and device to inspect its available controls.</span></div>';
+      this.#host.innerHTML =
+        '<div class="ui-configurator-empty"><p>Configurator</p><h2>Select a device</h2><span>Choose a room and device to inspect its available controls.</span></div>';
       return;
     }
 
@@ -136,7 +137,9 @@ export class UiConfigurator {
   }
 
   #renderField(field: ConfiguratorField, snapshot: ConfiguratorSnapshot): string {
-    const value = snapshot.pendingValues[field.id] ?? field.value;
+    const value = Object.prototype.hasOwnProperty.call(snapshot.pendingValues, field.id)
+      ? snapshot.pendingValues[field.id]!
+      : field.value;
     const issue = snapshot.issues.find((item) => item.fieldId === field.id);
     const disabled = field.disabled || field.readOnly || snapshot.saving;
     return `
@@ -150,11 +153,16 @@ export class UiConfigurator {
 
   #renderControl(field: ConfiguratorField, value: ConfiguratorValue, disabled: boolean): string {
     const attrs = `data-configurator-field="${escapeHtml(field.id)}" ${disabled ? 'disabled' : ''}`;
-    if (field.kind === 'toggle') return `<input type="checkbox" ${attrs} ${value === true ? 'checked' : ''}>`;
-    if (field.kind === 'slider') return `<div class="ui-configurator-range"><input type="range" ${attrs} value="${String(value ?? 0)}" min="${field.minimum ?? 0}" max="${field.maximum ?? 100}" step="${field.step ?? 1}"><output>${escapeHtml(String(value ?? 0))}${field.unit ? escapeHtml(field.unit) : ''}</output></div>`;
-    if (field.kind === 'number') return `<input type="number" ${attrs} value="${String(value ?? '')}" ${field.minimum === undefined ? '' : `min="${field.minimum}"`} ${field.maximum === undefined ? '' : `max="${field.maximum}"`} ${field.step === undefined ? '' : `step="${field.step}"`}>`;
-    if (field.kind === 'select') return `<select ${attrs}>${(field.options ?? []).map((option) => `<option value="${escapeHtml(option.value)}" ${option.value === value ? 'selected' : ''}>${escapeHtml(option.label)}</option>`).join('')}</select>`;
-    if (field.kind === 'status') return `<output>${escapeHtml(String(value ?? '—'))}${field.unit ? escapeHtml(field.unit) : ''}</output>`;
+    if (field.kind === 'toggle')
+      return `<input type="checkbox" ${attrs} ${value === true ? 'checked' : ''}>`;
+    if (field.kind === 'slider')
+      return `<div class="ui-configurator-range"><input type="range" ${attrs} value="${String(value ?? 0)}" min="${field.minimum ?? 0}" max="${field.maximum ?? 100}" step="${field.step ?? 1}"><output>${escapeHtml(String(value ?? 0))}${field.unit ? escapeHtml(field.unit) : ''}</output></div>`;
+    if (field.kind === 'number')
+      return `<input type="number" ${attrs} value="${String(value ?? '')}" ${field.minimum === undefined ? '' : `min="${field.minimum}"`} ${field.maximum === undefined ? '' : `max="${field.maximum}"`} ${field.step === undefined ? '' : `step="${field.step}"`}>`;
+    if (field.kind === 'select')
+      return `<select ${attrs}>${(field.options ?? []).map((option) => `<option value="${escapeHtml(option.value)}" ${option.value === value ? 'selected' : ''}>${escapeHtml(option.label)}</option>`).join('')}</select>`;
+    if (field.kind === 'status')
+      return `<output>${escapeHtml(String(value ?? '—'))}${field.unit ? escapeHtml(field.unit) : ''}</output>`;
     return `<input type="text" ${attrs} value="${escapeHtml(String(value ?? ''))}">`;
   }
 }
