@@ -10,15 +10,15 @@
 - [x] **4.3 Graphics Engine**
 - [x] **4.4 Interaction Engine**
 - [x] **4.5 Home Assistant Engine**
-- [ ] **4.6 UI Engine**
+- [x] **4.6 UI Engine**
   - [x] **4.6.1 UI Foundation**
-  - [ ] **4.6.2 Navigation System**
-  - [ ] **4.6.3 Configurator Framework**
-  - [ ] **4.6.4 Control Library**
-  - [ ] **4.6.5 Device Panels**
-  - [ ] **4.6.6 iyO Motion System**
-  - [ ] **4.6.7 Responsive Behaviour**
-  - [ ] **4.6.8 UI Validation and Merge**
+  - [x] **4.6.2 Navigation System**
+  - [x] **4.6.3 Configurator Framework**
+  - [x] **4.6.4 Control Library**
+  - [x] **4.6.5 Device Panels**
+  - [x] **4.6.6 iyO Motion System**
+  - [x] **4.6.7 Responsive Behaviour**
+  - [x] **4.6.8 UI Validation and Merge**
 - [ ] **4.7 First Interactive Prototype**
 - [ ] **4.8 Performance optimisation**
 - [ ] **4.9 Documentation**
@@ -54,17 +54,17 @@ Authenticated WebSocket transport, automatic room and device discovery, capabili
 
 See [4.5 Home Assistant Engine](4.5_HOME_ASSISTANT_ENGINE.md).
 
-### 4.6.1 — UI Foundation
+### 4.6 — UI Engine
 
-Full-screen shell, layout classification, safe areas, overlay ownership, theme tokens, diagnostics, reduced motion and accessibility foundations. GitHub Actions validation passed formatting, linting, strict TypeScript, tests and production builds.
+Full-screen foundation, room and device navigation, generic configurator framework, reusable control library, capability-driven device panels, iyO motion orchestration, responsive phone/tablet/desktop behaviour and automated UI accessibility validation. All eight UI milestones passed formatting, linting, strict TypeScript, tests and production builds before merge.
 
-See [4.6.1 UI Foundation](4.6.1_UI_FOUNDATION.md).
+See the final [4.6.8 UI Validation and Merge](4.6.8_UI_VALIDATION_AND_MERGE.md) report and the individual 4.6.x milestone reports in this directory.
 
 ## Active milestone
 
-### 4.6.2 — Navigation System
+### 4.7 — First Interactive Prototype
 
-Room and device navigation, keyboard traversal, history and navigation-state presentation.
+Integrate the runtime, graphics, interaction, Home Assistant and UI engines into the first end-to-end prototype using real device interaction and confirmed state reconciliation.
 
 ## Required validation command
 
