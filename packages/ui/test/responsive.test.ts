@@ -13,13 +13,15 @@ describe('createResponsiveProfile', () => {
   });
 
   it('keeps short landscape phones compact', () => {
-    expect(createResponsiveProfile({ width: 844, height: 390, coarsePointer: true })).toMatchObject({
-      viewport: 'tablet',
-      orientation: 'landscape',
-      layout: 'compact',
-      short: true,
-      coarsePointer: true,
-    });
+    expect(createResponsiveProfile({ width: 844, height: 390, coarsePointer: true })).toMatchObject(
+      {
+        viewport: 'tablet',
+        orientation: 'landscape',
+        layout: 'compact',
+        short: true,
+        coarsePointer: true,
+      },
+    );
   });
 
   it('uses compact layout for portrait tablets', () => {
