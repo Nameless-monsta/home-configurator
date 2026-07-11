@@ -1,7 +1,4 @@
-import type {
-  CanonicalDevice,
-  ConfirmedRuntimeSnapshot,
-} from '@home-configurator/home-assistant';
+import type { CanonicalDevice, ConfirmedRuntimeSnapshot } from '@home-configurator/home-assistant';
 
 import { buildNavigationModel, createUiSnapshot, initialUiState, reduceUiState } from './state.js';
 import type { UiAction, UiDiagnostics, UiState } from './types.js';
@@ -24,7 +21,11 @@ const emptyHome = (): ConfirmedRuntimeSnapshot => ({
 });
 
 const escapeHtml = (value: string): string =>
-  value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
 
 const capabilityLabel = (capability: string): string =>
   capability.replaceAll(/([A-Z])/g, ' $1').replace(/^./, (letter) => letter.toUpperCase());
@@ -70,7 +71,8 @@ export class HomeConfiguratorUi {
   public setHome(snapshot: ConfirmedRuntimeSnapshot): void {
     this.#home = snapshot;
     const selection = this.#state.selection;
-    const roomExists = !selection.roomId || snapshot.rooms.some((room) => room.id === selection.roomId);
+    const roomExists =
+      !selection.roomId || snapshot.rooms.some((room) => room.id === selection.roomId);
     const deviceExists =
       !selection.deviceId || snapshot.devices.some((device) => device.id === selection.deviceId);
     if (!roomExists || !deviceExists) {
@@ -108,19 +110,25 @@ export class HomeConfiguratorUi {
   }
 
   readonly #onClick = (event: Event): void => {
-    const target = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-ui-action]') : null;
+    const target =
+      event.target instanceof Element
+        ? event.target.closest<HTMLElement>('[data-ui-action]')
+        : null;
     if (!target) return;
     const action = target.dataset['uiAction'];
     if (action === 'toggle-navigation') this.#dispatch({ type: 'toggle-navigation' });
     else if (action === 'close-overlays') this.#dispatch({ type: 'close-overlays' });
-    else if (action === 'show-rooms') this.#dispatch({ type: 'set-navigation-mode', mode: 'rooms' });
-    else if (action === 'show-devices') this.#dispatch({ type: 'set-navigation-mode', mode: 'devices' });
+    else if (action === 'show-rooms')
+      this.#dispatch({ type: 'set-navigation-mode', mode: 'rooms' });
+    else if (action === 'show-devices')
+      this.#dispatch({ type: 'set-navigation-mode', mode: 'devices' });
     else if (action === 'open-diagnostics') this.#dispatch({ type: 'open-diagnostics' });
     else if (action === 'select-room' && target.dataset['id']) {
       this.#dispatch({ type: 'select-room', roomId: target.dataset['id'] });
     } else if (action === 'select-device' && target.dataset['id']) {
       const device = this.#home.devices.find((candidate) => candidate.id === target.dataset['id']);
-      if (device) this.#dispatch({ type: 'select-device', deviceId: device.id, roomId: device.roomId });
+      if (device)
+        this.#dispatch({ type: 'select-device', deviceId: device.id, roomId: device.roomId });
     } else if (action === 'device-action') {
       const deviceId = target.dataset['deviceId'];
       const capability = target.dataset['capability'];
@@ -159,13 +167,17 @@ export class HomeConfiguratorUi {
         <button type="button" role="tab" aria-selected="${this.#state.navigationMode === 'devices'}" data-ui-action="show-devices">Devices</button>
       </div>
       <div class="ui-navigation-list">
-        ${items
-          .map(
-            (item) => `<button type="button" class="ui-navigation-item${item.selected ? ' is-selected' : ''}" data-ui-action="${itemAction}" data-id="${escapeHtml(item.id)}">
+        ${
+          items
+            .map(
+              (
+                item,
+              ) => `<button type="button" class="ui-navigation-item${item.selected ? ' is-selected' : ''}" data-ui-action="${itemAction}" data-id="${escapeHtml(item.id)}">
               <span>${escapeHtml(item.label)}</span><small>${escapeHtml(item.meta)}</small>
             </button>`,
-          )
-          .join('') || '<p class="ui-empty">Nothing discovered yet</p>'}
+            )
+            .join('') || '<p class="ui-empty">Nothing discovered yet</p>'
+        }
       </div>`;
   }
 
@@ -187,13 +199,17 @@ export class HomeConfiguratorUi {
         <div><dt>Model</dt><dd>${escapeHtml(device.model ?? device.manufacturer ?? 'Generic')}</dd></div>
       </dl>
       <div class="ui-control-rail">
-        ${device.capabilities
-          .map(
-            (capability) => `<button type="button" data-ui-action="device-action" data-device-id="${escapeHtml(device.id)}" data-capability="${escapeHtml(capability)}" data-device-action="${primaryAction(capability)}">
+        ${
+          device.capabilities
+            .map(
+              (
+                capability,
+              ) => `<button type="button" data-ui-action="device-action" data-device-id="${escapeHtml(device.id)}" data-capability="${escapeHtml(capability)}" data-device-action="${primaryAction(capability)}">
               <span>${escapeHtml(capabilityLabel(capability))}</span><i aria-hidden="true">↗</i>
             </button>`,
-          )
-          .join('') || '<p class="ui-empty">No controllable capabilities</p>'}
+            )
+            .join('') || '<p class="ui-empty">No controllable capabilities</p>'
+        }
       </div>`;
   }
 
@@ -201,7 +217,7 @@ export class HomeConfiguratorUi {
     const eyebrow = this.#root.querySelector<HTMLElement>('[data-ui-eyebrow]');
     const title = this.#root.querySelector<HTMLElement>('[data-ui-title]');
     const subtitle = this.#root.querySelector<HTMLElement>('[data-ui-subtitle]');
-    if (eyebrow) eyebrow.textContent = deviceName ? roomName ?? 'Home' : 'Living interface';
+    if (eyebrow) eyebrow.textContent = deviceName ? (roomName ?? 'Home') : 'Living interface';
     if (title) title.textContent = deviceName ?? roomName ?? 'Home Configurator';
     if (subtitle) {
       subtitle.textContent = deviceName
