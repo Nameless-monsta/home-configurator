@@ -1,0 +1,181 @@
+html,
+body,
+#app,
+.ui-shell {
+  min-height: 100%;
+  min-height: 100dvh;
+}
+
+.ui-shell {
+  min-width: 0;
+  overflow: hidden;
+}
+
+[data-ui-pointer='coarse'] button,
+[data-ui-pointer='coarse'] input,
+[data-ui-pointer='coarse'] select,
+[data-ui-pointer='coarse'] [role='button'] {
+  min-height: 44px;
+}
+
+[data-ui-viewport='phone'] .ui-shell {
+  padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
+    max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+}
+
+[data-ui-viewport='phone'] .ui-header,
+[data-ui-viewport='phone'] .ui-footer {
+  gap: 10px;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+
+[data-ui-viewport='phone'] .ui-header-meta {
+  gap: 8px;
+}
+
+[data-ui-viewport='phone'] .ui-runtime-status {
+  max-width: 96px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-ui-viewport='phone'] .ui-stage-copy {
+  display: none;
+}
+
+[data-ui-viewport='phone'] .ui-navigation {
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding-top: 10px;
+}
+
+[data-ui-viewport='phone'] .ui-navigation-history,
+[data-ui-viewport='phone'] .ui-navigation-context,
+[data-ui-viewport='phone'] .ui-navigation-separator {
+  display: none;
+}
+
+[data-ui-viewport='phone'] .ui-navigation-selectors {
+  width: 100%;
+  justify-content: stretch;
+}
+
+[data-ui-viewport='phone'] .ui-nav-selector {
+  min-width: 0;
+  flex: 1;
+}
+
+[data-ui-viewport='phone'] .ui-nav-trigger {
+  width: 100%;
+  min-width: 0;
+}
+
+[data-ui-viewport='phone'] .ui-nav-menu {
+  position: fixed;
+  top: auto;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: max(14px, env(safe-area-inset-bottom));
+  left: max(14px, env(safe-area-inset-left));
+  width: auto;
+  max-height: min(52dvh, 420px);
+}
+
+[data-ui-viewport='phone'] .ui-configurator {
+  top: auto;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: max(14px, env(safe-area-inset-bottom));
+  left: max(14px, env(safe-area-inset-left));
+  width: auto;
+  max-height: min(58dvh, 560px);
+  border-radius: 18px 18px 0 0;
+}
+
+[data-ui-viewport='phone'] .ui-configurator-header,
+[data-ui-viewport='phone'] .ui-configurator-footer {
+  padding-inline: 16px;
+}
+
+[data-ui-viewport='phone'] .ui-configurator-section-toggle,
+[data-ui-viewport='phone'] .ui-configurator-section-body {
+  padding-inline: 16px;
+}
+
+[data-ui-viewport='phone'] .ui-configurator-field {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 10px;
+}
+
+[data-ui-viewport='phone'] .ui-control-slider,
+[data-ui-viewport='phone'] .ui-control-input,
+[data-ui-viewport='phone'] .ui-control-select,
+[data-ui-viewport='phone'] .ui-control-segmented {
+  width: 100%;
+}
+
+[data-ui-viewport='phone'] .ui-control-segmented {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+}
+
+[data-ui-viewport='phone'] .ui-overlay {
+  padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
+    max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+}
+
+[data-ui-viewport='phone'] .ui-overlay-panel {
+  width: 100%;
+  max-height: min(82dvh, 620px);
+  padding: 18px;
+}
+
+[data-ui-viewport='tablet'][data-ui-orientation='portrait'] .ui-configurator {
+  top: auto;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  left: max(20px, env(safe-area-inset-left));
+  width: auto;
+  max-height: min(48dvh, 620px);
+}
+
+[data-ui-viewport='tablet'][data-ui-orientation='portrait'] .ui-navigation-context {
+  display: none;
+}
+
+[data-ui-short='true'] .ui-shell {
+  padding-top: max(10px, env(safe-area-inset-top));
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+}
+
+[data-ui-short='true'] .ui-footer,
+[data-ui-short='true'] .ui-stage-copy {
+  display: none;
+}
+
+[data-ui-short='true'] .ui-navigation {
+  padding-top: 6px;
+}
+
+[data-ui-short='true'] .ui-configurator {
+  top: max(62px, calc(env(safe-area-inset-top) + 52px));
+  bottom: max(10px, env(safe-area-inset-bottom));
+  max-height: none;
+}
+
+[data-ui-viewport='phone'][data-ui-short='true'] .ui-configurator {
+  top: auto;
+  max-height: min(68dvh, 420px);
+}
+
+@media (max-width: 360px) {
+  .ui-brand > span:last-child,
+  .ui-runtime-status {
+    display: none;
+  }
+
+  .ui-navigation-selectors {
+    flex-direction: column;
+  }
+}
