@@ -1,6 +1,6 @@
-import type { Diagnostics } from "./diagnostics.js";
-import type { ServiceContainer } from "./service-container.js";
-import type { MaybePromise } from "./types.js";
+import type { Diagnostics } from './diagnostics.js';
+import type { ServiceContainer } from './service-container.js';
+import type { MaybePromise } from './types.js';
 
 export interface PluginContext {
   readonly services: ServiceContainer;
@@ -43,15 +43,18 @@ export class PluginManager {
   public async startAll(): Promise<void> {
     for (const plugin of this.#registered.values()) {
       try {
-        const handle = await plugin.setup({ services: this.#services, diagnostics: this.#diagnostics });
+        const handle = await plugin.setup({
+          services: this.#services,
+          diagnostics: this.#diagnostics,
+        });
         const active: ActivePlugin = handle ? { plugin, handle } : { plugin };
         this.#active.set(plugin.id, active);
-        this.#diagnostics.record("info", "plugins", `Plugin active: ${plugin.id}`, {
+        this.#diagnostics.record('info', 'plugins', `Plugin active: ${plugin.id}`, {
           version: plugin.version,
         });
       } catch (error) {
-        this.#diagnostics.increment("plugins.failures");
-        this.#diagnostics.record("error", "plugins", `Plugin failed: ${plugin.id}`, {
+        this.#diagnostics.increment('plugins.failures');
+        this.#diagnostics.record('error', 'plugins', `Plugin failed: ${plugin.id}`, {
           error: error instanceof Error ? error.message : String(error),
         });
       }
@@ -61,7 +64,7 @@ export class PluginManager {
   public async stopAll(): Promise<void> {
     for (const active of [...this.#active.values()].reverse()) {
       await active.handle?.dispose();
-      this.#diagnostics.record("info", "plugins", `Plugin stopped: ${active.plugin.id}`);
+      this.#diagnostics.record('info', 'plugins', `Plugin stopped: ${active.plugin.id}`);
     }
     this.#active.clear();
   }
