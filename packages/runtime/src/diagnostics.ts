@@ -1,4 +1,4 @@
-export type DiagnosticLevel = "debug" | "info" | "warn" | "error";
+export type DiagnosticLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export interface DiagnosticEntry {
   readonly id: number;
