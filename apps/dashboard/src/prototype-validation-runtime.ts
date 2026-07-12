@@ -35,7 +35,8 @@ const ensureStageSemantics = (root: HTMLElement): boolean => {
 };
 
 const diagnosticsAvailable = (root: HTMLElement): boolean =>
-  root.querySelector(DIAGNOSTICS_SELECTOR) !== null || root.textContent?.includes('Diagnostics') === true;
+  root.querySelector(DIAGNOSTICS_SELECTOR) !== null ||
+  root.textContent?.includes('Diagnostics') === true;
 
 const fallbackModelAvailable = (root: HTMLElement): boolean =>
   root.querySelector(FALLBACK_SELECTOR) !== null;
