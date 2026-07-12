@@ -6,7 +6,7 @@ import {
   type ConfirmedRuntimeSnapshot,
   type HAState,
 } from '@home-configurator/home-assistant';
-import { InteractionEngine, semanticOrbitHandler } from '@home-configurator/interaction';
+import { InteractionEngine, type SemanticIntent } from '@home-configurator/interaction';
 import { createRuntime, DeviceStore, summarizeRuntimeState } from '@home-configurator/runtime';
 import {
   DevicePanelRegistry,
@@ -19,6 +19,12 @@ import {
 
 import { HomeAssistantConfiguratorAdapter } from './configurator-command-adapter.js';
 import { toDevicePanelSource } from './device-panel-adapter.js';
+import { HomeAssistantGestureCommandAdapter } from './gesture-command-adapter.js';
+import {
+  mapBrightnessGesture,
+  mapColourGesture,
+  type LightGestureState,
+} from './light-gesture-mapping.js';
 import './styles.css';
 import './navigation.css';
 import './configurator.css';
@@ -30,8 +36,8 @@ if (!root) throw new Error('Application root was not found');
 
 const ui = new UiFoundation({
   root,
-  version: '0.7.3',
-  subtitle: 'Select a device and watch authoritative state drive the 3D model.',
+  version: '0.7.4',
+  subtitle: 'Drag the lamp for colour. Use two fingers or the wheel for brightness.',
 });
 
 let latestHomeSnapshot: ConfirmedRuntimeSnapshot | null = null;
@@ -66,16 +72,6 @@ const interaction = new InteractionEngine({
   reducedMotion: () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
 });
 interaction.selection.register('device.demo-lamp', hero);
-const orbit = semanticOrbitHandler(hero);
-interaction.registerTarget({
-  id: 'device.demo-lamp',
-  layer: 'object',
-  gestures: ['tap', 'orbit', 'pinch', 'wheel', 'keyboard-action'],
-  onIntent: (intent) => {
-    orbit(intent);
-    if (intent.type === 'tap.commit' || intent.type === 'activate') interaction.focusSelection();
-  },
-});
 interaction.animations.play({
   id: 'configurator-float',
   durationMs: 4200,
@@ -217,12 +213,76 @@ const unsubscribeRuntimeState = deviceStore.subscribe(() => {
 });
 
 let latestCommandState = 'idle';
+const recordReceipt = (
+  command: { readonly capability: string },
+  receipt: { readonly state: string },
+): void => {
+  latestCommandState = `${command.capability}:${receipt.state}`;
+  runtime.diagnostics.increment(`prototype.commands.${receipt.state}`);
+};
 const configuratorAdapter = new HomeAssistantConfiguratorAdapter({
   homeAssistant: homeAssistantState,
-  onReceipt: (command, receipt) => {
-    latestCommandState = `${command.capability}:${receipt.state}`;
-    runtime.diagnostics.increment(`prototype.commands.${receipt.state}`);
-  },
+  onReceipt: recordReceipt,
+});
+const gestureAdapter = new HomeAssistantGestureCommandAdapter({
+  homeAssistant: homeAssistantState,
+  onReceipt: recordReceipt,
+});
+
+const lightState = (): LightGestureState => {
+  const state = deviceStore.get('ikea-lamp')?.snapshot().effectiveState;
+  const colour = state?.['color'];
+  return {
+    hue: Array.isArray(colour) && typeof colour[0] === 'number' ? colour[0] : 35,
+    saturation: Array.isArray(colour) && typeof colour[1] === 'number' ? colour[1] : 65,
+    brightness: typeof state?.['brightness'] === 'number' ? state['brightness'] : 0.66,
+  };
+};
+
+let colourGestureStart: LightGestureState | null = null;
+let brightnessGestureStart: number | null = null;
+const dispatchGesture = (promise: Promise<void>): void => {
+  void promise.catch((error: unknown) => {
+    runtime.diagnostics.record('warn', 'prototype.gesture', 'Gesture command failed', {
+      message: error instanceof Error ? error.message : String(error),
+    });
+  });
+};
+const handleLightIntent = (intent: SemanticIntent): void => {
+  if (intent.type === 'tap.commit' || intent.type === 'activate') {
+    interaction.focusSelection();
+    return;
+  }
+  if (intent.type === 'drag.update' || intent.type === 'drag.commit') {
+    colourGestureStart ??= lightState();
+    const [hue, saturation] = mapColourGesture(intent, colourGestureStart);
+    const final = intent.type.endsWith('.commit');
+    dispatchGesture(gestureAdapter.setColour('ikea-lamp', hue, saturation, { final }));
+    if (final) colourGestureStart = null;
+    return;
+  }
+  if (
+    intent.type === 'two-finger-vertical.update' ||
+    intent.type === 'two-finger-vertical.commit'
+  ) {
+    brightnessGestureStart ??= lightState().brightness;
+    const brightness = mapBrightnessGesture(intent, brightnessGestureStart);
+    const final = intent.type.endsWith('.commit');
+    dispatchGesture(gestureAdapter.setBrightness('ikea-lamp', brightness, { final }));
+    if (final) brightnessGestureStart = null;
+    return;
+  }
+  if (intent.type === 'wheel') {
+    const brightness = mapBrightnessGesture(intent, lightState().brightness);
+    dispatchGesture(gestureAdapter.setBrightness('ikea-lamp', brightness, { final: true }));
+  }
+};
+interaction.registerTarget({
+  id: 'device.demo-lamp',
+  layer: 'object',
+  gestures: ['tap', 'drag', 'two-finger-vertical', 'wheel', 'keyboard-action'],
+  enabled: () => deviceStore.get('ikea-lamp')?.snapshot().available === true,
+  onIntent: handleLightIntent,
 });
 
 const configurator = new UiConfigurator({
