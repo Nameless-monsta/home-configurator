@@ -120,10 +120,15 @@ export class ModelAssetLoader {
     for (const id of evictions) this.#cache.delete(id);
     if (evictions.length === 0) return;
     this.#diagnostics.increment('graphics.assets.cacheEvictions', evictions.length);
-    this.#diagnostics.record('info', 'graphics.assets', 'Asset cache evicted least-recently-used models', {
-      evicted: evictions,
-      maximumEntries: this.#policy.snapshot().maximumEntries,
-    });
+    this.#diagnostics.record(
+      'info',
+      'graphics.assets',
+      'Asset cache evicted least-recently-used models',
+      {
+        evicted: evictions,
+        maximumEntries: this.#policy.snapshot().maximumEntries,
+      },
+    );
   }
 
   #publishCacheMetrics(): void {
