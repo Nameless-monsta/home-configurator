@@ -49,8 +49,20 @@ export class PerformanceBudgetMonitor {
 
   public observe(sample: PerformanceBudgetSample): readonly PerformanceBudgetAlert[] {
     const alerts: PerformanceBudgetAlert[] = [];
-    this.#check(alerts, 'drawCalls', sample.drawCalls, this.#limits.drawCallsWarning, this.#limits.drawCallsCritical);
-    this.#check(alerts, 'triangles', sample.triangles, this.#limits.trianglesWarning, this.#limits.trianglesCritical);
+    this.#check(
+      alerts,
+      'drawCalls',
+      sample.drawCalls,
+      this.#limits.drawCallsWarning,
+      this.#limits.drawCallsCritical,
+    );
+    this.#check(
+      alerts,
+      'triangles',
+      sample.triangles,
+      this.#limits.trianglesWarning,
+      this.#limits.trianglesCritical,
+    );
     this.#check(alerts, 'programs', sample.programs, this.#limits.programsWarning);
     this.#check(alerts, 'textures', sample.textures, this.#limits.texturesWarning);
     this.#check(alerts, 'geometries', sample.geometries, this.#limits.geometriesWarning);
