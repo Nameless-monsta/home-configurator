@@ -48,6 +48,10 @@ export interface GraphicsDiagnosticsSnapshot {
   readonly contextLost: boolean;
   readonly postProcessing: boolean;
   readonly environmentReady: boolean;
+  readonly fps: number;
+  readonly frameTimeAverageMs: number;
+  readonly frameTimeP95Ms: number;
+  readonly hidden: boolean;
 }
 
 export interface GraphicsContext {
