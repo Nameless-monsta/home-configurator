@@ -19,7 +19,7 @@ export interface PrototypeValidationResult {
 
 export const classifyPrototypeViewport = (width: number, height: number): PrototypeViewport => {
   if (width < 720) return 'phone';
-  if (width < 1180) return height >= width ? 'tablet-portrait' : 'tablet-landscape';
+  if (width <= 1180) return height >= width ? 'tablet-portrait' : 'tablet-landscape';
   return 'desktop';
 };
 
