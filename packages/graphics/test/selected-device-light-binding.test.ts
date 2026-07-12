@@ -56,7 +56,11 @@ describe('SelectedDeviceLightBinding', () => {
     expect(model.userData['pending']).toBe(true);
     const pendingIntensity = glow.intensity;
 
-    store.confirm('light-1', { power: false, brightness: 0, color: [120, 100] }, { commandId: 'cmd-1' });
+    store.confirm(
+      'light-1',
+      { power: false, brightness: 0, color: [120, 100] },
+      { commandId: 'cmd-1' },
+    );
     expect(model.userData['pending']).toBe(false);
     expect(glow.intensity).toBe(0);
     expect(pendingIntensity).toBeGreaterThan(0);
