@@ -12,7 +12,9 @@ describe('AdaptiveQualityController', () => {
     });
 
     let decision = null;
-    for (let index = 0; index < 6; index += 1) decision = controller.observe(20);
+    for (let index = 0; index < 6; index += 1) {
+      decision ??= controller.observe(20);
+    }
 
     expect(decision).toMatchObject({
       previousTier: 'full',
@@ -31,7 +33,9 @@ describe('AdaptiveQualityController', () => {
 
     const samples = [10, 10, 10, 10, 40, 10, 10, 10];
     let decision = null;
-    for (const sample of samples) decision = controller.observe(sample);
+    for (const sample of samples) {
+      decision ??= controller.observe(sample);
+    }
 
     expect(decision).toMatchObject({
       previousTier: 'balanced',
@@ -51,7 +55,9 @@ describe('AdaptiveQualityController', () => {
     expect(controller.observe(10)).toBeNull();
 
     let decision = null;
-    for (let index = 0; index < 20; index += 1) decision = controller.observe(10);
+    for (let index = 0; index < 20; index += 1) {
+      decision ??= controller.observe(10);
+    }
 
     expect(decision).toMatchObject({
       previousTier: 'essential',
