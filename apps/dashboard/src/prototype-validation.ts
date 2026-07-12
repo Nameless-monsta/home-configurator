@@ -17,18 +17,13 @@ export interface PrototypeValidationResult {
   readonly failures: readonly string[];
 }
 
-export const classifyPrototypeViewport = (
-  width: number,
-  height: number,
-): PrototypeViewport => {
+export const classifyPrototypeViewport = (width: number, height: number): PrototypeViewport => {
   if (width < 720) return 'phone';
   if (width < 1180) return height >= width ? 'tablet-portrait' : 'tablet-landscape';
   return 'desktop';
 };
 
-export const validatePrototype = (
-  input: PrototypeValidationInput,
-): PrototypeValidationResult => {
+export const validatePrototype = (input: PrototypeValidationInput): PrototypeValidationResult => {
   const failures: string[] = [];
   if (input.width <= 0 || input.height <= 0) failures.push('viewport');
   if (!input.keyboardNavigation) failures.push('keyboard-navigation');
