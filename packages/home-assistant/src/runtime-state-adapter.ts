@@ -194,10 +194,7 @@ export const semanticCommandToRuntimePatch = (command: SemanticCommand): DeviceS
     command.value.every((value) => typeof value === 'number')
   ) {
     return {
-      color: [
-        clamp(command.value[0] ?? 0, 0, 360),
-        clamp(command.value[1] ?? 0, 0, 100),
-      ],
+      color: [clamp(command.value[0] ?? 0, 0, 360), clamp(command.value[1] ?? 0, 0, 100)],
     };
   }
   if (command.capability === 'colorTemperature' && typeof command.value === 'number') {
