@@ -36,7 +36,11 @@ export class ModelAssetLoader {
   ) {
     this.#diagnostics = diagnostics;
     this.#loader = new GLTFLoader(manager);
-    this.#policy = new AssetCachePolicy({ maximumEntries: options.maximumCacheEntries });
+    this.#policy = new AssetCachePolicy(
+      options.maximumCacheEntries === undefined
+        ? {}
+        : { maximumEntries: options.maximumCacheEntries },
+    );
   }
 
   public async load(id: string, uri: string): Promise<ModelAsset> {
