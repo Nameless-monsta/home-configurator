@@ -23,7 +23,7 @@
   - [x] **4.7.1 Prototype Command Bridge**
   - [ ] **4.7.2 Authoritative State and Model Binding**
     - [x] **4.7.2.1 Runtime Device Store**
-    - [ ] **4.7.2.2 Home Assistant State Adapter**
+    - [ ] **4.7.2.2 Home Assistant State Adapter** — implementation complete, validation in progress
     - [ ] **4.7.2.3 Selected-Device Model Binding**
 - [ ] **4.8 Performance optimisation**
 - [ ] **4.9 Documentation**
@@ -81,7 +81,9 @@ See [4.7.2.1 Runtime Device Store](4.7.2.1_RUNTIME_DEVICE_STORE.md).
 
 ### 4.7.2.2 — Home Assistant State Adapter
 
-Translate confirmed Home Assistant snapshots and optimistic or failed command lifecycle events into the Runtime state subsystem while preserving the canonical application boundary.
+Implementation is complete on pull request #21. Confirmed Home Assistant snapshots, integration connectivity and semantic command lifecycle events now feed the Runtime `DeviceStore`; full CI validation remains in progress.
+
+See [4.7.2.2 Home Assistant State Adapter](4.7.2.2_HOME_ASSISTANT_STATE_ADAPTER.md).
 
 ## Required validation command
 
