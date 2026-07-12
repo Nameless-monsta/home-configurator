@@ -74,7 +74,7 @@
 - [ ] First Interactive Prototype
   - [x] Prototype Command Bridge
   - [ ] Authoritative State and Model Binding
-    - [ ] Runtime Device Store
+    - [x] Runtime Device Store
     - [ ] Home Assistant State Adapter
     - [ ] Selected-Device Model Binding
 - [ ] Performance optimisation

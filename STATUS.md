@@ -17,7 +17,9 @@ Phase 4.6 is complete. Home Configurator now has a full-screen UI shell, room an
 
 Milestone 4.7.1 — Prototype Command Bridge is complete and merged through pull request #18. The dashboard configurator now dispatches semantic Home Assistant commands through the existing engine, including power, brightness, colour, colour temperature, climate, media and cover controls.
 
-The active implementation gate is 4.7.2.1 — Runtime Device Store. The existing dependency-free Runtime package is gaining confirmed, optimistic and effective device state, indexed lookup, fine-grained subscriptions, central selection, transition history and diagnostics.
+Milestone 4.7.2.1 — Runtime Device Store is complete and merged through pull request #19. The dependency-free Runtime package now owns confirmed, optimistic and effective device state, indexed lookup, fine-grained subscriptions, central selection, bounded transition history and diagnostics.
+
+The active implementation gate is 4.7.2.2 — Home Assistant State Adapter.
 
 ## Completed
 
@@ -45,6 +47,7 @@ The active implementation gate is 4.7.2.1 — Runtime Device Store. The existing
 - 4.5 Home Assistant Engine
 - 4.6 UI Engine
 - 4.7.1 Prototype Command Bridge
+- 4.7.2.1 Runtime Device Store
 
 ## Phase 4 workstream
 
@@ -57,7 +60,9 @@ The active implementation gate is 4.7.2.1 — Runtime Device Store. The existing
 - [ ] 4.7 First Interactive Prototype
   - [x] 4.7.1 Prototype Command Bridge
   - [ ] 4.7.2 Authoritative State and Model Binding
-    - [ ] 4.7.2.1 Runtime Device Store — implementation in progress
+    - [x] 4.7.2.1 Runtime Device Store
+    - [ ] 4.7.2.2 Home Assistant State Adapter
+    - [ ] 4.7.2.3 Selected-Device Model Binding
 - [ ] 4.8 Performance optimisation
 - [ ] 4.9 Documentation
 - [ ] 4.10 HACS release
@@ -69,6 +74,7 @@ The active implementation gate is 4.7.2.1 — Runtime Device Store. The existing
 - Phase 4.5 passed formatting, linting, strict TypeScript, tests and production builds on GitHub Actions run 173.
 - Phase 4.6 passed formatting, linting, strict TypeScript, unit and contract tests and all production builds.
 - Milestone 4.7.1 passed Prettier, ESLint, strict TypeScript, all unit and contract tests, and all production builds on GitHub Actions run 261 before merge through pull request #18.
+- Milestone 4.7.2.1 passed Prettier, ESLint, strict TypeScript, all unit and contract tests, and all production builds on GitHub Actions run 269 before merge through pull request #19.
 
 ## First interactive prototype
 
@@ -87,7 +93,7 @@ The first interactive prototype must validate:
 
 ## Next
 
-1. Validate and merge 4.7.2.1 — Runtime Device Store.
-2. Implement 4.7.2.2 — Home Assistant State Adapter.
+1. Implement 4.7.2.2 — Home Assistant State Adapter.
+2. Feed confirmed Home Assistant snapshots and optimistic command lifecycle events into Runtime state.
 3. Bind selected-device effective state to the 3D model.
 4. Select the project licence before public distribution.

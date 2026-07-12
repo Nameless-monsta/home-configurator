@@ -22,7 +22,7 @@
 - [ ] **4.7 First Interactive Prototype**
   - [x] **4.7.1 Prototype Command Bridge**
   - [ ] **4.7.2 Authoritative State and Model Binding**
-    - [ ] **4.7.2.1 Runtime Device Store**
+    - [x] **4.7.2.1 Runtime Device Store**
     - [ ] **4.7.2.2 Home Assistant State Adapter**
     - [ ] **4.7.2.3 Selected-Device Model Binding**
 - [ ] **4.8 Performance optimisation**
@@ -71,13 +71,17 @@ Semantic Home Assistant command dispatch is integrated into the configurator. Pu
 
 See [4.7.1 Prototype Command Bridge](4.7.1_PROTOTYPE_COMMAND_BRIDGE.md).
 
-## Active milestone
-
 ### 4.7.2.1 — Runtime Device Store
 
-Extend the dependency-free Runtime package with confirmed, optimistic and effective device state, indexed lookup, fine-grained subscriptions, central selection, bounded transition history and diagnostics.
+The dependency-free Runtime package now owns confirmed, optimistic and effective device state, indexed device, entity and room lookup, fine-grained subscriptions, central selection, bounded transition history and diagnostics. Pull request #19 passed the full validation pipeline and was merged into `main`.
 
 See [4.7.2.1 Runtime Device Store](4.7.2.1_RUNTIME_DEVICE_STORE.md).
+
+## Active milestone
+
+### 4.7.2.2 — Home Assistant State Adapter
+
+Translate confirmed Home Assistant snapshots and optimistic or failed command lifecycle events into the Runtime state subsystem while preserving the canonical application boundary.
 
 ## Required validation command
 
