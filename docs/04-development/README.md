@@ -19,14 +19,14 @@
   - [x] **4.6.6 iyO Motion System**
   - [x] **4.6.7 Responsive Behaviour**
   - [x] **4.6.8 UI Validation and Merge**
-- [ ] **4.7 First Interactive Prototype**
+- [x] **4.7 First Interactive Prototype**
   - [x] **4.7.1 Prototype Command Bridge**
   - [x] **4.7.2 Authoritative State and Model Binding**
     - [x] **4.7.2.1 Runtime Device Store**
     - [x] **4.7.2.2 Home Assistant State Adapter**
     - [x] **4.7.2.3 Selected-Device Model Binding**
   - [x] **4.7.3 Colour Sphere and Brightness Gestures**
-  - [ ] **4.7.4 Prototype Validation and Device Testing**
+  - [x] **4.7.4 Prototype Validation and Device Testing**
 - [ ] **4.8 Performance optimisation**
 - [ ] **4.9 Documentation**
 - [ ] **4.10 HACS release**
@@ -97,11 +97,17 @@ Direct drag maps to hue and saturation, while two-finger vertical and wheel gest
 
 See [4.7.3 Colour Sphere and Brightness Gestures](4.7.3_COLOUR_SPHERE_AND_BRIGHTNESS_GESTURES.md).
 
-## Active milestone
-
 ### 4.7.4 — Prototype Validation and Device Testing
 
-Complete the first interactive prototype acceptance checklist across reduced motion, keyboard and VoiceOver basics, responsive and iPad behaviour, diagnostics, generic fallback rendering and real-device interaction.
+The live dashboard publishes deterministic viewport, pointer, reduced-motion, keyboard, accessibility, fallback-model and diagnostics validation state. Automated contract tests and a manual real-device acceptance matrix close the first interactive prototype. Pull request #24 passed the full pipeline on GitHub Actions run 306.
+
+See [4.7.4 Prototype Validation and Device Testing](4.7.4_PROTOTYPE_VALIDATION_AND_DEVICE_TESTING.md).
+
+## Active milestone
+
+### 4.8 — Performance optimisation
+
+Measure and reduce frame cost, interaction latency, resource use and quality-tier pressure across iPad and desktop while preserving the validated interaction model.
 
 ## Required validation command
 
