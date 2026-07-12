@@ -13,15 +13,17 @@ Updated: 2026-07-12
 
 ## Current gate
 
-Phase 4.6 is complete. Home Configurator now has a full-screen UI shell, room and device navigation, a capability-driven configurator, reusable controls, device panels, iyO motion orchestration, responsive behaviour and accessibility validation.
+Phase 4.6 is complete. Home Configurator has a full-screen UI shell, room and device navigation, a capability-driven configurator, reusable controls, device panels, iyO motion orchestration, responsive behaviour and accessibility validation.
 
 Milestone 4.7.1 — Prototype Command Bridge is complete and merged through pull request #18.
 
-Milestone 4.7.2.1 — Runtime Device Store is complete and merged through pull request #19. The dependency-free Runtime package owns confirmed, optimistic and effective device state, indexed lookup, fine-grained subscriptions, central selection, bounded transition history and diagnostics.
+Milestone 4.7.2.1 — Runtime Device Store is complete and merged through pull request #19. Runtime owns confirmed, optimistic and effective device state, indexed lookup, fine-grained subscriptions, central selection, bounded transition history and diagnostics.
 
-Milestone 4.7.2.2 — Home Assistant State Adapter is complete and merged through pull request #20. Authoritative Home Assistant snapshots now hydrate Runtime state, while semantic commands apply independent optimistic layers that confirm or roll back against authoritative state.
+Milestone 4.7.2.2 — Home Assistant State Adapter is complete and merged through pull request #20. Authoritative Home Assistant snapshots hydrate Runtime state, while semantic commands apply independent optimistic layers that confirm or roll back against authoritative state.
 
-The active implementation gate is 4.7.2.3 — Selected-Device Model Binding.
+Milestone 4.7.2.3 — Selected-Device Model Binding is complete and merged through pull request #22. The selected light model now reflects Runtime power, brightness, colour, availability, connectivity and pending-command state.
+
+The active implementation gate is the next interactive-prototype slice: colour-sphere manipulation and direct brightness gestures.
 
 ## Completed
 
@@ -51,6 +53,7 @@ The active implementation gate is 4.7.2.3 — Selected-Device Model Binding.
 - 4.7.1 Prototype Command Bridge
 - 4.7.2.1 Runtime Device Store
 - 4.7.2.2 Home Assistant State Adapter
+- 4.7.2.3 Selected-Device Model Binding
 
 ## Phase 4 workstream
 
@@ -62,10 +65,11 @@ The active implementation gate is 4.7.2.3 — Selected-Device Model Binding.
 - [x] 4.6 UI Engine
 - [ ] 4.7 First Interactive Prototype
   - [x] 4.7.1 Prototype Command Bridge
-  - [ ] 4.7.2 Authoritative State and Model Binding
+  - [x] 4.7.2 Authoritative State and Model Binding
     - [x] 4.7.2.1 Runtime Device Store
     - [x] 4.7.2.2 Home Assistant State Adapter
-    - [ ] 4.7.2.3 Selected-Device Model Binding
+    - [x] 4.7.2.3 Selected-Device Model Binding
+  - [ ] Colour Sphere and Brightness Gestures
 - [ ] 4.8 Performance optimisation
 - [ ] 4.9 Documentation
 - [ ] 4.10 HACS release
@@ -79,6 +83,7 @@ The active implementation gate is 4.7.2.3 — Selected-Device Model Binding.
 - Milestone 4.7.1 passed the full pipeline on GitHub Actions run 261 before merge through pull request #18.
 - Milestone 4.7.2.1 passed the full pipeline on GitHub Actions run 269 before merge through pull request #19.
 - Milestone 4.7.2.2 passed the full pipeline on GitHub Actions run 278 before merge through pull request #20.
+- Milestone 4.7.2.3 passed the full pipeline on GitHub Actions run 284 before merge through pull request #22.
 
 ## First interactive prototype
 
@@ -97,7 +102,7 @@ The first interactive prototype must validate:
 
 ## Next
 
-1. Implement 4.7.2.3 — Selected-Device Model Binding.
-2. Bind light power, brightness, colour, pending state and availability to the 3D model.
-3. Synchronise model selection with navigation and Runtime selection state.
+1. Implement direct colour-sphere interaction for the selected light.
+2. Implement brightness gestures through the existing interaction engine.
+3. Validate optimistic visual feedback and authoritative rollback on the live model.
 4. Select the project licence before public distribution.
