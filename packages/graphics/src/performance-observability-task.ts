@@ -16,7 +16,10 @@ export class GraphicsPerformanceObservabilityTask implements SchedulerTask {
   readonly #budget = new PerformanceBudgetMonitor();
   readonly #longTasks = new LongTaskMonitor();
   readonly #pressure = new ResourcePressureController();
-  readonly #active = new Map<PerformanceBudgetAlert['metric'], PerformanceBudgetAlert['severity']>();
+  readonly #active = new Map<
+    PerformanceBudgetAlert['metric'],
+    PerformanceBudgetAlert['severity']
+  >();
   readonly #observer: PerformanceObserver | null;
 
   public constructor(
@@ -54,7 +57,9 @@ export class GraphicsPerformanceObservabilityTask implements SchedulerTask {
       this.diagnostics.increment(`graphics.pressure.${decision.previousTier}.${decision.tier}`);
     }
 
-    const criticalCount = [...this.#active.values()].filter((severity) => severity === 'critical').length;
+    const criticalCount = [...this.#active.values()].filter(
+      (severity) => severity === 'critical',
+    ).length;
     this.diagnostics.setGauge('graphics.pressure.active', this.#active.size);
     this.diagnostics.setGauge('graphics.pressure.critical', criticalCount);
     this.diagnostics.setGauge('graphics.longTasks.count', longTasks.count);
