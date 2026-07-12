@@ -22,6 +22,9 @@
 - [ ] **4.7 First Interactive Prototype**
   - [x] **4.7.1 Prototype Command Bridge**
   - [ ] **4.7.2 Authoritative State and Model Binding**
+    - [ ] **4.7.2.1 Runtime Device Store**
+    - [ ] **4.7.2.2 Home Assistant State Adapter**
+    - [ ] **4.7.2.3 Selected-Device Model Binding**
 - [ ] **4.8 Performance optimisation**
 - [ ] **4.9 Documentation**
 - [ ] **4.10 HACS release**
@@ -70,9 +73,11 @@ See [4.7.1 Prototype Command Bridge](4.7.1_PROTOTYPE_COMMAND_BRIDGE.md).
 
 ## Active milestone
 
-### 4.7.2 — Authoritative State and Model Binding
+### 4.7.2.1 — Runtime Device Store
 
-Publish authoritative prototype confirmations and bind the selected Home Assistant light's power, colour and brightness to the 3D model.
+Introduce an application-owned state package with confirmed, optimistic and effective device state, indexed lookup, fine-grained subscriptions, central selection, bounded transition history and diagnostics.
+
+See [4.7.2.1 Runtime Device Store](4.7.2.1_RUNTIME_DEVICE_STORE.md).
 
 ## Required validation command
 

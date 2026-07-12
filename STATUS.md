@@ -17,7 +17,7 @@ Phase 4.6 is complete. Home Configurator now has a full-screen UI shell, room an
 
 Milestone 4.7.1 — Prototype Command Bridge is complete and merged through pull request #18. The dashboard configurator now dispatches semantic Home Assistant commands through the existing engine, including power, brightness, colour, colour temperature, climate, media and cover controls.
 
-The active implementation gate is 4.7.2 — Authoritative State and Model Binding.
+The active implementation gate is 4.7.2.1 — Runtime Device Store. A new application-owned runtime-state package is being introduced for confirmed, optimistic and effective device state, indexed lookup, fine-grained subscriptions, central selection, transition history and diagnostics.
 
 ## Completed
 
@@ -57,6 +57,7 @@ The active implementation gate is 4.7.2 — Authoritative State and Model Bindin
 - [ ] 4.7 First Interactive Prototype
   - [x] 4.7.1 Prototype Command Bridge
   - [ ] 4.7.2 Authoritative State and Model Binding
+    - [ ] 4.7.2.1 Runtime Device Store — implementation in progress
 - [ ] 4.8 Performance optimisation
 - [ ] 4.9 Documentation
 - [ ] 4.10 HACS release
@@ -86,6 +87,7 @@ The first interactive prototype must validate:
 
 ## Next
 
-1. Implement 4.7.2 authoritative prototype state confirmation and selected-device model binding.
-2. Bind the selected light's power, colour and brightness to the 3D model.
-3. Select the project licence before public distribution.
+1. Validate and merge 4.7.2.1 — Runtime Device Store.
+2. Implement 4.7.2.2 — Home Assistant State Adapter.
+3. Bind selected-device effective state to the 3D model.
+4. Select the project licence before public distribution.
