@@ -75,7 +75,7 @@
   - [x] Prototype Command Bridge
   - [ ] Authoritative State and Model Binding
     - [x] Runtime Device Store
-    - [ ] Home Assistant State Adapter
+    - [ ] Home Assistant State Adapter — implementation complete, validation in progress
     - [ ] Selected-Device Model Binding
 - [ ] Performance optimisation
 - [ ] Documentation
