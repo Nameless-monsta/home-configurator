@@ -52,6 +52,11 @@ export interface GraphicsDiagnosticsSnapshot {
   readonly frameTimeAverageMs: number;
   readonly frameTimeP95Ms: number;
   readonly hidden: boolean;
+  readonly longTaskCount: number;
+  readonly longTaskTotalDurationMs: number;
+  readonly longTaskMaximumDurationMs: number;
+  readonly activePressureCount: number;
+  readonly criticalPressureCount: number;
 }
 
 export interface GraphicsContext {
