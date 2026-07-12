@@ -1,6 +1,7 @@
 import type { HomeConfiguratorRuntime } from '@home-configurator/runtime';
 
 import { GraphicsEngine, type GraphicsEngineOptions } from './graphics-engine.js';
+import { GraphicsPerformanceObservabilityTask } from './performance-observability-task.js';
 import { GraphicsViewportController } from './viewport-controller.js';
 
 export interface AttachGraphicsOptions extends Omit<
@@ -25,7 +26,12 @@ export const attachGraphicsRuntime = (options: AttachGraphicsOptions): GraphicsR
     ...(options.qualityTier ? { qualityTier: options.qualityTier } : {}),
     ...(options.background !== undefined ? { background: options.background } : {}),
   });
-  const unregister = options.runtime.scheduler.register(engine);
+  const performance = new GraphicsPerformanceObservabilityTask(
+    engine,
+    options.runtime.diagnostics,
+  );
+  const unregisterEngine = options.runtime.scheduler.register(engine);
+  const unregisterPerformance = options.runtime.scheduler.register(performance);
   const viewport = new GraphicsViewportController(
     options.viewportElement,
     (nextViewport) => engine.resize(nextViewport),
@@ -38,7 +44,9 @@ export const attachGraphicsRuntime = (options: AttachGraphicsOptions): GraphicsR
     viewport,
     dispose: () => {
       viewport.stop();
-      unregister();
+      unregisterPerformance();
+      unregisterEngine();
+      performance.dispose();
       engine.dispose();
     },
   };
