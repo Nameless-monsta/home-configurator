@@ -19,7 +19,9 @@ Milestone 4.7.1 — Prototype Command Bridge is complete and merged through pull
 
 Milestone 4.7.2.1 — Runtime Device Store is complete and merged through pull request #19. The dependency-free Runtime package now owns confirmed, optimistic and effective device state, indexed lookup, fine-grained subscriptions, central selection, bounded transition history and diagnostics.
 
-The active implementation gate is 4.7.2.2 — Home Assistant State Adapter.
+Milestone 4.7.2.2 — Home Assistant State Adapter is implemented on pull request #21 and is undergoing full CI validation. Confirmed Home Assistant snapshots, connectivity and semantic command lifecycle events now feed the Runtime `DeviceStore` without introducing a dependency from Runtime back to Home Assistant.
+
+The next implementation gate after validation and merge is 4.7.2.3 — Selected-Device Model Binding.
 
 ## Completed
 
@@ -61,7 +63,7 @@ The active implementation gate is 4.7.2.2 — Home Assistant State Adapter.
   - [x] 4.7.1 Prototype Command Bridge
   - [ ] 4.7.2 Authoritative State and Model Binding
     - [x] 4.7.2.1 Runtime Device Store
-    - [ ] 4.7.2.2 Home Assistant State Adapter
+    - [ ] 4.7.2.2 Home Assistant State Adapter — implementation complete, validation in progress
     - [ ] 4.7.2.3 Selected-Device Model Binding
 - [ ] 4.8 Performance optimisation
 - [ ] 4.9 Documentation
@@ -93,7 +95,6 @@ The first interactive prototype must validate:
 
 ## Next
 
-1. Implement 4.7.2.2 — Home Assistant State Adapter.
-2. Feed confirmed Home Assistant snapshots and optimistic command lifecycle events into Runtime state.
-3. Bind selected-device effective state to the 3D model.
-4. Select the project licence before public distribution.
+1. Complete CI validation and merge pull request #21 for 4.7.2.2.
+2. Bind selected-device effective state to the 3D model and configurator in 4.7.2.3.
+3. Select the project licence before public distribution.
