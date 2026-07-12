@@ -3,13 +3,7 @@ import type {
   DeviceStore,
   RuntimeUnsubscribe,
 } from '@home-configurator/runtime';
-import {
-  Color,
-  Mesh,
-  MeshPhysicalMaterial,
-  PointLight,
-  type Object3D,
-} from 'three';
+import { Color, Mesh, MeshPhysicalMaterial, PointLight, type Object3D } from 'three';
 
 export interface SelectedDeviceLightBindingOptions {
   readonly store: DeviceStore;
@@ -117,8 +111,7 @@ export class SelectedDeviceLightBinding {
     const available = snapshot?.available ?? false;
     const connected = snapshot?.connected ?? false;
     const power = snapshot === null ? false : booleanState(snapshot, 'power', false);
-    const brightness =
-      snapshot === null ? 0 : clamp(numericState(snapshot, 'brightness', 1), 0, 1);
+    const brightness = snapshot === null ? 0 : clamp(numericState(snapshot, 'brightness', 1), 0, 1);
     const pending = snapshot?.pendingCommandId !== undefined;
     const color = snapshot === null ? new Color(0x8f887f) : lightColor(snapshot);
     const active = available && connected && power;
