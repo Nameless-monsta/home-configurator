@@ -21,10 +21,11 @@
   - [x] **4.6.8 UI Validation and Merge**
 - [ ] **4.7 First Interactive Prototype**
   - [x] **4.7.1 Prototype Command Bridge**
-  - [ ] **4.7.2 Authoritative State and Model Binding**
+  - [x] **4.7.2 Authoritative State and Model Binding**
     - [x] **4.7.2.1 Runtime Device Store**
     - [x] **4.7.2.2 Home Assistant State Adapter**
-    - [ ] **4.7.2.3 Selected-Device Model Binding**
+    - [x] **4.7.2.3 Selected-Device Model Binding**
+  - [ ] **Colour Sphere and Brightness Gestures**
 - [ ] **4.8 Performance optimisation**
 - [ ] **4.9 Documentation**
 - [ ] **4.10 HACS release**
@@ -83,11 +84,17 @@ Authoritative Home Assistant snapshots hydrate Runtime state. Semantic commands 
 
 See [4.7.2.2 Home Assistant State Adapter](4.7.2.2_HOME_ASSISTANT_STATE_ADAPTER.md).
 
-## Active milestone
-
 ### 4.7.2.3 — Selected-Device Model Binding
 
-Bind selected Runtime device state to the graphics model, starting with light power, brightness, colour, availability and pending-command feedback.
+The selected fallback light now renders Runtime power, brightness, colour, connectivity, availability and pending-command state. Pull request #22 passed the full validation pipeline and was merged into `main`.
+
+See [4.7.2.3 Selected-Device Model Binding](4.7.2.3_SELECTED_DEVICE_MODEL_BINDING.md).
+
+## Active milestone
+
+### Colour Sphere and Brightness Gestures
+
+Connect direct colour and brightness manipulation to the same semantic command and Runtime reconciliation path, with visible optimistic feedback and authoritative rollback.
 
 ## Required validation command
 
