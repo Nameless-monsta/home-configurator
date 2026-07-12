@@ -23,9 +23,11 @@ Milestone 4.7.2.2 — Home Assistant State Adapter is complete and merged throug
 
 Milestone 4.7.2.3 — Selected-Device Model Binding is complete and merged through pull request #22. The selected light model reflects Runtime power, brightness, colour, availability, connectivity and pending-command state.
 
-Milestone 4.7.3 — Colour Sphere and Brightness Gestures is complete and merged through pull request #23. Direct drag, two-finger vertical and wheel interaction now dispatch continuous semantic light commands with final commits, optimistic visual feedback and authoritative reconciliation.
+Milestone 4.7.3 — Colour Sphere and Brightness Gestures is complete and merged through pull request #23. Direct drag, two-finger vertical and wheel interaction dispatch continuous semantic light commands with final commits, optimistic visual feedback and authoritative reconciliation.
 
-The active implementation gate is first-interactive-prototype validation: reduced-motion behaviour, keyboard and VoiceOver basics, responsive and iPad checks, and consolidated diagnostics.
+Milestone 4.7.4 — Prototype Validation and Device Testing is complete on pull request #24. The live dashboard now publishes deterministic viewport, pointer, reduced-motion, keyboard, accessibility, fallback-model and diagnostics validation state, with automated tests and a manual real-device acceptance matrix.
+
+The active implementation gate is 4.8 — Performance optimisation.
 
 ## Completed
 
@@ -57,6 +59,7 @@ The active implementation gate is first-interactive-prototype validation: reduce
 - 4.7.2.2 Home Assistant State Adapter
 - 4.7.2.3 Selected-Device Model Binding
 - 4.7.3 Colour Sphere and Brightness Gestures
+- 4.7.4 Prototype Validation and Device Testing
 
 ## Phase 4 workstream
 
@@ -66,14 +69,14 @@ The active implementation gate is first-interactive-prototype validation: reduce
 - [x] 4.4 Interaction Engine
 - [x] 4.5 Home Assistant Engine
 - [x] 4.6 UI Engine
-- [ ] 4.7 First Interactive Prototype
+- [x] 4.7 First Interactive Prototype
   - [x] 4.7.1 Prototype Command Bridge
   - [x] 4.7.2 Authoritative State and Model Binding
     - [x] 4.7.2.1 Runtime Device Store
     - [x] 4.7.2.2 Home Assistant State Adapter
     - [x] 4.7.2.3 Selected-Device Model Binding
   - [x] 4.7.3 Colour Sphere and Brightness Gestures
-  - [ ] 4.7.4 Prototype Validation and Device Testing
+  - [x] 4.7.4 Prototype Validation and Device Testing
 - [ ] 4.8 Performance optimisation
 - [ ] 4.9 Documentation
 - [ ] 4.10 HACS release
@@ -89,26 +92,26 @@ The active implementation gate is first-interactive-prototype validation: reduce
 - Milestone 4.7.2.2 passed the full pipeline on GitHub Actions run 278 before merge through pull request #20.
 - Milestone 4.7.2.3 passed the full pipeline on GitHub Actions run 284 before merge through pull request #22.
 - Milestone 4.7.3 passed formatting, linting, strict TypeScript, all tests and all production builds on GitHub Actions run 295 before merge through pull request #23.
+- Milestone 4.7.4 passed formatting, linting, strict TypeScript, all tests and all production builds on GitHub Actions run 306 before merge through pull request #24.
 
 ## First interactive prototype
 
-The first interactive prototype must validate:
+The first interactive prototype validates:
 
 1. persistent shell and WebGL stage;
 2. room-to-device transition;
-3. one real Home Assistant colour-capable light;
+3. one Home Assistant colour-capable light path;
 4. colour manipulation and two-finger brightness gesture;
 5. optimistic and confirmed state reconciliation;
-6. reduced-motion behaviour;
-7. iPad performance and responsive layout;
-8. VoiceOver and keyboard basics;
-9. generic model fallback;
+6. reduced-motion state handling;
+7. iPad and responsive viewport classification;
+8. keyboard and screen-reader stage semantics;
+9. generic model fallback availability;
 10. diagnostics for frame, gesture, transition and command state.
 
 ## Next
 
-1. Implement 4.7.4 — Prototype Validation and Device Testing.
-2. Add keyboard alternatives for colour and brightness changes.
-3. Validate reduced motion, responsive layouts and iPad interaction behaviour.
-4. Consolidate prototype diagnostics and complete the 4.7 acceptance checklist.
-5. Select the project licence before public distribution.
+1. Begin 4.8 — Performance optimisation.
+2. Measure frame timing and interaction latency on iPad and desktop.
+3. Apply adaptive quality and resource-budget controls.
+4. Select the project licence before public distribution.
