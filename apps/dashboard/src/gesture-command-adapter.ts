@@ -10,6 +10,14 @@ export interface GestureCommandAdapterOptions {
   readonly onReceipt?: (command: SemanticCommand, receipt: CommandReceipt) => void;
 }
 
+interface GestureCommandTemplate {
+  readonly deviceId: string;
+  readonly capability: SemanticCommand['capability'];
+  readonly action: string;
+  readonly value: unknown;
+  readonly final: boolean;
+}
+
 const clamp = (value: number, minimum: number, maximum: number): number =>
   Math.min(maximum, Math.max(minimum, value));
 
@@ -62,9 +70,7 @@ export class HomeAssistantGestureCommandAdapter {
     });
   }
 
-  async #dispatch(
-    template: Pick<SemanticCommand, 'deviceId' | 'capability' | 'action' | 'value' | 'final'>,
-  ): Promise<void> {
+  async #dispatch(template: GestureCommandTemplate): Promise<void> {
     const issuedAt = this.#now();
     const command: SemanticCommand = {
       id: `gesture-${issuedAt}-${++this.#sequence}`,
