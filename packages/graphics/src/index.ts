@@ -6,6 +6,7 @@ export * from './environment-manager.js';
 export * from './graphics-engine.js';
 export * from './lighting.js';
 export * from './lod-manager.js';
+export * from './performance-budget-monitor.js';
 export * from './post-processing.js';
 export * from './quality-manager.js';
 export * from './resource-tracker.js';
