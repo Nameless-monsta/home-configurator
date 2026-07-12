@@ -44,7 +44,7 @@ export class GraphicsPerformanceObservabilityTask implements SchedulerTask {
 
     for (const alert of alerts) this.#recordAlert(alert);
 
-    const decision = this.#pressure.observe(alerts, graphics.qualityTier, context.nowMs);
+    const decision = this.#pressure.observe(alerts, graphics.qualityTier, context.timestampMs);
     if (decision) {
       this.engine.setQualityTier(decision.tier);
       this.diagnostics.record('warn', 'graphics.performance', 'Resource pressure reduced quality', {
