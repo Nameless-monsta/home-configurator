@@ -25,7 +25,8 @@
     - [x] **4.7.2.1 Runtime Device Store**
     - [x] **4.7.2.2 Home Assistant State Adapter**
     - [x] **4.7.2.3 Selected-Device Model Binding**
-  - [ ] **Colour Sphere and Brightness Gestures**
+  - [x] **4.7.3 Colour Sphere and Brightness Gestures**
+  - [ ] **4.7.4 Prototype Validation and Device Testing**
 - [ ] **4.8 Performance optimisation**
 - [ ] **4.9 Documentation**
 - [ ] **4.10 HACS release**
@@ -86,15 +87,21 @@ See [4.7.2.2 Home Assistant State Adapter](4.7.2.2_HOME_ASSISTANT_STATE_ADAPTER.
 
 ### 4.7.2.3 — Selected-Device Model Binding
 
-The selected fallback light now renders Runtime power, brightness, colour, connectivity, availability and pending-command state. Pull request #22 passed the full validation pipeline and was merged into `main`.
+The selected fallback light renders Runtime power, brightness, colour, connectivity, availability and pending-command state. Pull request #22 passed the full validation pipeline and was merged into `main`.
 
 See [4.7.2.3 Selected-Device Model Binding](4.7.2.3_SELECTED_DEVICE_MODEL_BINDING.md).
 
+### 4.7.3 — Colour Sphere and Brightness Gestures
+
+Direct drag maps to hue and saturation, while two-finger vertical and wheel gestures control brightness. Continuous semantic commands provide optimistic visual feedback during movement and final commands reconcile against authoritative Home Assistant state. Pull request #23 passed the full pipeline on GitHub Actions run 295 and was merged into `main`.
+
+See [4.7.3 Colour Sphere and Brightness Gestures](4.7.3_COLOUR_SPHERE_AND_BRIGHTNESS_GESTURES.md).
+
 ## Active milestone
 
-### Colour Sphere and Brightness Gestures
+### 4.7.4 — Prototype Validation and Device Testing
 
-Connect direct colour and brightness manipulation to the same semantic command and Runtime reconciliation path, with visible optimistic feedback and authoritative rollback.
+Complete the first interactive prototype acceptance checklist across reduced motion, keyboard and VoiceOver basics, responsive and iPad behaviour, diagnostics, generic fallback rendering and real-device interaction.
 
 ## Required validation command
 
