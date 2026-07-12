@@ -77,7 +77,8 @@
     - [x] Runtime Device Store
     - [x] Home Assistant State Adapter
     - [x] Selected-Device Model Binding
-  - [ ] Colour Sphere and Brightness Gestures
+  - [x] Colour Sphere and Brightness Gestures
+  - [ ] Prototype Validation and Device Testing
 - [ ] Performance optimisation
 - [ ] Documentation
 - [ ] HACS release
