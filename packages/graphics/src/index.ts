@@ -8,6 +8,7 @@ export * from './lighting.js';
 export * from './lod-manager.js';
 export * from './long-task-monitor.js';
 export * from './performance-budget-monitor.js';
+export * from './performance-observability-task.js';
 export * from './post-processing.js';
 export * from './quality-manager.js';
 export * from './resource-pressure-controller.js';
