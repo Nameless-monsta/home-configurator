@@ -39,6 +39,33 @@ const lightColor = (snapshot: DeviceRuntimeSnapshot): Color => {
   return new Color(0xffc987);
 };
 
+const findBulb = (model: Object3D): Mesh | null => {
+  const named = model.getObjectByName('hero.fallback.bulb');
+  if (named instanceof Mesh) return named;
+  let result: Mesh | null = null;
+  model.traverse((object) => {
+    if (
+      result === null &&
+      object instanceof Mesh &&
+      object.material instanceof MeshPhysicalMaterial &&
+      object.material.emissiveIntensity > 0
+    ) {
+      result = object;
+    }
+  });
+  return result;
+};
+
+const findGlow = (model: Object3D): PointLight | null => {
+  const named = model.getObjectByName('hero.fallback.glow');
+  if (named instanceof PointLight) return named;
+  let result: PointLight | null = null;
+  model.traverse((object) => {
+    if (result === null && object instanceof PointLight) result = object;
+  });
+  return result;
+};
+
 export class SelectedDeviceLightBinding {
   readonly #store: DeviceStore;
   readonly #model: Object3D;
@@ -50,10 +77,8 @@ export class SelectedDeviceLightBinding {
   public constructor(options: SelectedDeviceLightBindingOptions) {
     this.#store = options.store;
     this.#model = options.model;
-    const bulb = options.model.getObjectByName('hero.fallback.bulb');
-    const glow = options.model.getObjectByName('hero.fallback.glow');
-    this.#bulb = bulb instanceof Mesh ? bulb : null;
-    this.#glow = glow instanceof PointLight ? glow : null;
+    this.#bulb = findBulb(options.model);
+    this.#glow = findGlow(options.model);
     this.#unsubscribe = this.#store.subscribe((patch) => {
       if (patch.deviceId === this.#selectedDeviceId) this.#refresh();
     });
@@ -82,7 +107,9 @@ export class SelectedDeviceLightBinding {
 
   #refresh(): void {
     const snapshot =
-      this.#selectedDeviceId === null ? null : this.#store.get(this.#selectedDeviceId)?.snapshot() ?? null;
+      this.#selectedDeviceId === null
+        ? null
+        : (this.#store.get(this.#selectedDeviceId)?.snapshot() ?? null);
     this.#apply(snapshot);
   }
 
@@ -90,7 +117,8 @@ export class SelectedDeviceLightBinding {
     const available = snapshot?.available ?? false;
     const connected = snapshot?.connected ?? false;
     const power = snapshot === null ? false : booleanState(snapshot, 'power', false);
-    const brightness = snapshot === null ? 0 : clamp(numericState(snapshot, 'brightness', 1), 0, 1);
+    const brightness =
+      snapshot === null ? 0 : clamp(numericState(snapshot, 'brightness', 1), 0, 1);
     const pending = snapshot?.pendingCommandId !== undefined;
     const color = snapshot === null ? new Color(0x8f887f) : lightColor(snapshot);
     const active = available && connected && power;
