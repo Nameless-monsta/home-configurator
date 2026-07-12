@@ -1,7 +1,4 @@
-import {
-  attachGraphicsRuntime,
-  SelectedDeviceLightBinding,
-} from '@home-configurator/graphics';
+import { attachGraphicsRuntime, SelectedDeviceLightBinding } from '@home-configurator/graphics';
 import {
   HomeAssistantEngine,
   HomeAssistantStateAdapter,
