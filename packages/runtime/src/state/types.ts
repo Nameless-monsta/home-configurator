@@ -49,6 +49,7 @@ export interface DeviceRuntimeSnapshot {
   readonly version: number;
   readonly lastUpdatedAt: number;
   readonly pendingCommandId?: string;
+  readonly pendingCommandIds: readonly string[];
   readonly history: readonly DeviceTransition[];
   readonly metrics: DeviceRuntimeMetrics;
 }
@@ -73,6 +74,7 @@ export interface ConfirmationOptions {
 
 export interface RollbackOptions {
   readonly reason: string;
+  readonly commandId?: string;
   readonly at?: number;
 }
 
