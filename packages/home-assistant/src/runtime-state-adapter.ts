@@ -1,8 +1,8 @@
-import {
-  type DeviceDescriptor,
-  type DeviceState,
+import type {
+  DeviceDescriptor,
+  DeviceState,
   DeviceStore,
-  type RuntimeUnsubscribe,
+  RuntimeUnsubscribe,
 } from '@home-configurator/runtime';
 
 import type {
