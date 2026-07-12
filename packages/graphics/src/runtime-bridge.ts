@@ -26,10 +26,7 @@ export const attachGraphicsRuntime = (options: AttachGraphicsOptions): GraphicsR
     ...(options.qualityTier ? { qualityTier: options.qualityTier } : {}),
     ...(options.background !== undefined ? { background: options.background } : {}),
   });
-  const performance = new GraphicsPerformanceObservabilityTask(
-    engine,
-    options.runtime.diagnostics,
-  );
+  const performance = new GraphicsPerformanceObservabilityTask(engine, options.runtime.diagnostics);
   const unregisterEngine = options.runtime.scheduler.register(engine);
   const unregisterPerformance = options.runtime.scheduler.register(performance);
   const viewport = new GraphicsViewportController(
