@@ -1,4 +1,5 @@
 export * from './adaptive-quality-controller.js';
+export * from './asset-cache-policy.js';
 export * from './asset-loader.js';
 export * from './camera-rig.js';
 export * from './context-guard.js';
