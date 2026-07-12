@@ -163,7 +163,9 @@ export const toRuntimeDeviceState = (
   if (lock !== undefined) values['lock'] = lock.state === 'locked';
 
   const sensors: Record<string, unknown> = {};
-  for (const binding of device.bindings.filter((candidate) => candidate.capabilities.includes('sensor'))) {
+  for (const binding of device.bindings.filter((candidate) =>
+    candidate.capabilities.includes('sensor'),
+  )) {
     const state = snapshot.states[binding.entityId];
     if (state === undefined) continue;
     const numeric = Number(state.state);
@@ -191,7 +193,12 @@ export const semanticCommandToRuntimePatch = (command: SemanticCommand): DeviceS
     command.value.length >= 2 &&
     command.value.every((value) => typeof value === 'number')
   ) {
-    return { color: [clamp(command.value[0] ?? 0, 0, 360), clamp(command.value[1] ?? 0, 0, 100)] };
+    return {
+      color: [
+        clamp(command.value[0] ?? 0, 0, 360),
+        clamp(command.value[1] ?? 0, 0, 100),
+      ],
+    };
   }
   if (command.capability === 'colorTemperature' && typeof command.value === 'number') {
     return { colorTemperature: command.value };
@@ -305,7 +312,10 @@ export class HomeAssistantStateAdapter {
     try {
       receipt = await this.#homeAssistant.dispatch(command);
     } catch (error) {
-      this.#rollback(command.id, error instanceof Error ? error.message : 'Command dispatch failed');
+      this.#rollback(
+        command.id,
+        error instanceof Error ? error.message : 'Command dispatch failed',
+      );
       throw error;
     }
 
@@ -328,7 +338,8 @@ export class HomeAssistantStateAdapter {
   public dispose(): void {
     this.#unsubscribe?.();
     this.#unsubscribe = undefined;
-    for (const commandId of [...this.#pending.keys()]) this.#rollback(commandId, 'Adapter disposed');
+    for (const commandId of [...this.#pending.keys()])
+      this.#rollback(commandId, 'Adapter disposed');
     this.#managedDeviceIds.clear();
   }
 

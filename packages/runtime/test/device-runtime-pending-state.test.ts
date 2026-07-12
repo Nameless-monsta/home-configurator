@@ -19,10 +19,7 @@ describe('DeviceRuntime pending command layers', () => {
       pendingCommandId: 'brightness-1',
     });
 
-    runtime.confirm(
-      { power: true, brightness: 0.2 },
-      { commandId: 'power-1', at: 120 },
-    );
+    runtime.confirm({ power: true, brightness: 0.2 }, { commandId: 'power-1', at: 120 });
     expect(runtime.snapshot()).toMatchObject({
       confirmedState: { power: true, brightness: 0.2 },
       effectiveState: { power: true, brightness: 0.8 },

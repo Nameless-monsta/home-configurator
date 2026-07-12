@@ -53,7 +53,11 @@ const createSnapshot = (
     hs_color: [0, 0],
     color_temp_kelvin: 3000,
   }),
-  options: { readonly stale?: boolean; readonly devices?: readonly CanonicalDevice[]; readonly at?: number } = {},
+  options: {
+    readonly stale?: boolean;
+    readonly devices?: readonly CanonicalDevice[];
+    readonly at?: number;
+  } = {},
 ): ConfirmedRuntimeSnapshot => ({
   status: options.stale ? 'reconnecting' : 'ready',
   rooms: [

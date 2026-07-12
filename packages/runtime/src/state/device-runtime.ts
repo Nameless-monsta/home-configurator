@@ -169,7 +169,8 @@ export class DeviceRuntime {
   public confirm(state: DeviceState, options: ConfirmationOptions = {}): void {
     const at = options.at ?? this.#now();
     const commandId = options.commandId;
-    const optimistic = commandId === undefined ? undefined : this.#optimisticByCommand.get(commandId);
+    const optimistic =
+      commandId === undefined ? undefined : this.#optimisticByCommand.get(commandId);
     this.#confirmedState = freezeState(state);
     this.#confirmations += 1;
 
