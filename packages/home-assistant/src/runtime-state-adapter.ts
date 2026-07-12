@@ -282,8 +282,7 @@ export class HomeAssistantStateAdapter {
     this.#store = options.store;
     this.#commandTimeoutMs = Math.max(500, options.commandTimeoutMs ?? 8500);
     this.#now = options.now ?? Date.now;
-    this.#setTimer =
-      options.setTimer ?? ((callback, delayMs) => setTimeout(callback, delayMs));
+    this.#setTimer = options.setTimer ?? ((callback, delayMs) => setTimeout(callback, delayMs));
     this.#clearTimer = options.clearTimer ?? ((handle) => clearTimeout(handle));
   }
 
