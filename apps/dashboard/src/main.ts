@@ -1,12 +1,13 @@
 import { attachGraphicsRuntime } from '@home-configurator/graphics';
 import {
   HomeAssistantEngine,
+  HomeAssistantStateAdapter,
   MemoryHomeAssistantTransport,
   type ConfirmedRuntimeSnapshot,
   type HAState,
 } from '@home-configurator/home-assistant';
 import { InteractionEngine, semanticOrbitHandler } from '@home-configurator/interaction';
-import { createRuntime } from '@home-configurator/runtime';
+import { createRuntime, DeviceStore, summarizeRuntimeState } from '@home-configurator/runtime';
 import {
   DevicePanelRegistry,
   UiConfigurator,
@@ -29,7 +30,7 @@ if (!root) throw new Error('Application root was not found');
 
 const ui = new UiFoundation({
   root,
-  version: '0.7.1',
+  version: '0.7.2',
   subtitle: 'Select a device, change its controls and apply the command to Home Assistant.',
 });
 
@@ -200,9 +201,20 @@ const homeAssistant = new HomeAssistantEngine({
   }),
 });
 
+const deviceStore = new DeviceStore();
+const homeAssistantState = new HomeAssistantStateAdapter({
+  homeAssistant,
+  store: deviceStore,
+});
+homeAssistantState.start();
+let runtimeStateSummary = summarizeRuntimeState(deviceStore.snapshot());
+const unsubscribeRuntimeState = deviceStore.subscribe(() => {
+  runtimeStateSummary = summarizeRuntimeState(deviceStore.snapshot());
+});
+
 let latestCommandState = 'idle';
 const configuratorAdapter = new HomeAssistantConfiguratorAdapter({
-  homeAssistant,
+  homeAssistant: homeAssistantState,
   onReceipt: (command, receipt) => {
     latestCommandState = `${command.capability}:${receipt.state}`;
     runtime.diagnostics.increment(`prototype.commands.${receipt.state}`);
@@ -259,6 +271,9 @@ runtime.diagnostics.subscribe((snapshot) => {
     homeAssistant: homeAssistantStatus,
     rooms,
     devices,
+    runtimeDevices: runtimeStateSummary.deviceCount,
+    optimistic: runtimeStateSummary.optimisticCount,
+    rollbacks: runtimeStateSummary.rollbackCount,
     room: location.roomId ?? 'none',
     device: location.deviceId ?? 'none',
     command: latestCommandState,
@@ -279,6 +294,9 @@ const shutdown = async (): Promise<void> => {
   navigation.dispose();
   ui.dispose();
   interaction.dispose();
+  unsubscribeRuntimeState();
+  homeAssistantState.dispose();
+  deviceStore.dispose();
   await homeAssistant.disconnect();
   homeAssistant.dispose();
   await runtime.stop();

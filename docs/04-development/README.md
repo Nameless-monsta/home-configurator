@@ -81,7 +81,9 @@ See [4.7.2.1 Runtime Device Store](4.7.2.1_RUNTIME_DEVICE_STORE.md).
 
 ### 4.7.2.2 — Home Assistant State Adapter
 
-Translate confirmed Home Assistant snapshots and optimistic or failed command lifecycle events into the Runtime state subsystem while preserving the canonical application boundary.
+Hydrate Runtime state from authoritative Home Assistant snapshots, wrap semantic command dispatch with optimistic state, and independently confirm or roll back concurrent capability commands.
+
+See [4.7.2.2 Home Assistant State Adapter](4.7.2.2_HOME_ASSISTANT_STATE_ADAPTER.md).
 
 ## Required validation command
 

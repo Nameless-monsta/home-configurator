@@ -14,6 +14,11 @@ import type {
   RollbackOptions,
 } from './types.js';
 
+interface OptimisticLayer {
+  readonly patch: DeviceState;
+  readonly issuedAt: number;
+}
+
 const freezeState = (state: DeviceState): DeviceState => Object.freeze({ ...state });
 
 const sameStrings = (left: readonly string[], right: readonly string[]): boolean =>
@@ -43,6 +48,7 @@ export class DeviceRuntime {
   readonly #listeners = new SubscriptionSet<DeviceRuntimeSnapshot>();
   readonly #history: RingBuffer<DeviceTransition>;
   readonly #now: () => number;
+  readonly #optimisticByCommand = new Map<string, OptimisticLayer>();
 
   #id: string;
   #roomId: string;
@@ -52,9 +58,6 @@ export class DeviceRuntime {
   #connected: boolean;
   #selected = false;
   #confirmedState: DeviceState;
-  #optimisticState: DeviceState | null = null;
-  #pendingCommandId: string | undefined;
-  #pendingIssuedAt: number | undefined;
   #version = 0;
   #lastUpdatedAt: number;
   #transitionSequence = 0;
@@ -84,6 +87,19 @@ export class DeviceRuntime {
   }
 
   public snapshot(): DeviceRuntimeSnapshot {
+    const pendingCommandIds = [...this.#optimisticByCommand.keys()];
+    const optimisticState =
+      pendingCommandIds.length === 0
+        ? null
+        : freezeState(
+            pendingCommandIds.reduce<DeviceState>(
+              (state, commandId) => ({
+                ...state,
+                ...this.#optimisticByCommand.get(commandId)?.patch,
+              }),
+              this.#confirmedState,
+            ),
+          );
     const metrics: DeviceRuntimeMetrics = {
       optimisticUpdates: this.#optimisticUpdates,
       confirmations: this.#confirmations,
@@ -95,6 +111,7 @@ export class DeviceRuntime {
         : { averageLatencyMs: this.#latencyTotalMs / this.#latencySamples }),
       ...(this.#lastLatencyMs === undefined ? {} : { lastLatencyMs: this.#lastLatencyMs }),
     };
+    const pendingCommandId = pendingCommandIds.at(-1);
 
     return {
       id: this.#id,
@@ -105,11 +122,12 @@ export class DeviceRuntime {
       connected: this.#connected,
       selected: this.#selected,
       confirmedState: this.#confirmedState,
-      optimisticState: this.#optimisticState,
-      effectiveState: this.#optimisticState ?? this.#confirmedState,
+      optimisticState,
+      effectiveState: optimisticState ?? this.#confirmedState,
       version: this.#version,
       lastUpdatedAt: this.#lastUpdatedAt,
-      ...(this.#pendingCommandId === undefined ? {} : { pendingCommandId: this.#pendingCommandId }),
+      ...(pendingCommandId === undefined ? {} : { pendingCommandId }),
+      pendingCommandIds,
       history: this.#history.snapshot(),
       metrics,
     };
@@ -139,45 +157,47 @@ export class DeviceRuntime {
 
   public applyOptimistic(patch: DeviceState, options: OptimisticUpdateOptions): void {
     const at = options.at ?? this.#now();
-    this.#optimisticState = freezeState({
-      ...(this.#optimisticState ?? this.#confirmedState),
-      ...patch,
+    const commandId = assertIdentifier(options.commandId, 'Command ID');
+    this.#optimisticByCommand.set(commandId, {
+      patch: freezeState(patch),
+      issuedAt: options.issuedAt ?? at,
     });
-    this.#pendingCommandId = assertIdentifier(options.commandId, 'Command ID');
-    this.#pendingIssuedAt = options.issuedAt ?? at;
     this.#optimisticUpdates += 1;
-    this.#publish('optimistic', at, { commandId: this.#pendingCommandId });
+    this.#publish('optimistic', at, { commandId });
   }
 
   public confirm(state: DeviceState, options: ConfirmationOptions = {}): void {
     const at = options.at ?? this.#now();
-    const commandMatches =
-      this.#pendingCommandId === undefined ||
-      options.commandId === undefined ||
-      options.commandId === this.#pendingCommandId;
+    const commandId = options.commandId;
+    const optimistic =
+      commandId === undefined ? undefined : this.#optimisticByCommand.get(commandId);
     this.#confirmedState = freezeState(state);
     this.#confirmations += 1;
 
     let latencyMs: number | undefined;
-    if (commandMatches && this.#pendingIssuedAt !== undefined) {
-      latencyMs = Math.max(0, at - this.#pendingIssuedAt);
+    if (commandId !== undefined && optimistic !== undefined) {
+      latencyMs = Math.max(0, at - optimistic.issuedAt);
       this.#lastLatencyMs = latencyMs;
       this.#latencyTotalMs += latencyMs;
       this.#latencySamples += 1;
+      this.#optimisticByCommand.delete(commandId);
     }
-    if (commandMatches) this.#clearOptimistic();
 
     this.#publish('confirmed', at, {
-      ...(options.commandId === undefined ? {} : { commandId: options.commandId }),
+      ...(commandId === undefined ? {} : { commandId }),
       ...(latencyMs === undefined ? {} : { latencyMs }),
     });
   }
 
   public rollback(options: RollbackOptions): boolean {
-    if (this.#optimisticState === null) return false;
+    if (this.#optimisticByCommand.size === 0) return false;
     const at = options.at ?? this.#now();
-    const commandId = this.#pendingCommandId;
-    this.#clearOptimistic();
+    const commandId = options.commandId;
+    const removed =
+      commandId === undefined
+        ? this.#clearAllOptimistic()
+        : this.#optimisticByCommand.delete(commandId);
+    if (!removed) return false;
     this.#rollbacks += 1;
     this.#publish('rollback', at, {
       reason: options.reason,
@@ -209,10 +229,10 @@ export class DeviceRuntime {
     this.#listeners.clear();
   }
 
-  #clearOptimistic(): void {
-    this.#optimisticState = null;
-    this.#pendingCommandId = undefined;
-    this.#pendingIssuedAt = undefined;
+  #clearAllOptimistic(): boolean {
+    if (this.#optimisticByCommand.size === 0) return false;
+    this.#optimisticByCommand.clear();
+    return true;
   }
 
   #publish(
