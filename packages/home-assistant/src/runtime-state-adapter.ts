@@ -47,6 +47,12 @@ const stringAttribute = (state: HAState | undefined, key: string): string | unde
   return typeof value === 'string' ? value : undefined;
 };
 
+const arrayNumber = (value: unknown, index: number): number | undefined => {
+  if (!Array.isArray(value)) return undefined;
+  const entry: unknown = (value as readonly unknown[])[index];
+  return typeof entry === 'number' && Number.isFinite(entry) ? entry : undefined;
+};
+
 const stateForCapability = (
   snapshot: ConfirmedRuntimeSnapshot,
   device: CanonicalDevice,
@@ -76,23 +82,19 @@ const rgbToHs = (rgb: readonly [number, number, number]): readonly [number, numb
 
 const colorValue = (state: HAState | undefined): readonly [number, number] | undefined => {
   const hs = state?.attributes['hs_color'];
-  if (Array.isArray(hs)) {
-    const hue = hs[0];
-    const saturation = hs[1];
-    if (typeof hue === 'number' && typeof saturation === 'number') {
-      return [clamp(hue, 0, 360), clamp(saturation, 0, 100)];
-    }
+  const hue = arrayNumber(hs, 0);
+  const saturation = arrayNumber(hs, 1);
+  if (hue !== undefined && saturation !== undefined) {
+    return [clamp(hue, 0, 360), clamp(saturation, 0, 100)];
   }
+
   const rgb = state?.attributes['rgb_color'];
-  if (Array.isArray(rgb)) {
-    const red = rgb[0];
-    const green = rgb[1];
-    const blue = rgb[2];
-    if (typeof red === 'number' && typeof green === 'number' && typeof blue === 'number') {
-      return rgbToHs([red, green, blue]);
-    }
-  }
-  return undefined;
+  const red = arrayNumber(rgb, 0);
+  const green = arrayNumber(rgb, 1);
+  const blue = arrayNumber(rgb, 2);
+  return red !== undefined && green !== undefined && blue !== undefined
+    ? rgbToHs([red, green, blue])
+    : undefined;
 };
 
 const powerValue = (state: HAState | undefined): boolean | undefined => {
@@ -192,10 +194,10 @@ export const semanticCommandToRuntimePatch = (command: SemanticCommand): DeviceS
   if (command.capability === 'brightness' && typeof command.value === 'number') {
     return { brightness: clamp(command.value, 0, 1) };
   }
-  if (command.capability === 'color' && Array.isArray(command.value)) {
-    const hue = command.value[0];
-    const saturation = command.value[1];
-    if (typeof hue === 'number' && typeof saturation === 'number') {
+  if (command.capability === 'color') {
+    const hue = arrayNumber(command.value, 0);
+    const saturation = arrayNumber(command.value, 1);
+    if (hue !== undefined && saturation !== undefined) {
       return { color: [clamp(hue, 0, 360), clamp(saturation, 0, 100)] };
     }
   }
@@ -237,12 +239,13 @@ const numericTolerance: Readonly<Record<string, number>> = {
 
 const valueMatches = (key: string, actual: unknown, expected: unknown): boolean => {
   const tolerance = numericTolerance[key] ?? 0;
-  if (Array.isArray(expected)) {
+  if (Array.isArray(expected) && Array.isArray(actual)) {
+    const expectedValues = expected as readonly unknown[];
+    const actualValues = actual as readonly unknown[];
     return (
-      Array.isArray(actual) &&
-      actual.length === expected.length &&
-      actual.every((value, index) => {
-        const expectedValue = expected[index];
+      actualValues.length === expectedValues.length &&
+      actualValues.every((value, index) => {
+        const expectedValue: unknown = expectedValues[index];
         return (
           typeof value === 'number' &&
           typeof expectedValue === 'number' &&
