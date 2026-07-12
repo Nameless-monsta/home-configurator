@@ -71,14 +71,14 @@
 - [x] Interaction Engine
 - [x] Home Assistant Engine
 - [x] UI Engine
-- [ ] First Interactive Prototype
+- [x] First Interactive Prototype
   - [x] Prototype Command Bridge
   - [x] Authoritative State and Model Binding
     - [x] Runtime Device Store
     - [x] Home Assistant State Adapter
     - [x] Selected-Device Model Binding
   - [x] Colour Sphere and Brightness Gestures
-  - [ ] Prototype Validation and Device Testing
+  - [x] Prototype Validation and Device Testing
 - [ ] Performance optimisation
 - [ ] Documentation
 - [ ] HACS release
