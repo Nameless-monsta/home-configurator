@@ -7,5 +7,6 @@ export * from './plugin-manager.js';
 export * from './runtime.js';
 export * from './scheduler.js';
 export * from './service-container.js';
+export * from './state/index.js';
 export * from './tokens.js';
 export * from './types.js';

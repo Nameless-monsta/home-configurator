@@ -30,10 +30,7 @@ describe('DeviceRuntime', () => {
     });
 
     now = 145;
-    runtime.confirm(
-      { power: true, brightness: 0.8 },
-      { commandId: 'command-1', at: now },
-    );
+    runtime.confirm({ power: true, brightness: 0.8 }, { commandId: 'command-1', at: now });
 
     expect(runtime.snapshot()).toMatchObject({
       confirmedState: { power: true, brightness: 0.8 },

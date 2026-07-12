@@ -17,7 +17,7 @@ Phase 4.6 is complete. Home Configurator now has a full-screen UI shell, room an
 
 Milestone 4.7.1 — Prototype Command Bridge is complete and merged through pull request #18. The dashboard configurator now dispatches semantic Home Assistant commands through the existing engine, including power, brightness, colour, colour temperature, climate, media and cover controls.
 
-The active implementation gate is 4.7.2.1 — Runtime Device Store. A new application-owned runtime-state package is being introduced for confirmed, optimistic and effective device state, indexed lookup, fine-grained subscriptions, central selection, transition history and diagnostics.
+The active implementation gate is 4.7.2.1 — Runtime Device Store. The existing dependency-free Runtime package is gaining confirmed, optimistic and effective device state, indexed lookup, fine-grained subscriptions, central selection, transition history and diagnostics.
 
 ## Completed
 

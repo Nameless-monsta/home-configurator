@@ -26,7 +26,9 @@ const assertIdentifier = (value: string, label: string): string => {
 };
 
 const normalizeDescriptor = (descriptor: DeviceDescriptor): DeviceDescriptor => {
-  const entityIds = [...new Set(descriptor.entityIds.map((id) => assertIdentifier(id, 'Entity ID')))];
+  const entityIds = [
+    ...new Set(descriptor.entityIds.map((id) => assertIdentifier(id, 'Entity ID'))),
+  ];
   return {
     id: assertIdentifier(descriptor.id, 'Device ID'),
     roomId: assertIdentifier(descriptor.roomId, 'Room ID'),
@@ -107,9 +109,7 @@ export class DeviceRuntime {
       effectiveState: this.#optimisticState ?? this.#confirmedState,
       version: this.#version,
       lastUpdatedAt: this.#lastUpdatedAt,
-      ...(this.#pendingCommandId === undefined
-        ? {}
-        : { pendingCommandId: this.#pendingCommandId }),
+      ...(this.#pendingCommandId === undefined ? {} : { pendingCommandId: this.#pendingCommandId }),
       history: this.#history.snapshot(),
       metrics,
     };
@@ -139,7 +139,10 @@ export class DeviceRuntime {
 
   public applyOptimistic(patch: DeviceState, options: OptimisticUpdateOptions): void {
     const at = options.at ?? this.#now();
-    this.#optimisticState = freezeState({ ...(this.#optimisticState ?? this.#confirmedState), ...patch });
+    this.#optimisticState = freezeState({
+      ...(this.#optimisticState ?? this.#confirmedState),
+      ...patch,
+    });
     this.#pendingCommandId = assertIdentifier(options.commandId, 'Command ID');
     this.#pendingIssuedAt = options.issuedAt ?? at;
     this.#optimisticUpdates += 1;
@@ -223,11 +226,7 @@ export class DeviceRuntime {
     this.#listeners.emit(this.snapshot());
   }
 
-  #record(
-    kind: DeviceTransitionKind,
-    at: number,
-    detail: Readonly<Record<string, unknown>>,
-  ): void {
+  #record(kind: DeviceTransitionKind, at: number, detail: Readonly<Record<string, unknown>>): void {
     this.#transitionSequence += 1;
     this.#history.push({ sequence: this.#transitionSequence, kind, at, detail: { ...detail } });
   }

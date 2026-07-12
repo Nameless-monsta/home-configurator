@@ -1,8 +1,6 @@
 import type { DeviceStoreSnapshot, RuntimeStateDiagnostics } from './types.js';
 
-export const summarizeRuntimeState = (
-  snapshot: DeviceStoreSnapshot,
-): RuntimeStateDiagnostics => {
+export const summarizeRuntimeState = (snapshot: DeviceStoreSnapshot): RuntimeStateDiagnostics => {
   let availableCount = 0;
   let connectedCount = 0;
   let selectedCount = 0;

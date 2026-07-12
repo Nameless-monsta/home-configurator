@@ -81,7 +81,8 @@ export class DeviceRegistry {
 
   #removeIndexes(descriptor: DeviceDescriptor): void {
     for (const entityId of descriptor.entityIds) {
-      if (this.#entityToDevice.get(entityId) === descriptor.id) this.#entityToDevice.delete(entityId);
+      if (this.#entityToDevice.get(entityId) === descriptor.id)
+        this.#entityToDevice.delete(entityId);
     }
     const roomDevices = this.#roomToDevices.get(descriptor.roomId);
     roomDevices?.delete(descriptor.id);

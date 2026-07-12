@@ -35,7 +35,8 @@ export class DeviceStore {
         connected: input.descriptor.connected ?? input.descriptor.available ?? true,
       });
     }
-    if (metadataChanged && previousRoomId !== input.descriptor.roomId) this.#emitRoom(previousRoomId);
+    if (metadataChanged && previousRoomId !== input.descriptor.roomId)
+      this.#emitRoom(previousRoomId);
     return existing;
   }
 
@@ -110,7 +111,8 @@ export class DeviceStore {
     roomId: string,
     listener: (snapshot: DeviceStoreRoomSnapshot) => void,
   ): RuntimeUnsubscribe {
-    const listeners = this.#roomListeners.get(roomId) ?? new SubscriptionSet<DeviceStoreRoomSnapshot>();
+    const listeners =
+      this.#roomListeners.get(roomId) ?? new SubscriptionSet<DeviceStoreRoomSnapshot>();
     this.#roomListeners.set(roomId, listeners);
     const unsubscribe = listeners.subscribe(listener);
     return () => {

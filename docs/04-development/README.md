@@ -75,7 +75,7 @@ See [4.7.1 Prototype Command Bridge](4.7.1_PROTOTYPE_COMMAND_BRIDGE.md).
 
 ### 4.7.2.1 — Runtime Device Store
 
-Introduce an application-owned state package with confirmed, optimistic and effective device state, indexed lookup, fine-grained subscriptions, central selection, bounded transition history and diagnostics.
+Extend the dependency-free Runtime package with confirmed, optimistic and effective device state, indexed lookup, fine-grained subscriptions, central selection, bounded transition history and diagnostics.
 
 See [4.7.2.1 Runtime Device Store](4.7.2.1_RUNTIME_DEVICE_STORE.md).
 
