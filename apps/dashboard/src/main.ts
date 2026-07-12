@@ -1,12 +1,13 @@
 import { attachGraphicsRuntime } from '@home-configurator/graphics';
 import {
   HomeAssistantEngine,
+  HomeAssistantStateAdapter,
   MemoryHomeAssistantTransport,
   type ConfirmedRuntimeSnapshot,
   type HAState,
 } from '@home-configurator/home-assistant';
 import { InteractionEngine, semanticOrbitHandler } from '@home-configurator/interaction';
-import { createRuntime } from '@home-configurator/runtime';
+import { DeviceStore, createRuntime, summarizeRuntimeState } from '@home-configurator/runtime';
 import {
   DevicePanelRegistry,
   UiConfigurator,
@@ -29,8 +30,8 @@ if (!root) throw new Error('Application root was not found');
 
 const ui = new UiFoundation({
   root,
-  version: '0.7.1',
-  subtitle: 'Select a device, change its controls and apply the command to Home Assistant.',
+  version: '0.7.3',
+  subtitle: 'Home Assistant state now reconciles through the application runtime store.',
 });
 
 let latestHomeSnapshot: ConfirmedRuntimeSnapshot | null = null;
@@ -97,7 +98,7 @@ const entityState = (
   last_updated: observedAt,
 });
 
-const homeAssistant = new HomeAssistantEngine({
+const homeAssistantEngine = new HomeAssistantEngine({
   config: {
     url: 'http://homeassistant.demo',
     accessToken: 'memory-transport-only',
@@ -199,14 +200,23 @@ const homeAssistant = new HomeAssistantEngine({
     ],
   }),
 });
+const deviceStore = new DeviceStore();
+const homeAssistant = new HomeAssistantStateAdapter({
+  source: homeAssistantEngine,
+  store: deviceStore,
+});
 
 let latestCommandState = 'idle';
+const commandLifecycleUnsubscribe = homeAssistant.subscribeCommandLifecycle((event) => {
+  latestCommandState = `${event.command.capability}:${event.state}`;
+  runtime.diagnostics.increment(`prototype.commands.${event.state}`);
+});
+const runtimeStateUnsubscribe = deviceStore.subscribe(() => {
+  runtime.diagnostics.increment('prototype.runtimeState.updates');
+});
+
 const configuratorAdapter = new HomeAssistantConfiguratorAdapter({
   homeAssistant,
-  onReceipt: (command, receipt) => {
-    latestCommandState = `${command.capability}:${receipt.state}`;
-    runtime.diagnostics.increment(`prototype.commands.${receipt.state}`);
-  },
 });
 
 const configurator = new UiConfigurator({
@@ -254,11 +264,15 @@ homeAssistant.subscribe(({ snapshot }) => {
 
 runtime.diagnostics.subscribe((snapshot) => {
   const location = navigation.snapshot();
+  const runtimeState = summarizeRuntimeState(deviceStore);
   ui.setDiagnostics({
     runtime: runtimePhase,
     homeAssistant: homeAssistantStatus,
     rooms,
     devices,
+    runtimeDevices: runtimeState.deviceCount,
+    connectedDevices: runtimeState.connectedCount,
+    optimisticDevices: runtimeState.optimisticCount,
     room: location.roomId ?? 'none',
     device: location.deviceId ?? 'none',
     command: latestCommandState,
@@ -279,8 +293,12 @@ const shutdown = async (): Promise<void> => {
   navigation.dispose();
   ui.dispose();
   interaction.dispose();
+  commandLifecycleUnsubscribe();
+  runtimeStateUnsubscribe();
   await homeAssistant.disconnect();
   homeAssistant.dispose();
+  homeAssistantEngine.dispose();
+  deviceStore.dispose();
   await runtime.stop();
   graphicsHandle.dispose();
 };
