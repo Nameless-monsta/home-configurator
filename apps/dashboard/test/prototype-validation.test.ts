@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  classifyPrototypeViewport,
-  validatePrototype,
-} from '../src/prototype-validation.js';
+import { classifyPrototypeViewport, validatePrototype } from '../src/prototype-validation.js';
 
 describe('prototype validation', () => {
   it('classifies phone, tablet and desktop viewports', () => {
@@ -40,11 +37,6 @@ describe('prototype validation', () => {
         fallbackModelAvailable: false,
         diagnosticsAvailable: false,
       }).failures,
-    ).toEqual([
-      'keyboard-navigation',
-      'accessible-name',
-      'fallback-model',
-      'diagnostics',
-    ]);
+    ).toEqual(['keyboard-navigation', 'accessible-name', 'fallback-model', 'diagnostics']);
   });
 });
