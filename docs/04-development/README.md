@@ -1,7 +1,14 @@
-# Phase 4 — Development
+# Phase 4 — Engine, Runtime and Technical Prototype
 
-**Status:** In progress  
-**Entry gate:** Phase 3.5 approved
+**Status:** Engineering implementation substantially complete  
+**Entry gate:** Phase 3.5 approved  
+**Exit note:** Physical sustained-device profiling remains required before beta acceptance
+
+## Purpose
+
+Phase 4 built the technical foundation required by the product: runtime ownership, Home Assistant integration, graphics, interaction, state reconciliation, technical UI scaffolding, diagnostics and performance controls.
+
+Phase 4 did **not** complete the polished iyO-inspired product interface. The Phase 3 UX work is an approved specification; faithful visual implementation is the responsibility of Phase 5 Product Experience.
 
 ## Workstream
 
@@ -10,104 +17,81 @@
 - [x] **4.3 Graphics Engine**
 - [x] **4.4 Interaction Engine**
 - [x] **4.5 Home Assistant Engine**
-- [x] **4.6 UI Engine**
-  - [x] **4.6.1 UI Foundation**
-  - [x] **4.6.2 Navigation System**
-  - [x] **4.6.3 Configurator Framework**
-  - [x] **4.6.4 Control Library**
-  - [x] **4.6.5 Device Panels**
-  - [x] **4.6.6 iyO Motion System**
-  - [x] **4.6.7 Responsive Behaviour**
-  - [x] **4.6.8 UI Validation and Merge**
-- [x] **4.7 First Interactive Prototype**
-  - [x] **4.7.1 Prototype Command Bridge**
-  - [x] **4.7.2 Authoritative State and Model Binding**
-    - [x] **4.7.2.1 Runtime Device Store**
-    - [x] **4.7.2.2 Home Assistant State Adapter**
-    - [x] **4.7.2.3 Selected-Device Model Binding**
-  - [x] **4.7.3 Colour Sphere and Brightness Gestures**
-  - [x] **4.7.4 Prototype Validation and Device Testing**
-- [ ] **4.8 Performance optimisation**
-- [ ] **4.9 Documentation**
-- [ ] **4.10 HACS release**
+- [x] **4.6 UI Engine foundation**
+  - [x] UI Foundation
+  - [x] Navigation System
+  - [x] Configurator Framework
+  - [x] Control Library
+  - [x] Device Panels
+  - [x] iyO Motion primitives
+  - [x] Responsive Behaviour
+  - [x] UI Validation
+- [x] **4.7 Technical Interactive Prototype**
+  - [x] Prototype Command Bridge
+  - [x] Authoritative State and Model Binding
+  - [x] Colour and brightness gesture plumbing
+  - [x] Prototype validation contracts
+- [x] **4.8 Performance implementation**
+  - [x] Adaptive quality
+  - [x] Frame and renderer observability
+  - [x] Long-task monitoring
+  - [x] Resource-pressure response
+  - [x] Bounded model asset cache
+- [ ] **Physical sustained-device profiling**
 
-## Completed milestones
+## What Phase 4 proves
 
-### 4.1 — Repository, build and CI setup
+The repository can support a production application with:
 
-Node.js 22, pnpm workspaces, Turbo, strict TypeScript, ESLint, Prettier, Vitest and GitHub Actions validation.
+- deterministic runtime and state ownership;
+- automatic Home Assistant discovery and semantic commands;
+- optimistic confirmation and rollback;
+- a persistent Three.js stage;
+- selected-device model binding;
+- gesture input and accessible alternatives;
+- responsive and reduced-motion contracts;
+- adaptive quality and resource budgets;
+- bounded asset caching and diagnostics.
 
-### 4.2 — Runtime Core
+## What Phase 4 does not prove
 
-Deterministic lifecycle, dependency injection, event bus, scheduler, diagnostics, configuration, plugin and asset managers, plus the Home Assistant adapter boundary.
+Phase 4 does not prove that the current dashboard is the intended finished product. It does not yet provide:
 
-See [4.2 Runtime Core](4.2_RUNTIME_CORE.md).
+- a faithful iyO-inspired spatial shell;
+- production typography, glass, depth and motion;
+- a true spatial colour sphere;
+- cinematic room navigation;
+- production-quality room and device assets;
+- a reviewable build that visually represents the final ambition.
 
-### 4.3 — Graphics Engine
+Those items are tracked in [Phase 5 — Product Experience](../05-product-experience/README.md).
 
-Persistent Three.js stage, responsive camera, scene graph, studio lighting, quality tiers, GLTF loader, fallback hero, diagnostics and dashboard integration.
+## Key reports
 
-See [4.3 Graphics Engine](4.3_GRAPHICS_ENGINE.md).
+- [4.2 Runtime Core](4.2_RUNTIME_CORE.md)
+- [4.3 Graphics Engine](4.3_GRAPHICS_ENGINE.md)
+- [4.4 Interaction Engine](4.4_INTERACTION_ENGINE.md)
+- [4.5 Home Assistant Engine](4.5_HOME_ASSISTANT_ENGINE.md)
+- [4.7.1 Prototype Command Bridge](4.7.1_PROTOTYPE_COMMAND_BRIDGE.md)
+- [4.7.2.1 Runtime Device Store](4.7.2.1_RUNTIME_DEVICE_STORE.md)
+- [4.7.2.2 Home Assistant State Adapter](4.7.2.2_HOME_ASSISTANT_STATE_ADAPTER.md)
+- [4.7.2.3 Selected-Device Model Binding](4.7.2.3_SELECTED_DEVICE_MODEL_BINDING.md)
+- [4.7.3 Colour Sphere and Brightness Gestures](4.7.3_COLOUR_SPHERE_AND_BRIGHTNESS_GESTURES.md)
+- [4.7.4 Prototype Validation and Device Testing](4.7.4_PROTOTYPE_VALIDATION_AND_DEVICE_TESTING.md)
+- [4.8.1 Performance Observability](4.8.1_PERFORMANCE_OBSERVABILITY.md)
+- [4.8.2 Performance Pressure Integration](4.8.2_PERFORMANCE_PRESSURE_INTEGRATION.md)
+- [4.8.3 Asset Cache and Sustained Profiling](4.8.3_ASSET_CACHE_AND_SUSTAINED_PROFILING.md)
 
-### 4.4 — Interaction Engine
+## Supporting validation still required
 
-Central input ownership, semantic raycasting, gesture arbitration, selection, navigation, transitions, animations, camera focus and accessible keyboard alternatives. GitHub Actions validation passed formatting, linting, strict TypeScript, tests and production builds.
+Before beta acceptance, record sustained runs on:
 
-See [4.4 Interaction Engine](4.4_INTERACTION_ENGINE.md).
+- iPad Safari landscape;
+- iPad Safari portrait;
+- desktop Safari or Chrome;
+- a lower-power mobile or tablet device.
 
-### 4.5 — Home Assistant Engine
-
-Authenticated WebSocket transport, automatic room and device discovery, capability abstraction, live state synchronisation, command translation, optimistic reconciliation, reconnect behaviour and diagnostics. GitHub Actions validation passed formatting, linting, strict TypeScript, tests and production builds.
-
-See [4.5 Home Assistant Engine](4.5_HOME_ASSISTANT_ENGINE.md).
-
-### 4.6 — UI Engine
-
-Full-screen shell, navigation, capability-driven configurator, control library, device panels, iyO motion orchestration, responsive behaviour and accessibility validation are integrated into one dashboard surface. All 4.6.1–4.6.8 reports are closed and CI validated.
-
-See the 4.6.1–4.6.8 implementation reports in this directory.
-
-### 4.7.1 — Prototype Command Bridge
-
-Semantic Home Assistant command dispatch is integrated into the configurator. Pull request #18 passed the full validation pipeline and was merged into `main`.
-
-See [4.7.1 Prototype Command Bridge](4.7.1_PROTOTYPE_COMMAND_BRIDGE.md).
-
-### 4.7.2.1 — Runtime Device Store
-
-The dependency-free Runtime package owns confirmed, optimistic and effective device state, indexed device, entity and room lookup, fine-grained subscriptions, central selection, bounded transition history and diagnostics. Pull request #19 passed the full validation pipeline and was merged into `main`.
-
-See [4.7.2.1 Runtime Device Store](4.7.2.1_RUNTIME_DEVICE_STORE.md).
-
-### 4.7.2.2 — Home Assistant State Adapter
-
-Authoritative Home Assistant snapshots hydrate Runtime state. Semantic commands create independent optimistic layers that confirm or roll back against authoritative state. Pull request #20 passed the full validation pipeline and was merged into `main`.
-
-See [4.7.2.2 Home Assistant State Adapter](4.7.2.2_HOME_ASSISTANT_STATE_ADAPTER.md).
-
-### 4.7.2.3 — Selected-Device Model Binding
-
-The selected fallback light renders Runtime power, brightness, colour, connectivity, availability and pending-command state. Pull request #22 passed the full validation pipeline and was merged into `main`.
-
-See [4.7.2.3 Selected-Device Model Binding](4.7.2.3_SELECTED_DEVICE_MODEL_BINDING.md).
-
-### 4.7.3 — Colour Sphere and Brightness Gestures
-
-Direct drag maps to hue and saturation, while two-finger vertical and wheel gestures control brightness. Continuous semantic commands provide optimistic visual feedback during movement and final commands reconcile against authoritative Home Assistant state. Pull request #23 passed the full pipeline on GitHub Actions run 295 and was merged into `main`.
-
-See [4.7.3 Colour Sphere and Brightness Gestures](4.7.3_COLOUR_SPHERE_AND_BRIGHTNESS_GESTURES.md).
-
-### 4.7.4 — Prototype Validation and Device Testing
-
-The live dashboard publishes deterministic viewport, pointer, reduced-motion, keyboard, accessibility, fallback-model and diagnostics validation state. Automated contract tests and a manual real-device acceptance matrix close the first interactive prototype. Pull request #24 passed the full pipeline on GitHub Actions run 306.
-
-See [4.7.4 Prototype Validation and Device Testing](4.7.4_PROTOTYPE_VALIDATION_AND_DEVICE_TESTING.md).
-
-## Active milestone
-
-### 4.8 — Performance optimisation
-
-Measure and reduce frame cost, interaction latency, resource use and quality-tier pressure across iPad and desktop while preserving the validated interaction model.
+This validation supports Phase 5 but does not block beginning the visible product implementation.
 
 ## Required validation command
 
@@ -119,4 +103,4 @@ This runs formatting, linting, type checking, tests and builds across the worksp
 
 ## Development rule
 
-Implementation must follow the approved Phase 2 architecture, Phase 3 UX contracts and Phase 3.5 engineering specifications. Any change to runtime ownership or public contracts requires an ADR and an update to the corresponding specification.
+Implementation must follow the approved Phase 2 architecture, Phase 3 UX contracts and Phase 3.5 engineering specifications. From Phase 5 onward, a milestone is not complete unless it also produces a runnable, visually reviewable build.
