@@ -56,10 +56,10 @@ const stateForCapability = (
   return binding === undefined ? undefined : snapshot.states[binding.entityId];
 };
 
-const rgbToHs = (rgb: readonly number[]): readonly [number, number] => {
-  const red = clamp(rgb[0] ?? 0, 0, 255) / 255;
-  const green = clamp(rgb[1] ?? 0, 0, 255) / 255;
-  const blue = clamp(rgb[2] ?? 0, 0, 255) / 255;
+const rgbToHs = (rgb: readonly [number, number, number]): readonly [number, number] => {
+  const red = clamp(rgb[0], 0, 255) / 255;
+  const green = clamp(rgb[1], 0, 255) / 255;
+  const blue = clamp(rgb[2], 0, 255) / 255;
   const maximum = Math.max(red, green, blue);
   const minimum = Math.min(red, green, blue);
   const delta = maximum - minimum;
@@ -76,18 +76,23 @@ const rgbToHs = (rgb: readonly number[]): readonly [number, number] => {
 
 const colorValue = (state: HAState | undefined): readonly [number, number] | undefined => {
   const hs = state?.attributes['hs_color'];
-  if (
-    Array.isArray(hs) &&
-    hs.length >= 2 &&
-    typeof hs[0] === 'number' &&
-    typeof hs[1] === 'number'
-  ) {
-    return [clamp(hs[0], 0, 360), clamp(hs[1], 0, 100)];
+  if (Array.isArray(hs)) {
+    const hue = hs[0];
+    const saturation = hs[1];
+    if (typeof hue === 'number' && typeof saturation === 'number') {
+      return [clamp(hue, 0, 360), clamp(saturation, 0, 100)];
+    }
   }
   const rgb = state?.attributes['rgb_color'];
-  return Array.isArray(rgb) && rgb.length >= 3 && rgb.every((value) => typeof value === 'number')
-    ? rgbToHs(rgb)
-    : undefined;
+  if (Array.isArray(rgb)) {
+    const red = rgb[0];
+    const green = rgb[1];
+    const blue = rgb[2];
+    if (typeof red === 'number' && typeof green === 'number' && typeof blue === 'number') {
+      return rgbToHs([red, green, blue]);
+    }
+  }
+  return undefined;
 };
 
 const powerValue = (state: HAState | undefined): boolean | undefined => {
@@ -187,15 +192,12 @@ export const semanticCommandToRuntimePatch = (command: SemanticCommand): DeviceS
   if (command.capability === 'brightness' && typeof command.value === 'number') {
     return { brightness: clamp(command.value, 0, 1) };
   }
-  if (
-    command.capability === 'color' &&
-    Array.isArray(command.value) &&
-    command.value.length >= 2 &&
-    command.value.every((value) => typeof value === 'number')
-  ) {
-    return {
-      color: [clamp(command.value[0] ?? 0, 0, 360), clamp(command.value[1] ?? 0, 0, 100)],
-    };
+  if (command.capability === 'color' && Array.isArray(command.value)) {
+    const hue = command.value[0];
+    const saturation = command.value[1];
+    if (typeof hue === 'number' && typeof saturation === 'number') {
+      return { color: [clamp(hue, 0, 360), clamp(saturation, 0, 100)] };
+    }
   }
   if (command.capability === 'colorTemperature' && typeof command.value === 'number') {
     return { colorTemperature: command.value };
@@ -239,12 +241,14 @@ const valueMatches = (key: string, actual: unknown, expected: unknown): boolean 
     return (
       Array.isArray(actual) &&
       actual.length === expected.length &&
-      actual.every(
-        (value, index) =>
+      actual.every((value, index) => {
+        const expectedValue = expected[index];
+        return (
           typeof value === 'number' &&
-          typeof expected[index] === 'number' &&
-          Math.abs(value - expected[index]) <= tolerance,
-      )
+          typeof expectedValue === 'number' &&
+          Math.abs(value - expectedValue) <= tolerance
+        );
+      })
     );
   }
   if (typeof actual === 'number' && typeof expected === 'number') {
@@ -278,8 +282,9 @@ export class HomeAssistantStateAdapter {
     this.#store = options.store;
     this.#commandTimeoutMs = Math.max(500, options.commandTimeoutMs ?? 8500);
     this.#now = options.now ?? Date.now;
-    this.#setTimer = options.setTimer ?? setTimeout;
-    this.#clearTimer = options.clearTimer ?? clearTimeout;
+    this.#setTimer =
+      options.setTimer ?? ((callback, delayMs) => setTimeout(callback, delayMs));
+    this.#clearTimer = options.clearTimer ?? ((handle) => clearTimeout(handle));
   }
 
   public start(): void {

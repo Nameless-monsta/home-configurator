@@ -175,7 +175,7 @@ export class DeviceRuntime {
     this.#confirmations += 1;
 
     let latencyMs: number | undefined;
-    if (optimistic !== undefined) {
+    if (commandId !== undefined && optimistic !== undefined) {
       latencyMs = Math.max(0, at - optimistic.issuedAt);
       this.#lastLatencyMs = latencyMs;
       this.#latencyTotalMs += latencyMs;
