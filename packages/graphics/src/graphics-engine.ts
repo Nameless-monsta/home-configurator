@@ -17,6 +17,7 @@ import {
 
 import type { Diagnostics, FrameContext, SchedulerTask } from '@home-configurator/runtime';
 
+import { AdaptiveQualityController } from './adaptive-quality-controller.js';
 import { ModelAssetLoader } from './asset-loader.js';
 import { CameraRig } from './camera-rig.js';
 import { WebGLContextGuard } from './context-guard.js';
@@ -40,7 +41,14 @@ export interface GraphicsEngineOptions {
   readonly diagnostics: Diagnostics;
   readonly qualityTier?: GraphicsQualityTier;
   readonly background?: number | string;
+  readonly adaptiveQuality?: boolean;
 }
+
+const percentile95 = (values: readonly number[]): number => {
+  if (values.length === 0) return 0;
+  const ordered = [...values].sort((left, right) => left - right);
+  return ordered[Math.min(ordered.length - 1, Math.ceil(ordered.length * 0.95) - 1)] ?? 0;
+};
 
 export class GraphicsEngine implements SchedulerTask {
   public readonly id = 'graphics.render';
@@ -59,13 +67,27 @@ export class GraphicsEngine implements SchedulerTask {
 
   readonly #diagnostics: Diagnostics;
   readonly #context: WebGLContextGuard;
+  readonly #adaptive: AdaptiveQualityController;
+  readonly #adaptiveEnabled: boolean;
+  readonly #frameTimes: number[] = [];
+  readonly #visibilityHandler = (): void => {
+    this.#hidden = typeof document !== 'undefined' && document.visibilityState === 'hidden';
+    this.#diagnostics.setGauge('graphics.hidden', this.#hidden ? 1 : 0);
+    if (!this.#hidden) this.#adaptive.reset();
+  };
   #viewport: GraphicsViewport = { width: 1, height: 1, devicePixelRatio: 1 };
   #frame = 0;
   #disposed = false;
+  #hidden = false;
+  #frameTimeAverageMs = 0;
+  #frameTimeP95Ms = 0;
+  #fps = 0;
 
   public constructor(options: GraphicsEngineOptions) {
     this.#diagnostics = options.diagnostics;
     this.quality = new QualityManager(options.qualityTier);
+    this.#adaptive = new AdaptiveQualityController({ initialTier: this.quality.tier });
+    this.#adaptiveEnabled = options.adaptiveQuality ?? true;
     this.renderer = new WebGLRenderer({
       canvas: options.canvas,
       antialias: this.quality.profile.antialias,
@@ -100,9 +122,14 @@ export class GraphicsEngine implements SchedulerTask {
         this.resize(this.#viewport);
       },
     });
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', this.#visibilityHandler);
+      this.#visibilityHandler();
+    }
     this.#applyQuality();
     this.#diagnostics.record('info', 'graphics', 'Graphics engine initialized', {
       qualityTier: this.quality.tier,
+      adaptiveQuality: this.#adaptiveEnabled,
     });
   }
 
@@ -125,6 +152,7 @@ export class GraphicsEngine implements SchedulerTask {
 
   public setQualityTier(tier: GraphicsQualityTier): void {
     if (!this.quality.setTier(tier)) return;
+    this.#adaptive.setTier(tier);
     this.lod.setTier(tier);
     this.#applyQuality();
     this.resize(this.#viewport);
@@ -132,8 +160,9 @@ export class GraphicsEngine implements SchedulerTask {
   }
 
   public tick(context: FrameContext): void {
-    if (this.#disposed || this.#context.lost) return;
+    if (this.#disposed || this.#context.lost || this.#hidden) return;
     this.#frame = context.frame;
+    this.#recordFrameTime(context.deltaMs);
     this.cameraRig.tick(context.deltaMs);
     this.lod.update(this.cameraRig.camera);
     this.postProcessing.render();
@@ -145,6 +174,9 @@ export class GraphicsEngine implements SchedulerTask {
     this.#diagnostics.setGauge('graphics.geometries', memoryInfo.geometries);
     this.#diagnostics.setGauge('graphics.textures', memoryInfo.textures);
     this.#diagnostics.setGauge('graphics.frame', context.frame);
+    this.#diagnostics.setGauge('graphics.fps', this.#fps);
+    this.#diagnostics.setGauge('graphics.frameTimeAverageMs', this.#frameTimeAverageMs);
+    this.#diagnostics.setGauge('graphics.frameTimeP95Ms', this.#frameTimeP95Ms);
   }
 
   public createFallbackHero(): Group {
@@ -236,12 +268,19 @@ export class GraphicsEngine implements SchedulerTask {
       contextLost: this.#context.lost,
       postProcessing: this.postProcessing.enabled,
       environmentReady: this.environment.ready,
+      fps: this.#fps,
+      frameTimeAverageMs: this.#frameTimeAverageMs,
+      frameTimeP95Ms: this.#frameTimeP95Ms,
+      hidden: this.#hidden,
     };
   }
 
   public dispose(): void {
     if (this.#disposed) return;
     this.#disposed = true;
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.#visibilityHandler);
+    }
     this.#context.dispose();
     this.postProcessing.dispose();
     this.environment.dispose();
@@ -253,6 +292,29 @@ export class GraphicsEngine implements SchedulerTask {
     this.#diagnostics.record('info', 'graphics', 'Graphics engine disposed', {
       disposedResources,
     });
+  }
+
+  #recordFrameTime(frameTimeMs: number): void {
+    if (!Number.isFinite(frameTimeMs) || frameTimeMs <= 0) return;
+    this.#frameTimes.push(frameTimeMs);
+    if (this.#frameTimes.length > 180) this.#frameTimes.shift();
+    const total = this.#frameTimes.reduce((sum, value) => sum + value, 0);
+    this.#frameTimeAverageMs = total / this.#frameTimes.length;
+    this.#frameTimeP95Ms = percentile95(this.#frameTimes);
+    this.#fps = 1000 / this.#frameTimeAverageMs;
+
+    if (!this.#adaptiveEnabled) return;
+    const decision = this.#adaptive.observe(frameTimeMs);
+    if (!decision) return;
+    this.setQualityTier(decision.tier);
+    this.#diagnostics.record('info', 'graphics.performance', 'Adaptive quality changed', {
+      previousTier: decision.previousTier,
+      tier: decision.tier,
+      reason: decision.reason,
+      averageFrameTimeMs: decision.averageFrameTimeMs,
+      slowFrameRatio: decision.slowFrameRatio,
+    });
+    this.#diagnostics.increment(`graphics.quality.${decision.previousTier}.${decision.tier}`);
   }
 
   #applyQuality(): void {
