@@ -6,8 +6,6 @@ import { HomeAssistantGestureCommandAdapter } from '../src/gesture-command-adapt
 const receipt: CommandReceipt = {
   commandId: 'command',
   state: 'awaiting-confirmation',
-  issuedAt: 10,
-  updatedAt: 11,
 };
 
 describe('HomeAssistantGestureCommandAdapter', () => {
