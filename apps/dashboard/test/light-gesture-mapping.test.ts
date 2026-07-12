@@ -5,10 +5,7 @@ import { mapBrightnessGesture, mapColourGesture } from '../src/light-gesture-map
 describe('light gesture mapping', () => {
   it('maps horizontal drag to hue and vertical drag to saturation', () => {
     expect(
-      mapColourGesture(
-        { deltaX: 100, deltaY: -40 },
-        { hue: 350, saturation: 60, brightness: 0.5 },
-      ),
+      mapColourGesture({ deltaX: 100, deltaY: -40 }, { hue: 350, saturation: 60, brightness: 0.5 }),
     ).toEqual([55, 74]);
   });
 
