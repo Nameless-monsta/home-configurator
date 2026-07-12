@@ -13,9 +13,9 @@ const receipt: CommandReceipt = {
 describe('HomeAssistantGestureCommandAdapter', () => {
   it('emits clamped continuous colour updates and a final commit', async () => {
     const commands: SemanticCommand[] = [];
-    const dispatch = vi.fn(async (command: SemanticCommand) => {
+    const dispatch = vi.fn((command: SemanticCommand) => {
       commands.push(command);
-      return { ...receipt, commandId: command.id };
+      return Promise.resolve({ ...receipt, commandId: command.id });
     });
     const adapter = new HomeAssistantGestureCommandAdapter({
       homeAssistant: { dispatch },
@@ -40,10 +40,12 @@ describe('HomeAssistantGestureCommandAdapter', () => {
   });
 
   it('emits clamped brightness commands', async () => {
-    const dispatch = vi.fn(async (command: SemanticCommand) => ({
-      ...receipt,
-      commandId: command.id,
-    }));
+    const dispatch = vi.fn((command: SemanticCommand) =>
+      Promise.resolve({
+        ...receipt,
+        commandId: command.id,
+      }),
+    );
     const adapter = new HomeAssistantGestureCommandAdapter({
       homeAssistant: { dispatch },
       now: () => 20,
