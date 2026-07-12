@@ -21,9 +21,11 @@ Milestone 4.7.2.1 — Runtime Device Store is complete and merged through pull r
 
 Milestone 4.7.2.2 — Home Assistant State Adapter is complete and merged through pull request #20. Authoritative Home Assistant snapshots hydrate Runtime state, while semantic commands apply independent optimistic layers that confirm or roll back against authoritative state.
 
-Milestone 4.7.2.3 — Selected-Device Model Binding is complete and merged through pull request #22. The selected light model now reflects Runtime power, brightness, colour, availability, connectivity and pending-command state.
+Milestone 4.7.2.3 — Selected-Device Model Binding is complete and merged through pull request #22. The selected light model reflects Runtime power, brightness, colour, availability, connectivity and pending-command state.
 
-The active implementation gate is the next interactive-prototype slice: colour-sphere manipulation and direct brightness gestures.
+Milestone 4.7.3 — Colour Sphere and Brightness Gestures is complete and merged through pull request #23. Direct drag, two-finger vertical and wheel interaction now dispatch continuous semantic light commands with final commits, optimistic visual feedback and authoritative reconciliation.
+
+The active implementation gate is first-interactive-prototype validation: reduced-motion behaviour, keyboard and VoiceOver basics, responsive and iPad checks, and consolidated diagnostics.
 
 ## Completed
 
@@ -54,6 +56,7 @@ The active implementation gate is the next interactive-prototype slice: colour-s
 - 4.7.2.1 Runtime Device Store
 - 4.7.2.2 Home Assistant State Adapter
 - 4.7.2.3 Selected-Device Model Binding
+- 4.7.3 Colour Sphere and Brightness Gestures
 
 ## Phase 4 workstream
 
@@ -69,7 +72,8 @@ The active implementation gate is the next interactive-prototype slice: colour-s
     - [x] 4.7.2.1 Runtime Device Store
     - [x] 4.7.2.2 Home Assistant State Adapter
     - [x] 4.7.2.3 Selected-Device Model Binding
-  - [ ] Colour Sphere and Brightness Gestures
+  - [x] 4.7.3 Colour Sphere and Brightness Gestures
+  - [ ] 4.7.4 Prototype Validation and Device Testing
 - [ ] 4.8 Performance optimisation
 - [ ] 4.9 Documentation
 - [ ] 4.10 HACS release
@@ -84,6 +88,7 @@ The active implementation gate is the next interactive-prototype slice: colour-s
 - Milestone 4.7.2.1 passed the full pipeline on GitHub Actions run 269 before merge through pull request #19.
 - Milestone 4.7.2.2 passed the full pipeline on GitHub Actions run 278 before merge through pull request #20.
 - Milestone 4.7.2.3 passed the full pipeline on GitHub Actions run 284 before merge through pull request #22.
+- Milestone 4.7.3 passed formatting, linting, strict TypeScript, all tests and all production builds on GitHub Actions run 295 before merge through pull request #23.
 
 ## First interactive prototype
 
@@ -92,7 +97,7 @@ The first interactive prototype must validate:
 1. persistent shell and WebGL stage;
 2. room-to-device transition;
 3. one real Home Assistant colour-capable light;
-4. colour sphere manipulation and two-finger brightness gesture;
+4. colour manipulation and two-finger brightness gesture;
 5. optimistic and confirmed state reconciliation;
 6. reduced-motion behaviour;
 7. iPad performance and responsive layout;
@@ -102,7 +107,8 @@ The first interactive prototype must validate:
 
 ## Next
 
-1. Implement direct colour-sphere interaction for the selected light.
-2. Implement brightness gestures through the existing interaction engine.
-3. Validate optimistic visual feedback and authoritative rollback on the live model.
-4. Select the project licence before public distribution.
+1. Implement 4.7.4 — Prototype Validation and Device Testing.
+2. Add keyboard alternatives for colour and brightness changes.
+3. Validate reduced motion, responsive layouts and iPad interaction behaviour.
+4. Consolidate prototype diagnostics and complete the 4.7 acceptance checklist.
+5. Select the project licence before public distribution.
