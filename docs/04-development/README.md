@@ -23,7 +23,7 @@
   - [x] **4.7.1 Prototype Command Bridge**
   - [ ] **4.7.2 Authoritative State and Model Binding**
     - [x] **4.7.2.1 Runtime Device Store**
-    - [ ] **4.7.2.2 Home Assistant State Adapter**
+    - [x] **4.7.2.2 Home Assistant State Adapter**
     - [ ] **4.7.2.3 Selected-Device Model Binding**
 - [ ] **4.8 Performance optimisation**
 - [ ] **4.9 Documentation**
@@ -73,17 +73,21 @@ See [4.7.1 Prototype Command Bridge](4.7.1_PROTOTYPE_COMMAND_BRIDGE.md).
 
 ### 4.7.2.1 — Runtime Device Store
 
-The dependency-free Runtime package now owns confirmed, optimistic and effective device state, indexed device, entity and room lookup, fine-grained subscriptions, central selection, bounded transition history and diagnostics. Pull request #19 passed the full validation pipeline and was merged into `main`.
+The dependency-free Runtime package owns confirmed, optimistic and effective device state, indexed device, entity and room lookup, fine-grained subscriptions, central selection, bounded transition history and diagnostics. Pull request #19 passed the full validation pipeline and was merged into `main`.
 
 See [4.7.2.1 Runtime Device Store](4.7.2.1_RUNTIME_DEVICE_STORE.md).
 
-## Active milestone
-
 ### 4.7.2.2 — Home Assistant State Adapter
 
-Hydrate Runtime state from authoritative Home Assistant snapshots, wrap semantic command dispatch with optimistic state, and independently confirm or roll back concurrent capability commands.
+Authoritative Home Assistant snapshots hydrate Runtime state. Semantic commands create independent optimistic layers that confirm or roll back against authoritative state. Pull request #20 passed the full validation pipeline and was merged into `main`.
 
 See [4.7.2.2 Home Assistant State Adapter](4.7.2.2_HOME_ASSISTANT_STATE_ADAPTER.md).
+
+## Active milestone
+
+### 4.7.2.3 — Selected-Device Model Binding
+
+Bind selected Runtime device state to the graphics model, starting with light power, brightness, colour, availability and pending-command feedback.
 
 ## Required validation command
 
