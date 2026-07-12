@@ -1,4 +1,4 @@
-import { attachGraphicsRuntime } from '@home-configurator/graphics';
+import { attachGraphicsRuntime, SelectedDeviceLightBinding } from '@home-configurator/graphics';
 import {
   HomeAssistantEngine,
   HomeAssistantStateAdapter,
@@ -30,8 +30,8 @@ if (!root) throw new Error('Application root was not found');
 
 const ui = new UiFoundation({
   root,
-  version: '0.7.2',
-  subtitle: 'Select a device, change its controls and apply the command to Home Assistant.',
+  version: '0.7.3',
+  subtitle: 'Select a device and watch authoritative state drive the 3D model.',
 });
 
 let latestHomeSnapshot: ConfirmedRuntimeSnapshot | null = null;
@@ -207,6 +207,10 @@ const homeAssistantState = new HomeAssistantStateAdapter({
   store: deviceStore,
 });
 homeAssistantState.start();
+const selectedModelBinding = new SelectedDeviceLightBinding({
+  store: deviceStore,
+  model: hero,
+});
 let runtimeStateSummary = summarizeRuntimeState(deviceStore.snapshot());
 const unsubscribeRuntimeState = deviceStore.subscribe(() => {
   runtimeStateSummary = summarizeRuntimeState(deviceStore.snapshot());
@@ -228,7 +232,10 @@ const configurator = new UiConfigurator({
 
 const navigation = new UiNavigation({
   root,
-  onNavigate: (location) => configurator.setDocument(createDocument(latestHomeSnapshot, location)),
+  onNavigate: (location) => {
+    selectedModelBinding.setSelectedDevice(location.deviceId);
+    configurator.setDocument(createDocument(latestHomeSnapshot, location));
+  },
 });
 
 const motion = new UiMotionOrchestrator({
@@ -261,7 +268,9 @@ homeAssistant.subscribe(({ snapshot }) => {
       meta: [device.manufacturer, device.model].filter(Boolean).join(' '),
     })),
   );
-  configurator.setDocument(createDocument(snapshot, navigation.snapshot()));
+  const location = navigation.snapshot();
+  selectedModelBinding.setSelectedDevice(location.deviceId);
+  configurator.setDocument(createDocument(snapshot, location));
 });
 
 runtime.diagnostics.subscribe((snapshot) => {
@@ -292,6 +301,7 @@ const shutdown = async (): Promise<void> => {
   motion.dispose();
   configurator.dispose();
   navigation.dispose();
+  selectedModelBinding.dispose();
   ui.dispose();
   interaction.dispose();
   unsubscribeRuntimeState();

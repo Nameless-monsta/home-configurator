@@ -10,5 +10,6 @@ export * from './quality-manager.js';
 export * from './resource-tracker.js';
 export * from './runtime-bridge.js';
 export * from './scene-graph.js';
+export * from './selected-device-light-binding.js';
 export * from './types.js';
 export * from './viewport-controller.js';
