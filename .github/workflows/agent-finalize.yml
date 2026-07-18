@@ -17,78 +17,26 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: agent/design-recovery
-          fetch-depth: 1
+          fetch-depth: 0
       - name: Assemble complete implementation
         run: |
           cat .agent/chunks/shell.* > apps/dashboard/src/phase5/experience-shell.ts
           cat .agent/chunks/css.* > apps/dashboard/src/phase5/iyo-fidelity-v2.css
           python - <<'PY'
           from pathlib import Path
-          path = Path('apps/dashboard/src/phase5/device-model-registry.ts')
-          source = path.read_text()
-          source = source.replace(
-          """const mergeTransform = (
-            ...values: Array<Partial<DeviceModelTransform> | undefined>
-          ): DeviceModelTransform => {
-            const merged = Object.assign({}, DEFAULT_TRANSFORM, ...values);
-            return {
-              scale: finite(merged.scale, 1),
-              rotation: tuple(merged.rotation, [0, 0, 0]),
-              offset: tuple(merged.offset, [0, 0, 0]),
-              roughness: clamp(finite(merged.roughness, 0.42), 0, 1),
-              metalness: clamp(finite(merged.metalness, 0.12), 0, 1),
-              tint: typeof merged.tint === 'string' ? merged.tint : '#ffffff',
-            };
-          };""",
-          """const mergeTransform = (
-            ...values: Array<Partial<DeviceModelTransform> | undefined>
-          ): DeviceModelTransform => {
-            let scale = DEFAULT_TRANSFORM.scale;
-            let rotation = DEFAULT_TRANSFORM.rotation;
-            let offset = DEFAULT_TRANSFORM.offset;
-            let roughness = DEFAULT_TRANSFORM.roughness;
-            let metalness = DEFAULT_TRANSFORM.metalness;
-            let tint = DEFAULT_TRANSFORM.tint;
-            for (const value of values) {
-              if (!value) continue;
-              scale = value.scale ?? scale;
-              rotation = value.rotation ?? rotation;
-              offset = value.offset ?? offset;
-              roughness = value.roughness ?? roughness;
-              metalness = value.metalness ?? metalness;
-              tint = value.tint ?? tint;
-            }
-            return {
-              scale: finite(scale, 1),
-              rotation: tuple(rotation, [0, 0, 0]),
-              offset: tuple(offset, [0, 0, 0]),
-              roughness: clamp(finite(roughness, 0.42), 0, 1),
-              metalness: clamp(finite(metalness, 0.12), 0, 1),
-              tint,
-            };
-          };"""
-          )
-          source = source.replace(
-          """const disposeObject = (object: Object3D): void => {
-            object.traverse((node) => {
-              if (!(node instanceof Mesh)) return;
-              node.geometry.dispose();
-              const materials: Material[] = Array.isArray(node.material) ? node.material : [node.material];
-              materials.forEach((material) => material.dispose());
-            });
-          };""",
-          """const disposeObject = (object: Object3D): void => {
-            object.traverse((node) => {
-              if (!(node instanceof Mesh)) return;
-              const mesh = node as Mesh;
-              mesh.geometry.dispose();
-              const material = mesh.material as Material | Material[];
-              const materials = Array.isArray(material) ? material : [material];
-              materials.forEach((entry) => entry.dispose());
-            });
-          };"""
-          )
-          path.write_text(source)
+          registry = Path('apps/dashboard/src/phase5/device-model-registry.ts')
+          source = registry.read_text().replace('    const mesh = node as Mesh;', '    const mesh = node;')
+          registry.write_text(source)
+
+          shell = Path('apps/dashboard/src/phase5/experience-shell.ts')
+          source = shell.read_text()
+          marker = "const numberValue = (data: FormData, key: string, fallback: number): number => { const value = Number(data.get(key)); return Number.isFinite(value) ? value : fallback; };"
+          helpers = """const formString = (data: FormData, key: string, fallback: string): string => { const value = data.get(key); return typeof value === 'string' ? value : fallback; };
+          const modelSource = (value: string): DeviceModelSource => { switch (value) { case 'automatic': case 'library': case 'url': case 'upload': case 'procedural': return value; default: return 'automatic'; } };
+          const numberValue = (data: FormData, key: string, fallback: number): number => { const value = Number(data.get(key)); return Number.isFinite(value) ? value : fallback; };"""
+          if 'const formString =' not in source:
+              source = source.replace(marker, helpers)
+          shell.write_text(source)
           PY
           rm -rf .agent
       - uses: pnpm/action-setup@v4
@@ -98,20 +46,13 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-      - name: Format
-        run: pnpm format
-      - name: Format check
-        run: pnpm format:check
-      - name: Lint
-        run: pnpm lint
-      - name: Strict typecheck
-        run: pnpm typecheck
-      - name: Tests
-        run: pnpm test:ci
-      - name: Production build
-        run: pnpm build
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm format
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test:ci
+      - run: pnpm build
       - name: Commit completed recovery
         run: |
           rm -f .github/workflows/agent-finalize.yml .github/workflows/agent-repository-recovery.yml
