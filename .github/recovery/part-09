@@ -1,0 +1,325 @@
+ 'room'; readonly roomId: string }
++  | { readonly kind: 'alarm' }
++  | { readonly kind: 'settings' };
++
++export type NavItemId = 'home' | 'rooms' | 'alarm' | 'settings';
++
++/** Pure: which top-level item is active for a section. */
++export const navActiveItem = (section: NavSection): NavItemId => {
++  switch (section.kind) {
++    case 'home':
++      return 'home';
++    case 'room':
++      return 'rooms';
++    case 'alarm':
++      return 'alarm';
++    case 'settings':
++      return 'settings';
++  }
++};
++
++/** Pure: readable label for the rooms item, reflecting the active room. */
++export const roomsItemLabel = (section: NavSection, rooms: readonly RoomView[]): string => {
++  if (section.kind !== 'room') return 'Rooms';
++  return rooms.find((room) => room.id === section.roomId)?.name ?? 'Rooms';
++};
++
++const escapeHtml = (value: string): string =>
++  value
++    .replaceAll('&', '&amp;')
++    .replaceAll('<', '&lt;')
++    .replaceAll('>', '&gt;')
++    .replaceAll('"', '&quot;');
++
++export interface NavigationBarOptions {
++  readonly root: HTMLElement;
++  readonly onNavigate: (section: NavSection) => void;
++  readonly onSearch: () => void;
++}
++
++export class NavigationBar {
++  readonly #root: HTMLElement;
++  readonly #onNavigate: (section: NavSection) => void;
++  readonly #onSearch: () => void;
++  #rooms: readonly RoomView[] = [];
++  #section: NavSection = { kind: 'home' };
++  #menuOpen = false;
++
++  public constructor(options: NavigationBarOptions) {
++    this.#root = options.root;
++    this.#onNavigate = options.onNavigate;
++    this.#onSearch = options.onSearch;
++    this.#root.classList.add('p5-nav');
++    this.#root.setAttribute('aria-label', 'Primary');
++    this.#root.addEventListener('click', this.#onClick);
++    document.addEventListener('pointerdown', this.#onDocumentPointerDown);
++    this.#render();
++  }
++
++  public get menuOpen(): boolean {
++    return this.#menuOpen;
++  }
++
++  public setRooms(rooms: readonly RoomView[]): void {
++    this.#rooms = rooms;
++    this.#render();
++  }
++
++  public setSection(section: NavSection): void {
++    this.#section = section;
++    this.#menuOpen = false;
++    this.#render();
++  }
++
++  public closeMenu(restoreFocus = false): void {
++    if (!this.#menuOpen) return;
++    this.#menuOpen = false;
++    this.#render();
++    if (restoreFocus) this.#root.querySelector<HTMLButtonElement>('[data-p5-nav-rooms]')?.focus();
++  }
++
++  public dispose(): void {
++    this.#root.removeEventListener('click', this.#onClick);
++    document.removeEventListener('pointerdown', this.#onDocumentPointerDown);
++    this.#root.innerHTML = '';
++    this.#root.classList.remove('p5-nav');
++  }
++
++  #render(): void {
++    const active = navActiveItem(this.#section);
++    const current = (id: NavItemId): string => (active === id ? 'page' : 'false');
++    this.#root.innerHTML = `
++      <span class="p5-nav-brand" aria-hidden="true"><span class="p5-nav-mark"></span></span>
++      <div class="p5-nav-items">
++        <button type="button" data-p5-nav-home aria-current="${current('home')}">Home</button>
++        <div class="p5-nav-rooms-wrap">
++          <button type="button" data-p5-nav-rooms aria-current="${current('rooms')}" aria-expanded="${this.#menuOpen}" aria-haspopup="menu">
++            ${escapeHtml(roomsItemLabel(this.#section, this.#rooms))}
++            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
++          </button>
++          <div class="p5-nav-menu" role="menu" ${this.#menuOpen ? '' : 'hidden'}>
++            ${this.#rooms
++              .map(
++                (room) =>
++                  `<button type="button" role="menuitem" data-p5-nav-room="${escapeHtml(room.id)}" aria-current="${
++                    this.#section.kind === 'room' && this.#section.roomId === room.id
++                  }"><span>${escapeHtml(room.name)}</span><small>${room.deviceIds.length}</small></button>`,
++              )
++              .join('')}
++          </div>
++        </div>
++        <button type="button" data-p5-nav-alarm aria-current="${current('alarm')}">Alarm</button>
++        <button type="button" data-p5-nav-settings aria-current="${current('settings')}">Settings</button>
++      </div>
++      <button class="p5-nav-search" type="button" data-p5-nav-search aria-label="Search devices">
++        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
++      </button>
++    `;
++  }
++
++  readonly #onClick = (event: Event): void => {
++    const target = event.target as HTMLElement | null;
++    if (!target) return;
++    if (target.closest('[data-p5-nav-home]')) {
++      this.#onNavigate({ kind: 'home' });
++      return;
++    }
++    if (target.closest('[data-p5-nav-rooms]')) {
++      this.#menuOpen = !this.#menuOpen;
++      this.#render();
++      return;
++    }
++    const room = target.closest<HTMLElement>('[data-p5-nav-room]');
++    if (room?.dataset['p5NavRoom']) {
++      this.#onNavigate({ kind: 'room', roomId: room.dataset['p5NavRoom'] });
++      return;
++    }
++    if (target.closest('[data-p5-nav-alarm]')) {
++      this.#onNavigate({ kind: 'alarm' });
++      return;
++    }
++    if (target.closest('[data-p5-nav-settings]')) {
++      this.#onNavigate({ kind: 'settings' });
++      return;
++    }
++    if (target.closest('[data-p5-nav-search]')) this.#onSearch();
++  };
++
++  readonly #onDocumentPointerDown = (event: PointerEvent): void => {
++    if (!this.#menuOpen) return;
++    const target = event.target as Node | null;
++    if (target && !this.#root.contains(target)) this.closeMenu();
++  };
++}
+diff --git a/apps/dashboard/src/phase5/search-overlay.ts b/apps/dashboard/src/phase5/search-overlay.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..83c8a5d476b0fc8603caefdc615a592809a47a4e
+--- /dev/null
++++ b/apps/dashboard/src/phase5/search-overlay.ts
+@@ -0,0 +1,116 @@
++/**
++ * Search overlay — quick device lookup across the whole home. Matching is a
++ * simple case-insensitive filter over device, room and category names; picking
++ * a result hands the device id back to the shell, which travels there inside
++ * the persistent stage.
++ */
++
++import { categoryLabel, primaryStatus, type DeviceView } from './experience-model.js';
++
++/** Pure: filter devices by a free-text query. */
++export const filterDevices = (
++  views: readonly DeviceView[],
++  query: string,
++): readonly DeviceView[] => {
++  const needle = query.trim().toLowerCase();
++  if (!needle) return views;
++  return views.filter((view) =>
++    `${view.name} ${view.roomName} ${categoryLabel(view.category)}`.toLowerCase().includes(needle),
++  );
++};
++
++const escapeHtml = (value: string): string =>
++  value
++    .replaceAll('&', '&amp;')
++    .replaceAll('<', '&lt;')
++    .replaceAll('>', '&gt;')
++    .replaceAll('"', '&quot;');
++
++export interface SearchOverlayOptions {
++  readonly root: HTMLElement;
++  readonly devices: () => readonly DeviceView[];
++  readonly onPick: (deviceId: string) => void;
++  readonly onClose: () => void;
++}
++
++export class SearchOverlay {
++  readonly #options: SearchOverlayOptions;
++  #open = false;
++
++  public constructor(options: SearchOverlayOptions) {
++    this.#options = options;
++    this.#options.root.classList.add('p5-search');
++    this.#options.root.hidden = true;
++    this.#options.root.addEventListener('click', this.#onClick);
++    this.#options.root.addEventListener('input', this.#onInput);
++  }
++
++  public get open(): boolean {
++    return this.#open;
++  }
++
++  public show(): void {
++    this.#open = true;
++    this.#options.root.hidden = false;
++    this.#options.root.innerHTML = `
++      <div class="p5-search-panel" role="dialog" aria-modal="false" aria-label="Search devices">
++        <div class="p5-search-bar">
++          <input type="search" data-p5-search-input placeholder="Search devices, rooms…" aria-label="Search devices" autocomplete="off" />
++          <button type="button" class="p5-settings-close" data-p5-search-close aria-label="Close search">Close</button>
++        </div>
++        <div class="p5-search-results" data-p5-search-results></div>
++      </div>
++    `;
++    this.#renderResults('');
++    this.#options.root.querySelector<HTMLInputElement>('[data-p5-search-input]')?.focus();
++  }
++
++  public hide(): void {
++    if (!this.#open) return;
++    this.#open = false;
++    this.#options.root.hidden = true;
++    this.#options.root.innerHTML = '';
++  }
++
++  public dispose(): void {
++    this.#options.root.removeEventListener('click', this.#onClick);
++    this.#options.root.removeEventListener('input', this.#onInput);
++    this.#options.root.innerHTML = '';
++  }
++
++  #renderResults(query: string): void {
++    const host = this.#options.root.querySelector<HTMLElement>('[data-p5-search-results]');
++    if (!host) return;
++    const results = filterDevices(this.#options.devices(), query);
++    host.innerHTML = results.length
++      ? results
++          .map(
++            (
++              view,
++            ) => `<button class="p5-device-row" type="button" data-p5-search-pick="${escapeHtml(view.id)}">
++              <span class="p5-device-row-copy"><strong>${escapeHtml(view.name)}</strong><small>${escapeHtml(view.roomName)} · ${escapeHtml(categoryLabel(view.category))}</small></span>
++              <span class="p5-device-status">${escapeHtml(primaryStatus(view))}</span>
++            </button>`,
++          )
++          .join('')
++      : '<p class="p5-empty">No devices match.</p>';
++  }
++
++  readonly #onClick = (event: Event): void => {
++    const target = event.target as HTMLElement | null;
++    if (!target) return;
++    if (target.closest('[data-p5-search-close]') || target === this.#options.root) {
++      this.#options.onClose();
++      return;
++    }
++    const pick = target.closest<HTMLElement>('[data-p5-search-pick]');
++    if (pick?.dataset['p5SearchPick']) this.#options.onPick(pick.dataset['p5SearchPick']);
++  };
++
++  readonly #onInput = (event: Event): void => {
++    const input = (event.target as HTMLElement | null)?.closest<HTMLInputElement>(
++      '[data-p5-search-input]',
++    );
++    if (input) this.#renderResults(input.value);
++  };
++}
+diff --git a/apps/dashboard/src/phase5/settings-view.ts b/apps/dashboard/src/phase5/settings-view.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..e8b2ad89d178cfeefc44b8fbb1619266f497926e
+--- /dev/null
++++ b/apps/dashboard/src/phase5/settings-view.ts
+@@ -0,0 +1,225 @@
++/**
++ * Settings — model fidelity configuration. Select a device, choose the model
++ * source (procedural fallback or a GLB/GLTF URL), tune scale, rotation and
++ * vertical anchor, then save. The persistent stage behind the panel previews
++ * the selected device live, following the 2.7 model-registry configuration
++ * flow. Overrides are presentation-only and never touch device state.
++ */
++
++import type { DeviceView } from './experience-model.js';
++import {
++  defaultOverride,
++  normalizeOverride,
++  type HeroModelRegistry,
++  type ModelOverride,
++} from './model-registry.js';
++
++export interface SettingsViewOptions {
++  readonly root: HTMLElement;
++  readonly registry: HeroModelRegistry;
++  readonly devices: () => readonly DeviceView[];
++  readonly onPreview: (deviceId: string) => void;
++  readonly onApply: (deviceId: string) => void;
++  readonly onClose: () => void;
++}
++
++const escapeHtml = (value: string): string =>
++  value
++    .replaceAll('&', '&amp;')
++    .replaceAll('<', '&lt;')
++    .replaceAll('>', '&gt;')
++    .replaceAll('"', '&quot;');
++
++export class SettingsView {
++  readonly #options: SettingsViewOptions;
++  #selectedId: string | null = null;
++  #open = false;
++
++  public constructor(options: SettingsViewOptions) {
++    this.#options = options;
++    this.#options.root.classList.add('p5-settings');
++    this.#options.root.hidden = true;
++    this.#options.root.addEventListener('click', this.#onClick);
++    this.#options.root.addEventListener('change', this.#onChange);
++    this.#options.root.addEventListener('input', thi
