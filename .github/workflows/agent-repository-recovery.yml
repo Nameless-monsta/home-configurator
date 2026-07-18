@@ -17,79 +17,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: agent/design-recovery
-          fetch-depth: 0
-      - name: Reconstruct recovered experience
+          fetch-depth: 1
+      - name: Apply complete design recovery
         run: |
-          cat .agent/chunks/shell.* > apps/dashboard/src/phase5/experience-shell.ts
-          cat .agent/chunks/css.* > apps/dashboard/src/phase5/iyo-fidelity-v2.css
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('apps/dashboard/src/phase5/device-model-registry.ts')
-          source = path.read_text()
-          source = source.replace(
-          """const mergeTransform = (
-            ...values: Array<Partial<DeviceModelTransform> | undefined>
-          ): DeviceModelTransform => {
-            const merged = Object.assign({}, DEFAULT_TRANSFORM, ...values);
-            return {
-              scale: finite(merged.scale, 1),
-              rotation: tuple(merged.rotation, [0, 0, 0]),
-              offset: tuple(merged.offset, [0, 0, 0]),
-              roughness: clamp(finite(merged.roughness, 0.42), 0, 1),
-              metalness: clamp(finite(merged.metalness, 0.12), 0, 1),
-              tint: typeof merged.tint === 'string' ? merged.tint : '#ffffff',
-            };
-          };""",
-          """const mergeTransform = (
-            ...values: Array<Partial<DeviceModelTransform> | undefined>
-          ): DeviceModelTransform => {
-            let scale = DEFAULT_TRANSFORM.scale;
-            let rotation = DEFAULT_TRANSFORM.rotation;
-            let offset = DEFAULT_TRANSFORM.offset;
-            let roughness = DEFAULT_TRANSFORM.roughness;
-            let metalness = DEFAULT_TRANSFORM.metalness;
-            let tint = DEFAULT_TRANSFORM.tint;
-            for (const value of values) {
-              if (!value) continue;
-              scale = value.scale ?? scale;
-              rotation = value.rotation ?? rotation;
-              offset = value.offset ?? offset;
-              roughness = value.roughness ?? roughness;
-              metalness = value.metalness ?? metalness;
-              tint = value.tint ?? tint;
-            }
-            return {
-              scale: finite(scale, 1),
-              rotation: tuple(rotation, [0, 0, 0]),
-              offset: tuple(offset, [0, 0, 0]),
-              roughness: clamp(finite(roughness, 0.42), 0, 1),
-              metalness: clamp(finite(metalness, 0.12), 0, 1),
-              tint,
-            };
-          };"""
-          )
-          source = source.replace(
-          """const disposeObject = (object: Object3D): void => {
-            object.traverse((node) => {
-              if (!(node instanceof Mesh)) return;
-              node.geometry.dispose();
-              const materials: Material[] = Array.isArray(node.material) ? node.material : [node.material];
-              materials.forEach((material) => material.dispose());
-            });
-          };""",
-          """const disposeObject = (object: Object3D): void => {
-            object.traverse((node) => {
-              if (!(node instanceof Mesh)) return;
-              const mesh = node as Mesh;
-              mesh.geometry.dispose();
-              const material = mesh.material as Material | Material[];
-              const materials = Array.isArray(material) ? material : [material];
-              materials.forEach((entry) => entry.dispose());
-            });
-          };"""
-          )
-          path.write_text(source)
-          PY
+          cat .agent/design-recovery.part* > /tmp/design-recovery.b64
+          test "$(wc -c < /tmp/design-recovery.b64)" = "45636"
+          echo "32093e21fe92236484ab5ccb8bc94fa0447cd973ce3a220f7c344bccc262f322  /tmp/design-recovery.b64" | sha256sum --check
+          base64 --decode /tmp/design-recovery.b64 > /tmp/design-recovery.patch.gz
+          gzip --test /tmp/design-recovery.patch.gz
+          gzip --decompress --stdout /tmp/design-recovery.patch.gz > /tmp/design-recovery.patch
+          test "$(wc -c < /tmp/design-recovery.patch)" = "157999"
+          echo "05c8dffa8744b5f01f5f07ecbe62d193441cf93bf7943f94845d3d4189cc10ea  /tmp/design-recovery.patch" | sha256sum --check
+          git apply --check --3way /tmp/design-recovery.patch
+          git apply --index --3way /tmp/design-recovery.patch
           rm -rf .agent
       - uses: pnpm/action-setup@v4
         with:
@@ -98,13 +38,20 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --no-frozen-lockfile
-      - run: pnpm format
-      - run: pnpm format:check
-      - run: pnpm lint
-      - run: pnpm typecheck
-      - run: pnpm test:ci
-      - run: pnpm build
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+      - name: Format
+        run: pnpm format
+      - name: Format check
+        run: pnpm format:check
+      - name: Lint
+        run: pnpm lint
+      - name: Strict typecheck
+        run: pnpm typecheck
+      - name: Tests
+        run: pnpm test:ci
+      - name: Production build
+        run: pnpm build
       - name: Commit completed recovery
         run: |
           rm .github/workflows/agent-repository-recovery.yml
