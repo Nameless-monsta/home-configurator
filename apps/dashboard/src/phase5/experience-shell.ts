@@ -36,7 +36,9 @@ export interface ExperienceShellOptions {
   reducedMotion: () => boolean;
 }
 
-type BrowseContext = { readonly type: 'home' } | { readonly type: 'room'; readonly roomId: string };
+type BrowseContext =
+  | { readonly type: 'home'; readonly roomId?: undefined }
+  | { readonly type: 'room'; readonly roomId: string };
 type SpatialState = 'browse' | 'menu-open' | 'opening-detail' | 'detail' | 'closing-detail';
 
 const escapeHtml = (value: string): string =>
