@@ -1,4 +1,14 @@
-import { attachGraphicsRuntime, SelectedDeviceLightBinding } from '@home-configurator/graphics';
+/**
+ * Home Configurator — Phase 5 IYO experience entry point.
+ *
+ * Boots the shared runtime, graphics engine, Home Assistant engine (memory
+ * transport demo home) and runtime device store, then mounts the object-first
+ * experience shell. All device commands flow through the existing Home
+ * Assistant command path (HomeAssistantStateAdapter.dispatch); the experience
+ * layer never writes to Home Assistant directly. See docs/PHASE-5-IYO-EXPERIENCE.md.
+ */
+
+import { attachGraphicsRuntime } from '@home-configurator/graphics';
 import {
   HomeAssistantEngine,
   HomeAssistantStateAdapter,
@@ -6,80 +16,16 @@ import {
   type ConfirmedRuntimeSnapshot,
   type HAState,
 } from '@home-configurator/home-assistant';
-import { InteractionEngine, type SemanticIntent } from '@home-configurator/interaction';
-import { createRuntime, DeviceStore, summarizeRuntimeState } from '@home-configurator/runtime';
-import {
-  DevicePanelRegistry,
-  UiConfigurator,
-  UiFoundation,
-  UiMotionOrchestrator,
-  UiNavigation,
-  type UiNavigationLocation,
-} from '@home-configurator/ui';
+import { createRuntime, DeviceStore } from '@home-configurator/runtime';
 
-import { HomeAssistantConfiguratorAdapter } from './configurator-command-adapter.js';
-import { toDevicePanelSource } from './device-panel-adapter.js';
-import { HomeAssistantGestureCommandAdapter } from './gesture-command-adapter.js';
-import {
-  mapBrightnessGesture,
-  mapColourGesture,
-  type LightGestureState,
-} from './light-gesture-mapping.js';
-import './styles.css';
-import './navigation.css';
-import './configurator.css';
-import './motion.css';
-import './responsive.css';
+import { ExperienceDataSource } from './phase5/experience-data.js';
+import { ExperienceShell } from './phase5/experience-shell.js';
+import './phase5/experience.css';
 
 const root = document.querySelector<HTMLElement>('#app');
 if (!root) throw new Error('Application root was not found');
 
-const ui = new UiFoundation({
-  root,
-  version: '0.7.4',
-  subtitle: 'Drag the lamp for colour. Use two fingers or the wheel for brightness.',
-});
-
-let latestHomeSnapshot: ConfirmedRuntimeSnapshot | null = null;
-const panelRegistry = new DevicePanelRegistry();
-
-const createDocument = (
-  snapshot: ConfirmedRuntimeSnapshot | null,
-  location: UiNavigationLocation,
-) => {
-  const device = snapshot?.devices.find((item) => item.id === location.deviceId);
-  return snapshot && device
-    ? panelRegistry.buildDocument(toDevicePanelSource(snapshot, device))
-    : null;
-};
-
-const runtime = createRuntime({
-  config: { application: { environment: import.meta.env.DEV ? 'development' : 'production' } },
-});
-const graphicsHandle = attachGraphicsRuntime({
-  runtime,
-  canvas: ui.canvas,
-  viewportElement: ui.stage,
-  qualityTier: 'balanced',
-});
-const hero = graphicsHandle.engine.createFallbackHero();
-graphicsHandle.engine.cameraRig.frameObject(hero, { padding: 1.65, reducedMotion: true });
-
-const interaction = new InteractionEngine({
-  runtime,
-  graphics: graphicsHandle.engine,
-  surface: ui.stage,
-  reducedMotion: () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-});
-interaction.selection.register('device.demo-lamp', hero);
-interaction.animations.play({
-  id: 'configurator-float',
-  durationMs: 4200,
-  loop: true,
-  onUpdate: (progress) => {
-    hero.position.y = Math.sin(progress * Math.PI * 2) * 0.06;
-  },
-});
+const reducedMotion = (): boolean => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const observedAt = '2026-07-11T12:00:00.000Z';
 const entityState = (
@@ -92,6 +38,10 @@ const entityState = (
   attributes,
   last_changed: observedAt,
   last_updated: observedAt,
+});
+
+const runtime = createRuntime({
+  config: { application: { environment: import.meta.env.DEV ? 'development' : 'production' } },
 });
 
 const homeAssistant = new HomeAssistantEngine({
@@ -112,14 +62,17 @@ const homeAssistant = new HomeAssistantEngine({
     devices: [
       {
         id: 'ikea-lamp',
-        name: 'IKEA Lamp',
+        name: 'Floor Lamp',
         area_id: 'living-room',
         manufacturer: 'IKEA',
         model: 'TRÅDFRI',
       },
       { id: 'living-tv', name: 'Living Room TV', area_id: 'living-room' },
-      { id: 'bedroom-ac', name: 'Bedroom AC', area_id: 'bedroom' },
+      { id: 'front-lock', name: 'Front Door', area_id: 'living-room', manufacturer: 'Yale' },
+      { id: 'bedroom-ac', name: 'Bedroom Climate', area_id: 'bedroom' },
+      { id: 'bedroom-lamp', name: 'Bedside Light', area_id: 'bedroom' },
       { id: 'kitchen-sensor', name: 'Kitchen Environment', area_id: 'kitchen' },
+      { id: 'robot-vac', name: 'Robot Vacuum', area_id: 'kitchen', manufacturer: 'Roborock' },
       { id: 'terrace-shade', name: 'Terrace Shade', area_id: 'terrace' },
     ],
     entities: [
@@ -136,10 +89,22 @@ const homeAssistant = new HomeAssistantEngine({
         device_id: 'living-tv',
       },
       {
+        entity_id: 'lock.front_door',
+        unique_id: 'front-lock-lock',
+        platform: 'zwave_js',
+        device_id: 'front-lock',
+      },
+      {
         entity_id: 'climate.bedroom_ac',
         unique_id: 'bedroom-ac-climate',
         platform: 'climate',
         device_id: 'bedroom-ac',
+      },
+      {
+        entity_id: 'light.bedroom_lamp',
+        unique_id: 'bedroom-lamp-light',
+        platform: 'hue',
+        device_id: 'bedroom-lamp',
       },
       {
         entity_id: 'sensor.kitchen_temperature',
@@ -154,6 +119,12 @@ const homeAssistant = new HomeAssistantEngine({
         device_id: 'kitchen-sensor',
       },
       {
+        entity_id: 'vacuum.robot_vac',
+        unique_id: 'robot-vac-vacuum',
+        platform: 'roborock',
+        device_id: 'robot-vac',
+      },
+      {
         entity_id: 'cover.terrace_shade',
         unique_id: 'terrace-shade-cover',
         platform: 'cover',
@@ -162,7 +133,7 @@ const homeAssistant = new HomeAssistantEngine({
     ],
     states: [
       entityState('light.ikea_lamp', 'on', {
-        friendly_name: 'IKEA Lamp',
+        friendly_name: 'Floor Lamp',
         brightness: 168,
         color_temp_kelvin: 3200,
         rgb_color: [255, 191, 128],
@@ -174,12 +145,19 @@ const homeAssistant = new HomeAssistantEngine({
         source: 'tv',
         media_title: 'Home Configurator Demo',
       }),
+      entityState('lock.front_door', 'locked', { friendly_name: 'Front Door' }),
       entityState('climate.bedroom_ac', 'cool', {
-        friendly_name: 'Bedroom AC',
+        friendly_name: 'Bedroom Climate',
         temperature: 22,
         current_temperature: 23.5,
         current_humidity: 48,
         fan_mode: 'auto',
+        fan_modes: ['auto', 'low', 'high'],
+      }),
+      entityState('light.bedroom_lamp', 'off', {
+        friendly_name: 'Bedside Light',
+        brightness: 90,
+        supported_color_modes: ['color_temp'],
       }),
       entityState('sensor.kitchen_temperature', '24.1', {
         friendly_name: 'Temperature',
@@ -188,6 +166,10 @@ const homeAssistant = new HomeAssistantEngine({
       entityState('sensor.kitchen_humidity', '52', {
         friendly_name: 'Humidity',
         unit_of_measurement: '%',
+      }),
+      entityState('vacuum.robot_vac', 'docked', {
+        friendly_name: 'Robot Vacuum',
+        battery_level: 96,
       }),
       entityState('cover.terrace_shade', 'open', {
         friendly_name: 'Terrace Shade',
@@ -198,158 +180,47 @@ const homeAssistant = new HomeAssistantEngine({
 });
 
 const deviceStore = new DeviceStore();
-const homeAssistantState = new HomeAssistantStateAdapter({
-  homeAssistant,
-  store: deviceStore,
-});
+const homeAssistantState = new HomeAssistantStateAdapter({ homeAssistant, store: deviceStore });
 homeAssistantState.start();
-const selectedModelBinding = new SelectedDeviceLightBinding({
+
+let latestSnapshot: ConfirmedRuntimeSnapshot | null = null;
+
+const data = new ExperienceDataSource({
+  snapshot: () => latestSnapshot,
   store: deviceStore,
-  model: hero,
-});
-let runtimeStateSummary = summarizeRuntimeState(deviceStore.snapshot());
-const unsubscribeRuntimeState = deviceStore.subscribe(() => {
-  runtimeStateSummary = summarizeRuntimeState(deviceStore.snapshot());
 });
 
-let latestCommandState = 'idle';
-const recordReceipt = (
-  command: { readonly capability: string },
-  receipt: { readonly state: string },
-): void => {
-  latestCommandState = `${command.capability}:${receipt.state}`;
-  runtime.diagnostics.increment(`prototype.commands.${receipt.state}`);
-};
-const configuratorAdapter = new HomeAssistantConfiguratorAdapter({
-  homeAssistant: homeAssistantState,
-  onReceipt: recordReceipt,
-});
-const gestureAdapter = new HomeAssistantGestureCommandAdapter({
-  homeAssistant: homeAssistantState,
-  onReceipt: recordReceipt,
-});
-
-const lightState = (): LightGestureState => {
-  const state = deviceStore.get('ikea-lamp')?.snapshot().effectiveState;
-  const colour = state?.['color'];
-  return {
-    hue: Array.isArray(colour) && typeof colour[0] === 'number' ? colour[0] : 35,
-    saturation: Array.isArray(colour) && typeof colour[1] === 'number' ? colour[1] : 65,
-    brightness: typeof state?.['brightness'] === 'number' ? state['brightness'] : 0.66,
-  };
-};
-
-let colourGestureStart: LightGestureState | null = null;
-let brightnessGestureStart: number | null = null;
-const dispatchGesture = (promise: Promise<void>): void => {
-  void promise.catch((error: unknown) => {
-    runtime.diagnostics.record('warn', 'prototype.gesture', 'Gesture command failed', {
-      message: error instanceof Error ? error.message : String(error),
-    });
-  });
-};
-const handleLightIntent = (intent: SemanticIntent): void => {
-  if (intent.type === 'tap.commit' || intent.type === 'activate') {
-    interaction.focusSelection();
-    return;
-  }
-  if (intent.type === 'drag.update' || intent.type === 'drag.commit') {
-    colourGestureStart ??= lightState();
-    const [hue, saturation] = mapColourGesture(intent, colourGestureStart);
-    const final = intent.type.endsWith('.commit');
-    dispatchGesture(gestureAdapter.setColour('ikea-lamp', hue, saturation, { final }));
-    if (final) colourGestureStart = null;
-    return;
-  }
-  if (
-    intent.type === 'two-finger-vertical.update' ||
-    intent.type === 'two-finger-vertical.commit'
-  ) {
-    brightnessGestureStart ??= lightState().brightness;
-    const brightness = mapBrightnessGesture(intent, brightnessGestureStart);
-    const final = intent.type.endsWith('.commit');
-    dispatchGesture(gestureAdapter.setBrightness('ikea-lamp', brightness, { final }));
-    if (final) brightnessGestureStart = null;
-    return;
-  }
-  if (intent.type === 'wheel') {
-    const brightness = mapBrightnessGesture(intent, lightState().brightness);
-    dispatchGesture(gestureAdapter.setBrightness('ikea-lamp', brightness, { final: true }));
-  }
-};
-interaction.registerTarget({
-  id: 'device.demo-lamp',
-  layer: 'object',
-  gestures: ['tap', 'drag', 'two-finger-vertical', 'wheel', 'keyboard-action'],
-  enabled: () => deviceStore.get('ikea-lamp')?.snapshot().available === true,
-  onIntent: handleLightIntent,
-});
-
-const configurator = new UiConfigurator({
+const shell = new ExperienceShell({
   root,
-  adapter: configuratorAdapter,
+  sink: homeAssistantState,
+  data,
+  reducedMotion,
 });
 
-const navigation = new UiNavigation({
-  root,
-  onNavigate: (location) => {
-    selectedModelBinding.setSelectedDevice(location.deviceId);
-    configurator.setDocument(createDocument(latestHomeSnapshot, location));
-  },
+const graphicsHandle = attachGraphicsRuntime({
+  runtime,
+  canvas: shell.canvas,
+  viewportElement: shell.stage,
+  qualityTier: 'balanced',
 });
+graphicsHandle.engine.setBackground(0x101010);
+shell.attach(graphicsHandle.engine);
 
-const motion = new UiMotionOrchestrator({
-  root,
-  reducedMotion: () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-});
-
-let runtimePhase = 'idle';
-let homeAssistantStatus = 'uninitialized';
-let rooms = 0;
-let devices = 0;
-
-runtime.events.on('runtime.phase', ({ current }) => {
-  runtimePhase = current;
-  ui.setRuntimeStatus(current === 'running' ? 'Online' : current);
+// Drive the experience heroes from the shared scheduler.
+const unregisterExperienceTick = runtime.scheduler.register({
+  id: 'phase5.experience',
+  priority: 200,
+  tick: (context) => shell.tick(context.deltaMs),
 });
 
 homeAssistant.subscribe(({ snapshot }) => {
-  latestHomeSnapshot = snapshot;
-  homeAssistantStatus = snapshot.status;
-  rooms = snapshot.rooms.length;
-  devices = snapshot.devices.length;
-  navigation.setItems(
-    snapshot.rooms.map((room) => ({ id: room.id, name: room.name, deviceIds: room.deviceIds })),
-    snapshot.devices.map((device) => ({
-      id: device.id,
-      name: device.name,
-      roomId: device.roomId,
-      available: device.available,
-      meta: [device.manufacturer, device.model].filter(Boolean).join(' '),
-    })),
-  );
-  const location = navigation.snapshot();
-  selectedModelBinding.setSelectedDevice(location.deviceId);
-  configurator.setDocument(createDocument(snapshot, location));
+  latestSnapshot = snapshot;
 });
 
-runtime.diagnostics.subscribe((snapshot) => {
-  const location = navigation.snapshot();
-  ui.setDiagnostics({
-    runtime: runtimePhase,
-    homeAssistant: homeAssistantStatus,
-    rooms,
-    devices,
-    runtimeDevices: runtimeStateSummary.deviceCount,
-    optimistic: runtimeStateSummary.optimisticCount,
-    rollbacks: runtimeStateSummary.rollbackCount,
-    room: location.roomId ?? 'none',
-    device: location.deviceId ?? 'none',
-    command: latestCommandState,
-    dirty: String(configurator.snapshot().dirty),
-    frame: snapshot.gauges['scheduler.frame'] ?? 0,
-    gestures: snapshot.counters['interaction.completed'] ?? 0,
-  });
+const unsubscribeStore = deviceStore.subscribe(() => shell.refresh());
+
+runtime.events.on('runtime.phase', ({ current }) => {
+  runtime.diagnostics.record('info', 'phase5', 'Runtime phase', { current });
 });
 
 void Promise.all([runtime.start(), homeAssistant.connect()]);
@@ -358,13 +229,9 @@ let disposed = false;
 const shutdown = async (): Promise<void> => {
   if (disposed) return;
   disposed = true;
-  motion.dispose();
-  configurator.dispose();
-  navigation.dispose();
-  selectedModelBinding.dispose();
-  ui.dispose();
-  interaction.dispose();
-  unsubscribeRuntimeState();
+  unregisterExperienceTick();
+  unsubscribeStore();
+  shell.dispose();
   homeAssistantState.dispose();
   deviceStore.dispose();
   await homeAssistant.disconnect();
