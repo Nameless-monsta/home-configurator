@@ -1,0 +1,320 @@
+  this.#announce(`Opened ${this.#data.device(deviceId)?.name ?? 'device'}`);
++    this.#announce(`Opened ${view.name}`);
+   }
+ 
+-  #closeDetail(): void {
++  #switchDetail(deviceId: string): void {
++    if (this.#state !== 'detail' || this.#detail?.deviceId === deviceId) return;
++    const view = this.#data.device(deviceId);
++    if (!view || !this.#heroStage || !this.#detail) return;
++    this.#detail.hide();
++    this.#activeDeviceId = deviceId;
++    this.#heroStage.setDevice(view);
++    this.#renderHeroOverlay(view);
++    this.#rail.setActive(deviceId);
++    this.#transition?.swapDetail();
++    const hero = this.#heroStage.hero;
++    if (hero) this.#detail.show(view, hero);
++    this.#heroStage.frame('detail');
++    this.#announce(`Showing ${view.name}`);
++  }
++
++  #closeDetail(immediate = false): void {
+     if (this.#state !== 'detail' && this.#state !== 'opening-detail') return;
+     this.#setState('closing-detail');
+     this.#transition?.leaveDetail();
+     this.#detail?.hide();
++    this.#heroStage?.setInteractive(true);
++    this.#heroStage?.frame('browse', immediate);
+     this.#root.dataset['mode'] = 'browse';
+-    this.#q('[data-p5-browse]').removeAttribute('inert');
++    this.#q('[data-p5-content]').removeAttribute('inert');
+     document.documentElement.classList.remove('p5-scroll-lock');
+-    requestAnimationFrame(() => {
++    const finish = (): void => {
+       this.#setState('browse');
+-      this.#carousel?.focusIndex(this.#carousel.activeIndex, false);
++      const active = this.#activeView();
++      if (active) this.#renderHeroOverlay(active);
+       this.#detailOpener?.focus();
+       this.#detailOpener = null;
+-    });
++    };
++    if (immediate) finish();
++    else requestAnimationFrame(finish);
++  }
++
++  #openSearch(): void {
++    this.#nav.closeMenu();
++    this.#search.show();
++  }
++
++  #closeSearch(): void {
++    this.#search.hide();
++  }
++
++  #onSearchPick(deviceId: string): void {
++    this.#closeSearch();
++    const view = this.#data.device(deviceId);
++    if (!view) return;
++    if (this.#section.kind !== 'room' || this.#section.roomId !== view.roomId) {
++      // Travel to the device's room so the rail and content share its context.
++      this.#navigate({ kind: 'room', roomId: view.roomId });
++    }
++    this.#travelToDevice(deviceId);
++    window.scrollTo({ top: 0, behavior: this.#reducedMotion() ? 'auto' : 'smooth' });
++  }
++
++  /** Room quick lighting control through the shared command path. */
++  #quickLights(on: boolean): void {
++    const lights = this.#sectionDevices().filter(
++      (view) => view.category === 'light' && view.state.on !== on,
++    );
++    for (const view of lights) {
++      const promise = dispatchAction(this.#sink, view, 'power');
++      void promise?.catch(() => this.#announce('Command failed'));
++    }
++    this.#announce(on ? 'Turning lights on' : 'Turning lights off');
+   }
+ 
+   readonly #onClick = (event: Event): void => {
+     const target = event.target as HTMLElement | null;
+     if (!target) return;
+-    if (target.closest('[data-p5-context]')) {
+-      if (this.#state === 'menu-open') this.#closeMenu(true);
+-      else this.#openMenu();
++    if (target.closest('[data-p5-hero-enter]')) {
++      if (this.#activeDeviceId)
++        this.#openDetail(
++          this.#activeDeviceId,
++          this.#q('[data-p5-hero-overlay]').getBoundingClientRect(),
++        );
+       return;
+     }
+-    if (target.closest('[data-p5-select-home]')) {
+-      this.#selectContext({ type: 'home' });
++    const jump = target.closest<HTMLElement>('[data-p5-jump]');
++    if (jump?.dataset['p5Jump']) {
++      this.#travelToDevice(jump.dataset['p5Jump']);
++      window.scrollTo({ top: 0, behavior: this.#reducedMotion() ? 'auto' : 'smooth' });
+       return;
+     }
+-    const room = target.closest<HTMLElement>('[data-p5-select-room]');
+-    if (room?.dataset['p5SelectRoom']) {
+-      this.#selectContext({ type: 'room', roomId: room.dataset['p5SelectRoom'] });
++    const room = target.closest<HTMLElement>('[data-p5-nav-room]');
++    if (room?.dataset['p5NavRoom'] && !room.closest('[data-p5-nav]')) {
++      this.#navigate({ kind: 'room', roomId: room.dataset['p5NavRoom'] });
++      return;
++    }
++    const quick = target.closest<HTMLElement>('[data-p5-quick]');
++    if (quick?.dataset['p5Quick'] === 'lights-on') {
++      this.#quickLights(true);
++      return;
++    }
++    if (quick?.dataset['p5Quick'] === 'lights-off') {
++      this.#quickLights(false);
+       return;
+     }
+     const open = target.closest<HTMLElement>('[data-p5-open]');
+@@ -373,33 +561,60 @@ export class ExperienceShell {
+       this.#openDetail(open.dataset['p5Open'], open.getBoundingClientRect());
+       return;
+     }
+-    if (target.closest('[data-p5-close]')) this.#closeDetail();
+-  };
+-
+-  readonly #onDocumentPointerDown = (event: PointerEvent): void => {
+-    if (this.#state !== 'menu-open') return;
+-    const target = event.target as Node | null;
+-    if (target && !this.#q('[data-p5-context-menu]').contains(target) && !this.#q('[data-p5-context]').contains(target)) {
+-      this.#closeMenu();
++    if (target.closest('[data-p5-detail-prev]')) {
++      this.#step(-1);
++      return;
++    }
++    if (target.closest('[data-p5-detail-next]')) {
++      this.#step(1);
++      return;
+     }
++    if (target.closest('[data-p5-close]')) this.#closeDetail();
+   };
+ 
+   readonly #onKeydown = (event: KeyboardEvent): void => {
+-    if (event.key !== 'Escape') return;
+-    if (this.#state === 'menu-open') this.#closeMenu(true);
+-    else this.#closeDetail();
++    if (event.key === 'Escape') {
++      if (this.#search.open) {
++        this.#closeSearch();
++        return;
++      }
++      if (this.#settings.open && this.#section.kind === 'settings') {
++        this.#navigate({ kind: 'home' });
++        return;
++      }
++      if (this.#nav.menuOpen) {
++        this.#nav.closeMenu(true);
++        return;
++      }
++      this.#closeDetail();
++      return;
++    }
++    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
++    const target = event.target;
++    if (
++      target instanceof HTMLElement &&
++      target.closest('.p5-detail, .p5-rail, .p5-search, .p5-settings, input, select, textarea')
++    ) {
++      return;
++    }
++    if (this.#state === 'detail' || this.#state === 'browse') {
++      event.preventDefault();
++      this.#step(event.key === 'ArrowRight' ? 1 : -1);
++    }
+   };
+ 
+   public dispose(): void {
+     if (this.#refreshRaf) cancelAnimationFrame(this.#refreshRaf);
+     this.#root.removeEventListener('click', this.#onClick);
+     window.removeEventListener('keydown', this.#onKeydown);
+-    document.removeEventListener('pointerdown', this.#onDocumentPointerDown);
+     document.documentElement.classList.remove('p5-scroll-lock');
+-    this.#carousel?.dispose();
++    this.#nav.dispose();
++    this.#rail.dispose();
++    this.#search.dispose();
++    this.#settings.dispose();
+     this.#detail?.hide();
++    this.#heroStage?.dispose();
+     this.#transition?.dispose();
+-    this.#previewRefs.clear();
+     this.#statusRefs.clear();
+   }
+ }
+diff --git a/apps/dashboard/src/phase5/hero-stage.ts b/apps/dashboard/src/phase5/hero-stage.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..32aeb6eda0a79f24518429010b05fdbc81b3abbb
+--- /dev/null
++++ b/apps/dashboard/src/phase5/hero-stage.ts
+@@ -0,0 +1,261 @@
++/**
++ * HeroStage — the single persistent 3D presentation. One hero object lives on
++ * the shared GraphicsEngine stage across browse and detail; switching devices
++ * swaps the object in place and detail only reframes the camera. Model
++ * overrides (GLB/GLTF) load through the engine's ModelAssetLoader with the
++ * procedural hero as immediate fallback. The stage also derives the ambient
++ * atmosphere colour from the selected device's live state.
++ */
++
++import type { GraphicsEngine } from '@home-configurator/graphics';
++import { Group } from 'three';
++
++import type { DeviceView } from './experience-model.js';
++import { createHero, hsbToColor, type HeroHandle } from './hero-models.js';
++import type { LivingObjectRegistry, LivingObjectBehaviour } from './living-object.js';
++import { applyOverrideTransform, type HeroModelRegistry } from './model-registry.js';
++
++export type StageFraming = 'browse' | 'detail';
++
++export interface StageSwipeHandlers {
++  readonly onPrev: () => void;
++  readonly onNext: () => void;
++  readonly onOpen: () => void;
++}
++
++export interface HeroStageOptions {
++  readonly engine: GraphicsEngine;
++  readonly surface: HTMLElement;
++  readonly living: LivingObjectRegistry;
++  readonly registry: HeroModelRegistry;
++  readonly reducedMotion: () => boolean;
++  readonly onAmbient: (color: string, strength: number) => void;
++}
++
++const FRAMING: Record<StageFraming, { padding: number; durationMs: number }> = {
++  browse: { padding: 2.35, durationMs: 950 },
++  detail: { padding: 1.95, durationMs: 800 },
++};
++
++/** Ambient atmosphere derived from the selected device. Pure and testable. */
++export const deriveAmbient = (view: DeviceView | null): { color: string; strength: number } => {
++  if (!view) return { color: 'rgb(120, 104, 88)', strength: 0.16 };
++  const s = view.state;
++  switch (view.category) {
++    case 'light': {
++      if (!s.on) return { color: 'rgb(96, 92, 88)', strength: 0.1 };
++      const c = hsbToColor(s.hue, s.saturation, s.brightness);
++      return {
++        color: `rgb(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)})`,
++        strength: 0.14 + s.brightness * 0.2,
++      };
++    }
++    case 'climate': {
++      const delta = s.targetTemp - s.currentTemp;
++      if (delta > 0.3) return { color: 'rgb(214, 150, 96)', strength: 0.22 };
++      if (delta < -0.3) return { color: 'rgb(110, 150, 190)', strength: 0.22 };
++      return { color: 'rgb(150, 140, 128)', strength: 0.15 };
++    }
++    case 'cover': {
++      const daylight = Math.min(1, Math.max(0, s.position / 100));
++      return { color: 'rgb(226, 206, 168)', strength: 0.08 + daylight * 0.18 };
++    }
++    case 'media':
++      return s.playing
++        ? { color: 'rgb(120, 140, 200)', strength: 0.24 }
++        : { color: 'rgb(104, 108, 124)', strength: 0.12 };
++    case 'security':
++      return s.locked || s.privacy
++        ? { color: 'rgb(110, 130, 118)', strength: 0.13 }
++        : { color: 'rgb(200, 140, 96)', strength: 0.2 };
++    case 'cleaning':
++      return s.cleaning
++        ? { color: 'rgb(130, 160, 170)', strength: 0.2 }
++        : { color: 'rgb(112, 112, 108)', strength: 0.12 };
++    default:
++      return { color: 'rgb(128, 118, 104)', strength: 0.14 };
++  }
++};
++
++export class HeroStage {
++  readonly #options: HeroStageOptions;
++  #view: DeviceView | null = null;
++  #hero: HeroHandle | null = null;
++  #behaviour: LivingObjectBehaviour | null = null;
++  #framing: StageFraming = 'browse';
++  #loadToken = 0;
++  #unbindSwipe: (() => void) | null = null;
++  #interactive = true;
++
++  public constructor(options: HeroStageOptions) {
++    this.#options = options;
++  }
++
++  public get hero(): HeroHandle | null {
++    return this.#hero;
++  }
++
++  public get deviceId(): string | null {
++    return this.#view?.id ?? null;
++  }
++
++  /** Mount or swap the hero object for a device in place on the shared stage. */
++  public setDevice(view: DeviceView): void {
++    if (this.#view?.id === view.id) {
++      this.update(view);
++      return;
++    }
++    this.#unmount();
++    this.#view = view;
++    const hero = createHero(view.category, view.capabilities);
++    hero.apply(view.state);
++    this.#hero = hero;
++    const override = this.#options.registry.get(view.id);
++    applyOverrideTransform(hero.object, override);
++    this.#options.engine.resources.trackObject(hero.object);
++    this.#options.engine.graph.add({ id: 'hero.stage', object: hero.object });
++    this.#behaviour = this.#options.living.create(view.category, {
++      object: hero.object,
++      reducedMotion: this.#options.reducedMotion,
++      state: () => (
