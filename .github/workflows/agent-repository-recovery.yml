@@ -1,13 +1,51 @@
-name: Agent design recovery staging
+name: Apply and validate design recovery
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [agent/design-recovery]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  staged:
+  apply-and-validate:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Design recovery payload staged."
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/design-recovery
+          fetch-depth: 0
+      - name: Reconstruct recovered experience
+        run: |
+          cat .agent/chunks/shell.* > apps/dashboard/src/phase5/experience-shell.ts
+          cat .agent/chunks/css.* > apps/dashboard/src/phase5/iyo-fidelity-v2.css
+          rm -rf .agent
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.13.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+      - name: Format
+        run: pnpm format
+      - name: Format check
+        run: pnpm format:check
+      - name: Lint
+        run: pnpm lint
+      - name: Strict typecheck
+        run: pnpm typecheck
+      - name: Tests
+        run: pnpm test:ci
+      - name: Production build
+        run: pnpm build
+      - name: Commit completed recovery
+        run: |
+          rm .github/workflows/agent-repository-recovery.yml
+          git config user.name "OpenAI Agent"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Complete full design recovery"
+          git push origin HEAD:agent/design-recovery
