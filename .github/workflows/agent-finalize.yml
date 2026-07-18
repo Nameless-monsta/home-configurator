@@ -1,22 +1,24 @@
-name: Capture final lint diagnostics
+name: Finalize and validate design recovery
 
 on:
   pull_request:
     branches: [main]
     types: [synchronize]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  diagnostics:
+  finalize:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: agent/design-recovery
-      - name: Assemble implementation
+          fetch-depth: 0
+      - name: Assemble complete implementation
         run: |
           cat .agent/chunks/shell.* > apps/dashboard/src/phase5/experience-shell.ts
           cat .agent/chunks/css.* > apps/dashboard/src/phase5/iyo-fidelity-v2.css
@@ -25,8 +27,9 @@ jobs:
           registry = Path('apps/dashboard/src/phase5/device-model-registry.ts')
           source = registry.read_text().replace('  type Material,\n', '')
           start = source.index('const disposeObject =')
-          if 'const isMaterialArray =' in source:
-              start = source.index('const isMaterialArray =')
+          for marker in ('interface DisposableResource', 'const isMaterialArray ='):
+              if marker in source:
+                  start = min(start, source.index(marker))
           end = source.index('const openUploadDb =')
           block = '''interface DisposableResource {
             dispose(): void;
@@ -37,9 +40,9 @@ jobs:
             return typeof (value as { dispose?: unknown }).dispose === 'function';
           };
 
-          const disposeMaterial = (value: unknown): void => {
+          const disposeResource = (value: unknown): void => {
             if (Array.isArray(value)) {
-              for (const entry of value as unknown[]) disposeMaterial(entry);
+              for (const entry of value as unknown[]) disposeResource(entry);
             } else if (isDisposableResource(value)) {
               value.dispose();
             }
@@ -48,13 +51,14 @@ jobs:
           const disposeObject = (object: Object3D): void => {
             object.traverse((node) => {
               if (!(node instanceof Mesh)) return;
-              node.geometry.dispose();
-              disposeMaterial(node.material as unknown);
+              disposeResource(node.geometry as unknown);
+              disposeResource(node.material as unknown);
             });
           };
 
           '''
           registry.write_text(source[:start] + block + source[end:])
+
           shell = Path('apps/dashboard/src/phase5/experience-shell.ts')
           source = shell.read_text()
           marker = "const numberValue = (data: FormData, key: string, fallback: number): number => { const value = Number(data.get(key)); return Number.isFinite(value) ? value : fallback; };"
@@ -65,6 +69,7 @@ jobs:
               source = source.replace(marker, helpers)
           shell.write_text(source)
           PY
+          rm -rf .agent
       - uses: pnpm/action-setup@v4
         with:
           version: 10.13.1
@@ -74,15 +79,16 @@ jobs:
           cache: pnpm
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm format
-      - name: Capture lint
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test:ci
+      - run: pnpm build
+      - name: Commit completed recovery
         run: |
-          set +e
-          pnpm lint > .agent/final-lint-third.txt 2>&1
-          status=$?
-          cat .agent/final-lint-third.txt
+          rm -f .github/workflows/agent-finalize.yml .github/workflows/agent-repository-recovery.yml
           git config user.name "OpenAI Agent"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .agent/final-lint-third.txt
-          git commit -m "chore: capture final lint diagnostics"
+          git add -A
+          git commit -m "Complete full design recovery"
           git push origin HEAD:agent/design-recovery
-          exit $status
