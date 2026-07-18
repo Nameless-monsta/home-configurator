@@ -4,6 +4,7 @@ export interface FavouriteCarouselItem {
   readonly room: string;
   readonly category: string;
   readonly status: string;
+  readonly categoryKey?: string;
 }
 
 export interface FavouriteHeroMount {
@@ -15,7 +16,7 @@ export interface FavouriteHeroMount {
 export interface FavouriteHeroCarouselOptions {
   readonly root: HTMLElement;
   readonly items: readonly FavouriteCarouselItem[];
-  readonly mountHero: (host: HTMLElement, item: FavouriteCarouselItem) => FavouriteHeroMount;
+  readonly mountHero?: (host: HTMLElement, item: FavouriteCarouselItem) => FavouriteHeroMount;
   readonly onSelect: (item: FavouriteCarouselItem, origin: DOMRect) => void;
   readonly onActiveChange?: (item: FavouriteCarouselItem, index: number) => void;
 }
@@ -23,7 +24,7 @@ export interface FavouriteHeroCarouselOptions {
 export class FavouriteHeroCarousel {
   readonly #root: HTMLElement;
   #items: readonly FavouriteCarouselItem[];
-  readonly #mountHero: FavouriteHeroCarouselOptions['mountHero'];
+  readonly #mountHero?: FavouriteHeroCarouselOptions['mountHero'];
   readonly #onSelect: FavouriteHeroCarouselOptions['onSelect'];
   readonly #onActiveChange?: FavouriteHeroCarouselOptions['onActiveChange'];
   readonly #mounts = new Map<string, FavouriteHeroMount>();
@@ -51,7 +52,7 @@ export class FavouriteHeroCarousel {
       const host = card.querySelector<HTMLElement>('[data-p5-hero-host]');
       const item = this.#items.find((entry) => entry.id === card.dataset['p5HeroItem']);
       if (!host || !item) continue;
-      this.#mounts.set(item.id, this.#mountHero(host, item));
+      if (this.#mountHero) this.#mounts.set(item.id, this.#mountHero(host, item));
     }
 
     this.#root.addEventListener('click', this.#onClick);
@@ -107,7 +108,7 @@ export class FavouriteHeroCarousel {
   #itemMarkup(item: FavouriteCarouselItem, index: number): string {
     return `<article class="p5-hero-card" role="option" tabindex="${index === 0 ? '0' : '-1'}" aria-selected="${index === 0}" data-p5-hero-item="${item.id}" data-p5-hero-index="${index}">
       <button class="p5-hero-hit" type="button" aria-label="Open ${item.name}" data-p5-hero-open="${item.id}">
-        <span class="p5-hero-host" data-p5-hero-host aria-hidden="true"></span>
+        <span class="p5-hero-host" data-p5-hero-host data-category="${item.categoryKey ?? 'appliance'}" aria-hidden="true"><span class="p5-device-glyph"></span></span>
         <span class="p5-hero-copy">
           <span class="p5-label">${item.room} · ${item.category}</span>
           <strong>${item.name}</strong>

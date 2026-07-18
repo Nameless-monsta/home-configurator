@@ -8,6 +8,7 @@ export * from './hero-preview.js';
 export * from './colour-sphere.js';
 export * from './thermostat-ring.js';
 export * from './control-map.js';
+export * from './device-model-registry.js';
 export * from './device-detail.js';
 export * from './experience-views.js';
 export * from './experience-shell.js';
