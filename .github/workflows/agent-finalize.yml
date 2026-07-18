@@ -26,19 +26,9 @@ jobs:
           from pathlib import Path
           registry = Path('apps/dashboard/src/phase5/device-model-registry.ts')
           source = registry.read_text()
-          source = source.replace('    const mesh = node as Mesh;', '    const mesh = node;')
-          source = source.replace(
-          """const disposeObject = (object: Object3D): void => {
-            object.traverse((node) => {
-              if (!(node instanceof Mesh)) return;
-              const mesh = node;
-              mesh.geometry.dispose();
-              const material = mesh.material as Material | Material[];
-              const materials = Array.isArray(material) ? material : [material];
-              materials.forEach((entry) => entry.dispose());
-            });
-          };""",
-          """const isMaterialArray = (value: Material | Material[]): value is Material[] =>
+          start = source.index('const disposeObject =')
+          end = source.index('const openUploadDb =')
+          block = '''const isMaterialArray = (value: Material | Material[]): value is Material[] =>
             Array.isArray(value);
 
           const disposeObject = (object: Object3D): void => {
@@ -53,9 +43,10 @@ jobs:
                 material.dispose();
               }
             });
-          };"""
-          )
-          registry.write_text(source)
+          };
+
+          '''
+          registry.write_text(source[:start] + block + source[end:])
 
           shell = Path('apps/dashboard/src/phase5/experience-shell.ts')
           source = shell.read_text()
