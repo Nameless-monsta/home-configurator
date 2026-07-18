@@ -1,0 +1,42 @@
+apply-diagnostic.txt 629
+current-diagnostic.txt 0
+design-recovery.part01 8000
+design-recovery.part02 8000
+design-recovery.part03 8000
+design-recovery.part04 8000
+design-recovery.part04b 8000
+design-recovery.part05 5636
+design-recovery.patch.gz.b64.00 7000
+45636 /tmp/design-recovery.b64
+32093e21fe92236484ab5ccb8bc94fa0447cd973ce3a220f7c344bccc262f322  /tmp/design-recovery.b64
+base64=0
+gzip=0
+157999 /tmp/design-recovery.patch
+05c8dffa8744b5f01f5f07ecbe62d193441cf93bf7943f94845d3d4189cc10ea  /tmp/design-recovery.patch
+error: repository lacks the necessary blob to perform 3-way merge.
+Falling back to direct application...
+error: patch failed: apps/dashboard/src/phase5/device-detail.ts:1
+error: apps/dashboard/src/phase5/device-detail.ts: patch does not apply
+Performing three-way merge...
+Applied patch to 'apps/dashboard/src/phase5/device-model-registry.ts' with conflicts.
+error: repository lacks the necessary blob to perform 3-way merge.
+Falling back to direct application...
+error: patch failed: apps/dashboard/src/phase5/experience-data.ts:115
+error: apps/dashboard/src/phase5/experience-data.ts: patch does not apply
+error: repository lacks the necessary blob to perform 3-way merge.
+Falling back to direct application...
+error: patch failed: apps/dashboard/src/phase5/experience-model.ts:68
+error: apps/dashboard/src/phase5/experience-model.ts: patch does not apply
+Applied patch to 'apps/dashboard/src/phase5/experience-shell.ts' cleanly.
+error: repository lacks the necessary blob to perform 3-way merge.
+Falling back to direct application...
+error: patch failed: apps/dashboard/src/phase5/favourite-carousel.ts:3
+error: apps/dashboard/src/phase5/favourite-carousel.ts: patch does not apply
+error: repository lacks the necessary blob to perform 3-way merge.
+Falling back to direct application...
+Applied patch to 'apps/dashboard/src/phase5/iyo-fidelity-v2.css' cleanly.
+error: repository lacks the necessary blob to perform 3-way merge.
+Falling back to direct application...
+error: patch failed: apps/dashboard/src/phase5/motion-system.ts:85
+error: apps/dashboard/src/phase5/motion-system.ts: patch does not apply
+apply=1
