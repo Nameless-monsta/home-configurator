@@ -8,3 +8,5 @@ docs
 *.md
 apps/dashboard/src/phase5/experience-shell.ts
 apps/dashboard/src/phase5/iyo-fidelity-v2.css
+
+# Prototype v2 files are validated by ESLint, TypeScript, tests and visual review.
