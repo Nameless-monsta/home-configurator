@@ -1,12 +1,13 @@
 name: Apply design recovery import
 
 on:
-  push:
+  pull_request:
     branches:
-      - design-recovery-v3
-    paths:
-      - '.github/recovery/**'
-      - '.github/workflows/apply-design-recovery.yml'
+      - main
+    types:
+      - opened
+      - reopened
+      - synchronize
 
 permissions:
   contents: write
@@ -17,10 +18,12 @@ concurrency:
 
 jobs:
   apply:
+    if: github.event.pull_request.head.ref == 'design-recovery-v3'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: design-recovery-v3
           fetch-depth: 0
 
       - name: Check import payload
