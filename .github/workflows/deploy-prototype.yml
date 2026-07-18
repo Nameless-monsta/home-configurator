@@ -28,14 +28,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Build dashboard
-        run: pnpm --filter @home-configurator/dashboard build
+      - name: Build monorepo
+        run: pnpm build
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
