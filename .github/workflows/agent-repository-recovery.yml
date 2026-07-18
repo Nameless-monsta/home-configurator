@@ -1,16 +1,15 @@
-name: Apply and validate design recovery
+name: Diagnose design recovery payload
 
 on:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
-  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  apply-and-validate:
+  diagnose:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -18,45 +17,28 @@ jobs:
         with:
           ref: agent/design-recovery
           fetch-depth: 1
-      - name: Apply complete design recovery
+      - name: Diagnose payload
+        shell: bash
         run: |
-          cat .agent/design-recovery.part* > /tmp/design-recovery.b64
-          wc -c /tmp/design-recovery.b64
-          sha256sum /tmp/design-recovery.b64
-          base64 --decode /tmp/design-recovery.b64 > /tmp/design-recovery.patch.gz
-          gzip --test /tmp/design-recovery.patch.gz
-          gzip --decompress --stdout /tmp/design-recovery.patch.gz > /tmp/design-recovery.patch
-          wc -c /tmp/design-recovery.patch
-          sha256sum /tmp/design-recovery.patch
-          git apply --check --3way /tmp/design-recovery.patch
-          git apply --index --3way /tmp/design-recovery.patch
-          rm -rf .agent
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.13.1
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-      - name: Format
-        run: pnpm format
-      - name: Format check
-        run: pnpm format:check
-      - name: Lint
-        run: pnpm lint
-      - name: Strict typecheck
-        run: pnpm typecheck
-      - name: Tests
-        run: pnpm test:ci
-      - name: Production build
-        run: pnpm build
-      - name: Commit completed recovery
-        run: |
-          rm .github/workflows/agent-repository-recovery.yml
+          set +e
+          {
+            cat .agent/design-recovery.part* > /tmp/design-recovery.b64
+            wc -c /tmp/design-recovery.b64
+            sha256sum /tmp/design-recovery.b64
+            base64 --decode /tmp/design-recovery.b64 > /tmp/design-recovery.patch.gz
+            echo "base64=$?"
+            gzip --test /tmp/design-recovery.patch.gz
+            echo "gzip=$?"
+            gzip --decompress --stdout /tmp/design-recovery.patch.gz > /tmp/design-recovery.patch
+            wc -c /tmp/design-recovery.patch
+            sha256sum /tmp/design-recovery.patch
+            git apply --check --3way /tmp/design-recovery.patch
+            echo "apply=$?"
+          } > .agent/apply-diagnostic.txt 2>&1
+          cat .agent/apply-diagnostic.txt
           git config user.name "OpenAI Agent"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Complete full design recovery"
+          git add .agent/apply-diagnostic.txt
+          git commit -m "chore: capture design recovery diagnostics"
           git push origin HEAD:agent/design-recovery
+          exit 1
