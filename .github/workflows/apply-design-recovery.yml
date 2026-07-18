@@ -30,29 +30,26 @@ jobs:
         shell: bash
         run: test -f .github/recovery/complete
 
-      - name: Record payload diagnostics
+      - name: Normalize uploaded chunk boundaries
         shell: bash
         run: |
-          sha256sum .github/recovery/part-* > .github/recovery/actual-sha.txt
-          wc -c .github/recovery/part-* >> .github/recovery/actual-sha.txt
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add .github/recovery/actual-sha.txt
-          if ! git diff --cached --quiet; then
-            git commit -m 'Record recovery payload diagnostics'
-            git push origin HEAD:design-recovery-v3
-          fi
+          head -c 12000 .github/recovery/part-05 > /tmp/part-05
+          head -c 12000 .github/recovery/part-08 > /tmp/part-08
+          echo 'f6195513ffb91a672c30ee4dd2b49360ea2d12366aae46491b7916df51b2808f  /tmp/part-05' | sha256sum --check -
+          echo '9f86fc281c84770e20ba0beca980d8e6996e2aab5012abc901879e9a89d5e9a2  /tmp/part-08' | sha256sum --check -
 
-      - name: Assemble recovery patch
+      - name: Assemble and verify recovery patch
         shell: bash
         run: |
-          cat .github/recovery/part-* > /tmp/design-recovery.patch
-          wc -c /tmp/design-recovery.patch
-          sha256sum /tmp/design-recovery.patch
-
-      - name: Verify recovery checksum
-        shell: bash
-        run: echo '8265b5b9bde4d37c343573e61ab4919de5acf4638bb03b63d61e02a2c898b587  /tmp/design-recovery.patch' | sha256sum --check -
+          {
+            cat .github/recovery/part-00 .github/recovery/part-01 .github/recovery/part-02 .github/recovery/part-03 .github/recovery/part-04
+            cat /tmp/part-05
+            cat .github/recovery/part-06 .github/recovery/part-07
+            cat /tmp/part-08
+            cat .github/recovery/part-09 .github/recovery/part-10 .github/recovery/part-11
+          } > /tmp/design-recovery.patch
+          echo '8265b5b9bde4d37c343573e61ab4919de5acf4638bb03b63d61e02a2c898b587  /tmp/design-recovery.patch' | sha256sum --check -
+          test "$(wc -c < /tmp/design-recovery.patch)" -eq 136355
 
       - name: Validate recovery patch
         shell: bash
