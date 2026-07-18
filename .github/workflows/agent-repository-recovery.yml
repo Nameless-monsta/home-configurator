@@ -1,8 +1,10 @@
 name: Apply and validate design recovery
 
 on:
-  push:
-    branches: [agent/design-recovery]
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+  workflow_dispatch:
 
 permissions:
   contents: write
