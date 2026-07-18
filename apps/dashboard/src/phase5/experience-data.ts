@@ -119,6 +119,8 @@ export class ExperienceDataSource implements ExperienceData {
       capabilities: device.capabilities,
       favourite: this.#isFavourite(device),
       available: raw?.available ?? device.available,
+      ...(device.manufacturer === undefined ? {} : { manufacturer: device.manufacturer }),
+      ...(device.model === undefined ? {} : { model: device.model }),
       state: deriveState(device, raw),
     };
   }

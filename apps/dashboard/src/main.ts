@@ -22,6 +22,7 @@ import { ExperienceDataSource } from './phase5/experience-data.js';
 import { ExperienceShell } from './phase5/experience-shell.js';
 import './phase5/experience.css';
 import './phase5/iyo-fidelity-v2.css';
+import './phase5/iyo-recovery-v3.css';
 
 const root = document.querySelector<HTMLElement>('#app');
 if (!root) throw new Error('Application root was not found');

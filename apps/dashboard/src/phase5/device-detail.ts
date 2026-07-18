@@ -1,9 +1,10 @@
 /**
- * Device Detail — object-first control page. Mounts the category hero on the
- * shared GraphicsEngine stage, frames the camera, registers the living-object
- * behaviour, wires the primary direct manipulation (sphere / ring / drag / hold)
- * and an adaptive control tray. All writes go through the shared command sink.
- * docs/PHASE-5-IYO-EXPERIENCE §5.3–5.5.
+ * Device Detail — object-first control page around the hero that the shell's
+ * persistent HeroStage already has mounted. Detail never creates, duplicates
+ * or reframes the object itself: the shell owns the object and camera, and
+ * this layer wires the primary direct manipulation (sphere / ring / drag /
+ * hold), the adaptive control tray, identity and the live readout. All writes
+ * go through the shared command sink. docs/PHASE-5-IYO-EXPERIENCE §5.3–5.5.
  */
 
 import type { GraphicsEngine } from '@home-configurator/graphics';
@@ -18,9 +19,7 @@ import {
   type CommandSink,
 } from './control-map.js';
 import { categoryLabel, type DeviceView } from './experience-model.js';
-import { createHero, type HeroHandle } from './hero-models.js';
-import type { LivingObjectRegistry } from './living-object.js';
-import { type LivingObjectBehaviour } from './living-object.js';
+import type { HeroHandle } from './hero-models.js';
 import { ThermostatRing } from './thermostat-ring.js';
 
 export interface DeviceDetailOptions {
@@ -29,18 +28,17 @@ export interface DeviceDetailOptions {
   readonly identityEl: HTMLElement;
   readonly readoutEl: HTMLElement;
   readonly trayEl: HTMLElement;
-  readonly living: LivingObjectRegistry;
   readonly sink: CommandSink;
   reducedMotion: () => boolean;
   resolve: (deviceId: string) => DeviceView | undefined;
   onError: (message: string) => void;
+  onPulse?: (strength: number) => void;
 }
 
 export class DeviceDetail {
   readonly #options: DeviceDetailOptions;
   #view: DeviceView | null = null;
   #hero: HeroHandle | null = null;
-  #behaviour: LivingObjectBehaviour | null = null;
   #sphere: ColourSphere | null = null;
   #ring: ThermostatRing | null = null;
   #tray: AdaptiveControlTray | null = null;
@@ -58,31 +56,13 @@ export class DeviceDetail {
     return this.#view?.id ?? null;
   }
 
-  public show(deviceId: string): void {
+  /** Attach controls around the already-mounted stage hero. */
+  public show(view: DeviceView, hero: HeroHandle): void {
     this.hide();
-    const view = this.#options.resolve(deviceId);
-    if (!view) return;
     this.#view = view;
-    const { engine, surface } = this.#options;
-
-    const hero = createHero(view.category, view.capabilities);
-    hero.apply(view.state);
     this.#hero = hero;
-    engine.resources.trackObject(hero.object);
-    engine.graph.add({ id: `hero.${view.id}`, object: hero.object });
 
-    this.#behaviour = this.#options.living.create(view.category, {
-      object: hero.object,
-      reducedMotion: this.#options.reducedMotion,
-      state: () => ({ ...(this.#view?.state ?? view.state) }),
-    });
-
-    this.#wireDirect(view, hero, surface);
-    engine.cameraRig.frameObject(hero.object, {
-      padding: this.#sphere ? 2.1 : 1.7,
-      reducedMotion: this.#options.reducedMotion(),
-    });
-
+    this.#wireDirect(view, hero, this.#options.surface);
     this.#renderIdentity(view);
     this.#tray = new AdaptiveControlTray({
       root: this.#options.trayEl,
@@ -94,25 +74,20 @@ export class DeviceDetail {
     this.#renderReadout(view);
   }
 
+  /** Detach controls; the hero itself stays mounted on the shared stage. */
   public hide(): void {
     for (const detach of this.#detachers) detach();
     this.#detachers = [];
+    if (this.#sphere && this.#hero) this.#hero.object.remove(this.#sphere.object);
     this.#sphere?.dispose();
     this.#sphere = null;
     this.#ring?.dispose();
     this.#ring = null;
-    this.#behaviour?.dispose();
-    this.#behaviour = null;
     this.#tray?.dispose();
     this.#tray = null;
-    if (this.#view && this.#hero) {
-      this.#options.engine.graph.remove(`hero.${this.#view.id}`);
-      this.#options.engine.resources.untrackObject(this.#hero.object);
-    }
-    this.#hero?.dispose();
-    this.#hero = null;
     this.#confirm = null;
     this.#view = null;
+    this.#hero = null;
     this.#options.identityEl.innerHTML = '';
     this.#options.readoutEl.innerHTML = '';
   }
@@ -125,7 +100,6 @@ export class DeviceDetail {
       return;
     }
     this.#view = view;
-    this.#hero?.apply(view.state);
     if (this.#sphere) {
       this.#sphere.setLuminosity(view.state.brightness);
       this.#sphere.setSelection(view.state.hue, view.state.saturation);
@@ -136,11 +110,8 @@ export class DeviceDetail {
   }
 
   public tick(deltaMs: number): void {
-    if (!this.#view || !this.#hero) return;
-    const reduced = this.#options.reducedMotion();
-    this.#hero.tick(reduced ? 0 : deltaMs, this.#view.state);
-    this.#behaviour?.tick(reduced ? 0 : deltaMs);
-    if (this.#sphere && !reduced) this.#sphere.tick(deltaMs);
+    if (!this.#view) return;
+    if (this.#sphere && !this.#options.reducedMotion()) this.#sphere.tick(deltaMs);
   }
 
   #wireDirect(view: DeviceView, hero: HeroHandle, surface: HTMLElement): void {
@@ -235,7 +206,7 @@ export class DeviceDetail {
   #send(action: string, final: boolean): void {
     if (!this.#view) return;
     const promise = dispatchAction(this.#options.sink, this.#view, action);
-    this.#behaviour?.pulse?.(0.6);
+    this.#options.onPulse?.(0.6);
     if (!promise) return;
     void promise
       .then((receipt) => {

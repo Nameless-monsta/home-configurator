@@ -94,12 +94,47 @@ Physical profiling remains a supporting engineering task. It does not block the 
 
 ## Phase 5 Product Experience
 
-- [ ] **5.1 Application Shell** — Active
-- [ ] 5.2 Visual Design Language
-- [ ] 5.3 Hero Device Experience
-- [ ] 5.4 Spatial Colour Sphere
-- [ ] 5.5 Room Experience
+- [x] **5.1 Application Shell** — spatial shell, context menu, browse/detail modes
+- [x] 5.2 Visual Design Language — IYO fidelity v2 dark editorial styling
+- [x] 5.3 Hero Device Experience — hero carousel, device detail, adaptive tray
+- [x] 5.4 Spatial Colour Sphere — direct colour/brightness manipulation
+- [ ] 5.5 Room Experience — room browsing via context switcher (galleries pending)
 - [ ] 5.6 AI Experience
+
+## Design recovery (2026-07-19)
+
+- One persistent spatial stage: `HeroStage` mounts a single hero object for
+  browse and detail; device switching swaps it in place and Device Detail only
+  reframes the camera. The duplicate carousel renderers are retired from the
+  shell.
+- Persistent global navigation (Home / Rooms selector / Alarm / Settings /
+  Search) fixed across every section including detail.
+- Home rebuilt: full-viewport editorial hero with device-aware atmosphere,
+  then a slide-up content sheet with favourites, live summary tiles, rooms and
+  the device inventory.
+- Rooms and Alarm are real sections with identity, environment, quick lighting
+  control and device hierarchy.
+- Model fidelity: `HeroModelRegistry` (override → manufacturer alias →
+  procedural fallback), GLB/GLTF loading through the engine asset loader, and
+  a Settings configuration flow with live preview.
+- All existing controls, gestures and the Home Assistant command path are
+  preserved; no second state store or rendering stage exists.
+- See docs/PROTOTYPE-3-DESIGN-RECOVERY.md. Full pipeline passes.
+
+## Prototype recovery (2026-07-18)
+
+- Added the IYO-style cross-device navigation rail: a persistent strip of
+  device names with an editorial `01 — 05` index counter.
+- The rail switches the hero while browsing (scrolls the carousel) and switches
+  the device in place inside Device Detail without leaving the stage, matching
+  the reference's cross-product navigation inside one persistent shell.
+- Arrow keys travel between devices in Device Detail; Escape still closes.
+- Closing detail returns the carousel to the device last viewed, preserving
+  spatial continuity.
+- All commands continue to flow through the existing Home Assistant command
+  path; no new state store was introduced.
+- Full pipeline (format, lint, strict TypeScript, tests, production build)
+  passes locally.
 
 ## 5.1 exit criteria
 

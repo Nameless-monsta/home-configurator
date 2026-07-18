@@ -100,6 +100,21 @@ export class SpatialTransitionController {
     );
   }
 
+  /** In-place device switch inside detail: a short lateral travel, no route change. */
+  public swapDetail(): void {
+    this.#cancel();
+    if (this.#reducedMotion()) return;
+    this.#active.push(
+      this.#root.animate(
+        [
+          { opacity: 0.94, transform: 'translate3d(0,6px,0) scale(.992)' },
+          { opacity: 1, transform: 'translate3d(0,0,0) scale(1)' },
+        ],
+        { duration: MOTION.standardMs, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'both' },
+      ),
+    );
+  }
+
   public leaveDetail(): void {
     this.#cancel();
     this.#root.dataset['spatialState'] = 'browse';
