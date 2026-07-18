@@ -1,35 +1,27 @@
-name: Apply and validate design recovery
+name: Finalize design recovery
 
 on:
   pull_request:
     branches: [main]
-    types: [opened, reopened, synchronize]
+    types: [synchronize]
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  apply-and-validate:
+  finalize:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: agent/design-recovery
-          fetch-depth: 1
-      - name: Apply complete design recovery
+          fetch-depth: 0
+      - name: Assemble implementation
         run: |
-          cat .agent/design-recovery.part* > /tmp/design-recovery.b64
-          test "$(wc -c < /tmp/design-recovery.b64)" = "45636"
-          echo "32093e21fe92236484ab5ccb8bc94fa0447cd973ce3a220f7c344bccc262f322  /tmp/design-recovery.b64" | sha256sum --check
-          base64 --decode /tmp/design-recovery.b64 > /tmp/design-recovery.patch.gz
-          gzip --test /tmp/design-recovery.patch.gz
-          gzip --decompress --stdout /tmp/design-recovery.patch.gz > /tmp/design-recovery.patch
-          test "$(wc -c < /tmp/design-recovery.patch)" = "157999"
-          echo "05c8dffa8744b5f01f5f07ecbe62d193441cf93bf7943f94845d3d4189cc10ea  /tmp/design-recovery.patch" | sha256sum --check
-          git apply --check --3way /tmp/design-recovery.patch
-          git apply --index --3way /tmp/design-recovery.patch
+          cat .agent/chunks/shell.* > apps/dashboard/src/phase5/experience-shell.ts
+          cat .agent/chunks/css.* > apps/dashboard/src/phase5/iyo-fidelity-v2.css
           rm -rf .agent
       - uses: pnpm/action-setup@v4
         with:
@@ -38,20 +30,13 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-      - name: Format
-        run: pnpm format
-      - name: Format check
-        run: pnpm format:check
-      - name: Lint
-        run: pnpm lint
-      - name: Strict typecheck
-        run: pnpm typecheck
-      - name: Tests
-        run: pnpm test:ci
-      - name: Production build
-        run: pnpm build
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm format
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test:ci
+      - run: pnpm build
       - name: Commit completed recovery
         run: |
           rm .github/workflows/agent-repository-recovery.yml
