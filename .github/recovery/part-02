@@ -1,0 +1,285 @@
+ from './control-map.js';
++import { dispatchAction } from './control-map.js';
+ import { DeviceDetail } from './device-detail.js';
++import { DeviceRail } from './device-rail.js';
+ import {
+   categoryLabel,
+-  defaultViewState,
+   primaryStatus,
+   type DeviceView,
+   type RoomView,
+ } from './experience-model.js';
+ import type { AmbientSummary } from './experience-views.js';
+-import { FavouriteHeroCarousel, type FavouriteCarouselItem } from './favourite-carousel.js';
+-import { HeroPreview } from './hero-preview.js';
++import { HeroStage } from './hero-stage.js';
++import {
++  buildSummaryTiles,
++  deriveSummary,
++  renderAlarmContent,
++  renderHomeContent,
++  renderRoomContent,
++} from './home-content.js';
+ import { createDefaultLivingObjectRegistry } from './living-object.js';
++import { HeroModelRegistry } from './model-registry.js';
+ import { SpatialTransitionController } from './motion-system.js';
++import { NavigationBar, type NavSection } from './navigation-bar.js';
++import { SearchOverlay } from './search-overlay.js';
++import { SettingsView } from './settings-view.js';
+ 
+ export interface ExperienceData {
+   rooms(): readonly RoomView[];
+@@ -36,13 +52,15 @@ export interface ExperienceShellOptions {
+   reducedMotion: () => boolean;
+ }
+ 
+-type BrowseContext =
+-  | { readonly type: 'home'; readonly roomId?: undefined }
+-  | { readonly type: 'room'; readonly roomId: string };
+-type SpatialState = 'browse' | 'menu-open' | 'opening-detail' | 'detail' | 'closing-detail';
++type SpatialState = 'browse' | 'opening-detail' | 'detail' | 'closing-detail';
+ 
+-const escapeHtml = (value: string): string =>
+-  value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
++const storageOrNull = (): Storage | null => {
++  try {
++    return window.localStorage;
++  } catch {
++    return null;
++  }
++};
+ 
+ export class ExperienceShell {
+   public readonly stage: HTMLElement;
+@@ -53,13 +71,18 @@ export class ExperienceShell {
+   readonly #sink: CommandSink;
+   readonly #reducedMotion: () => boolean;
+   readonly #living = createDefaultLivingObjectRegistry();
+-  readonly #previewRefs = new Map<string, HeroPreview>();
++  readonly #registry = new HeroModelRegistry(storageOrNull());
+   readonly #statusRefs = new Map<string, HTMLElement>();
++  readonly #nav: NavigationBar;
++  readonly #rail: DeviceRail;
++  readonly #search: SearchOverlay;
++  readonly #settings: SettingsView;
++  #heroStage: HeroStage | null = null;
+   #transition: SpatialTransitionController | null = null;
+   #detail: DeviceDetail | null = null;
+-  #carousel: FavouriteHeroCarousel | null = null;
+-  #context: BrowseContext = { type: 'home' };
++  #section: NavSection = { kind: 'home' };
+   #state: SpatialState = 'browse';
++  #activeDeviceId: string | null = null;
+   #structuralKey = '';
+   #refreshRaf = 0;
+   #detailOpener: HTMLElement | null = null;
+@@ -72,34 +95,64 @@ export class ExperienceShell {
+     this.#root.className = 'p5';
+     this.#root.dataset['mode'] = 'browse';
+     this.#root.dataset['spatialState'] = 'browse';
++    this.#root.dataset['section'] = 'home';
+     this.#root.innerHTML = `
+-      <div class="p5-stage" data-p5-stage><canvas data-p5-canvas aria-label="Device stage"></canvas></div>
+-      <header class="p5-topbar">
+-        <button class="p5-context-button" type="button" data-p5-context aria-expanded="false" aria-controls="p5-context-menu">
+-          <span class="p5-nav-mark" aria-hidden="true"></span>
+-          <span data-p5-context-label>Home</span>
+-          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+-        </button>
+-        <div class="p5-context-menu" id="p5-context-menu" data-p5-context-menu hidden></div>
+-        <button class="p5-top-action" type="button" aria-label="Search devices" data-p5-search>
+-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
+-        </button>
+-      </header>
+-      <main class="p5-browse" data-p5-browse></main>
++      <div class="p5-stage" data-p5-stage>
++        <div class="p5-atmos" aria-hidden="true"></div>
++        <canvas data-p5-canvas aria-label="Device stage"></canvas>
++      </div>
++      <nav class="p5-nav" data-p5-nav></nav>
++      <div class="p5-hero-overlay" data-p5-hero-overlay>
++        <p class="p5-hero-eyebrow" data-p5-hero-eyebrow></p>
++        <h1 class="p5-hero-name" data-p5-hero-name></h1>
++        <p class="p5-hero-status" data-p5-hero-status></p>
++        <button class="p5-hero-open" type="button" data-p5-hero-enter>Open device</button>
++        <p class="p5-hero-scroll" aria-hidden="true">Scroll for your home</p>
++      </div>
++      <main class="p5-content" data-p5-content tabindex="-1"></main>
+       <div class="p5-detail" data-p5-detail>
+         <div class="p5-detail-identity" data-p5-identity></div>
+         <button class="p5-detail-close" type="button" data-p5-close aria-label="Return to devices">Back</button>
++        <button class="p5-detail-step" type="button" data-p5-detail-prev aria-label="Previous device">‹</button>
++        <button class="p5-detail-step" type="button" data-p5-detail-next aria-label="Next device">›</button>
+         <div class="p5-detail-readout-wrap" data-p5-readout></div>
+         <div class="p5-detail-tray" data-p5-tray></div>
+       </div>
++      <nav class="p5-rail" data-p5-rail></nav>
++      <div class="p5-search" data-p5-search-overlay hidden></div>
++      <div class="p5-settings" data-p5-settings hidden></div>
+       <p class="p5-sr" role="status" aria-live="polite" data-p5-announce></p>
+     `;
+ 
+     this.stage = this.#q('[data-p5-stage]');
+     this.canvas = this.#q('[data-p5-canvas]');
++
++    this.#nav = new NavigationBar({
++      root: this.#q('[data-p5-nav]'),
++      onNavigate: (section) => this.#navigate(section),
++      onSearch: () => this.#openSearch(),
++    });
++    this.#rail = new DeviceRail({
++      root: this.#q('[data-p5-rail]'),
++      onSelect: (id) => this.#travelToDevice(id),
++    });
++    this.#search = new SearchOverlay({
++      root: this.#q('[data-p5-search-overlay]'),
++      devices: () => this.#data.devices(),
++      onPick: (id) => this.#onSearchPick(id),
++      onClose: () => this.#closeSearch(),
++    });
++    this.#settings = new SettingsView({
++      root: this.#q('[data-p5-settings]'),
++      registry: this.#registry,
++      devices: () => this.#data.devices(),
++      onPreview: (id) => this.#previewDevice(id),
++      onApply: (id) => this.#remountHero(id),
++      onClose: () => this.#navigate({ kind: 'home' }),
++    });
++
+     this.#root.addEventListener('click', this.#onClick);
+     window.addEventListener('keydown', this.#onKeydown);
+-    document.addEventListener('pointerdown', this.#onDocumentPointerDown);
+   }
+ 
+   public attach(engine: GraphicsEngine): void {
+@@ -107,17 +160,35 @@ export class ExperienceShell {
+       root: this.#root,
+       reducedMotion: this.#reducedMotion,
+     });
++    this.#heroStage = new HeroStage({
++      engine,
++      surface: this.stage,
++      living: this.#living,
++      registry: this.#registry,
++      reducedMotion: this.#reducedMotion,
++      onAmbient: (color, strength) => {
++        this.#root.style.setProperty('--p5-ambient', color);
++        this.#root.style.setProperty('--p5-ambient-strength', String(strength));
++      },
++    });
++    this.#heroStage.bindSwipe({
++      onPrev: () => this.#step(-1),
++      onNext: () => this.#step(1),
++      onOpen: () => {
++        if (this.#activeDeviceId) this.#openDetail(this.#activeDeviceId);
++      },
++    });
+     this.#detail = new DeviceDetail({
+       engine,
+       surface: this.stage,
+       identityEl: this.#q('[data-p5-identity]'),
+       readoutEl: this.#q('[data-p5-readout]'),
+       trayEl: this.#q('[data-p5-tray]'),
+-      living: this.#living,
+       sink: this.#sink,
+       reducedMotion: this.#reducedMotion,
+       resolve: (id) => this.#data.device(id),
+       onError: (message) => this.#announce(message),
++      onPulse: (strength) => this.#heroStage?.pulse(strength),
+     });
+     this.#render();
+   }
+@@ -126,17 +197,23 @@ export class ExperienceShell {
+     if (this.#refreshRaf) return;
+     this.#refreshRaf = requestAnimationFrame(() => {
+       this.#refreshRaf = 0;
++      const active = this.#activeView();
++      if (active) {
++        this.#heroStage?.update(active);
++        this.#renderHeroOverlay(active);
++      }
+       if (this.#state === 'detail' || this.#state === 'opening-detail') {
+         this.#detail?.sync();
+         return;
+       }
+       const nextKey = this.#structureKey();
+       if (nextKey !== this.#structuralKey) this.#render();
+-      else this.#syncBrowse();
++      else this.#syncContent();
+     });
+   }
+ 
+   public tick(deltaMs: number): void {
++    this.#heroStage?.tick(deltaMs);
+     this.#detail?.tick(deltaMs);
+   }
+ 
+@@ -150,145 +227,160 @@ export class ExperienceShell {
+     this.#q('[data-p5-announce]').textContent = message;
+   }
+ 
+-  #contextRoom(): RoomView | undefined {
+-    return this.#context.type === 'room'
+-      ? this.#data.rooms().find((room) => room.id === this.#context.roomId)
++  #sectionRoom(): RoomView | undefined {
++    const section = this.#section;
++    return section.kind === 'room'
++      ? this.#data.rooms().find((room) => room.id === section.roomId)
+       : undefined;
+   }
+ 
+-  #contextDevices(): readonly DeviceView[] {
+-    if (this.#context.type === 'home') return this.#data.favourites();
+-    return this.#data.devices().filter((device) => device.roomId === this.#context.roomId);
+-  }
+-
+-  #render(): void {
+-    this.#disposePreviews();
+-    this.#carousel?.dispose();
+-    this.#carousel = null;
+-
+-    const room = this.#contextRoom();
+-    if (this.#context.type === 'room' && !room) this.#context = { type: 'home' };
+-    const label = room?.name ?? 'Home';
+-    this.#q('[data-p5-context-label]').textContent = label;
+-    this.#renderContextMenu();
+-
+-    const ambient = this.#data.ambient();
+-    const devices = this.#contextDevices();
+-    const host = this.#q('[data-p5-browse]');
+-    const summary = [ambient.comfort, ambient.air, ambient.security].filter(Boolean).join(' · ');
+-    host.innerHTML = `
+-      <section class="p5-intro" aria-labelledby="p5-context-heading">
+-        <p class="p5-eyebrow">${escapeHtml(ambient.greeting)}</p>
+-        <h1 id="p5-context-heading">${escapeHtml(room?.name ?? ambient.statusSentence)}</h1>
+-        <p class="p5-ambient-line">${escapeHtml(summary)}</p>
+-      </section>
+-      <section class="p5-featured" aria-label="Featured devices">
+-        <div data-p5-favourite-carousel></div>
+-      </section>
+-      <section class="p5-inventory" aria-label="All devices in ${escapeHtml(label)}">
+-        <div class="p5-inventory-head"><p>All devices</p><span>${devices.length}</span></div>
+-        <div class="p5-device-grid" data-p5-device-grid></div>
+-      </section>
+-    `;
+-
+-    const carouselRoot = host.querySelector<HTMLElement>('[data-p5-favourite-carousel]');
+-    if (carouselRoot && devices.length) {
+-      const items = devices.map((view) => this.#carouselItem(view));
+-      this.#carousel = new FavouriteHeroCarousel({
+-        root: carouselRoot,
+-        items,
+-        mountHero: (mountHost, item) => this.#createPreview(mountHost, item.id),
+-        onSelect: (item, origin) => this.#openDetail(item.id, origin),
+-      });
+-    } else if (carouselRoot) {
+-      carouselRoot.innerHTML = '<p class="p5-empty">No featured devices in this space.</p>';
+-    }
+-
+-    const grid = host.querySelector<HTMLElement>('[data-p5-device-grid]');
+-    if (grid) {
+-      grid.innerHTML = devices
+-        .map(
+-          (device) => `<button class="p5-device-row" type="button" data-p5-open="${escapeHtml(device.id)}" aria-label="Open ${escapeHtml(device.name)}">
+-            <span class="p5-device-glyph" data-category="${escapeHtml(device.category)}" aria-hidden="true"></span>
+-            <span class="p5-device-row-copy"><strong>${escapeHtml(de
