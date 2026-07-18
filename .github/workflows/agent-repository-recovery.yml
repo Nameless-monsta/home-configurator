@@ -1,6 +1,8 @@
 name: Agent repository recovery
 
 on:
+  push:
+    branches: [agent/design-recovery]
   pull_request:
     branches: [main]
   workflow_dispatch:
