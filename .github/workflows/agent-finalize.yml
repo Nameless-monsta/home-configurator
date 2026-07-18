@@ -1,0 +1,42 @@
+name: Final design recovery diagnostics
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostics:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/design-recovery
+      - name: Assemble implementation
+        run: |
+          cat .agent/chunks/shell.* > apps/dashboard/src/phase5/experience-shell.ts
+          cat .agent/chunks/css.* > apps/dashboard/src/phase5/iyo-fidelity-v2.css
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.13.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm format
+      - name: Capture lint
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          pnpm lint 2>&1 | tee final-lint.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: final-design-recovery-lint
+          path: final-lint.log
+          retention-days: 1
