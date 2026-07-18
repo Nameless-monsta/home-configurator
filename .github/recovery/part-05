@@ -1,0 +1,323 @@
+{ ...(this.#view?.state ?? view.state) }),
++    });
++    this.#loadOverrideModel(view);
++    this.frame(this.#framing);
++    this.#emitAmbient();
++  }
++
++  /** Rebuild the hero for the current device (e.g. after an override change). */
++  public remount(view: DeviceView): void {
++    this.#unmount();
++    this.setDevice(view);
++  }
++
++  /** Refresh live state on the mounted hero without remounting. */
++  public update(view: DeviceView): void {
++    this.#view = view;
++    this.#hero?.apply(view.state);
++    this.#emitAmbient();
++  }
++
++  /** Deliberate camera choreography between browse and detail framing. */
++  public frame(mode: StageFraming, immediate = false): void {
++    this.#framing = mode;
++    if (!this.#hero) return;
++    const preset = FRAMING[mode];
++    this.#options.engine.cameraRig.frameObject(this.#hero.object, {
++      padding: preset.padding,
++      durationMs: immediate ? 0 : preset.durationMs,
++      reducedMotion: this.#options.reducedMotion(),
++    });
++  }
++
++  public pulse(strength = 0.6): void {
++    this.#behaviour?.pulse?.(strength);
++  }
++
++  public tick(deltaMs: number): void {
++    if (!this.#view || !this.#hero) return;
++    const reduced = this.#options.reducedMotion();
++    this.#hero.tick(reduced ? 0 : deltaMs, this.#view.state);
++    this.#behaviour?.tick(reduced ? 0 : deltaMs);
++  }
++
++  /** Horizontal swipe switches devices; a settled tap opens detail. */
++  public bindSwipe(handlers: StageSwipeHandlers): void {
++    this.#unbindSwipe?.();
++    const surface = this.#options.surface;
++    let startX = 0;
++    let startY = 0;
++    let tracking = false;
++    let moved = false;
++    const down = (event: PointerEvent): void => {
++      if (!this.#interactive) return;
++      tracking = true;
++      moved = false;
++      startX = event.clientX;
++      startY = event.clientY;
++    };
++    const move = (event: PointerEvent): void => {
++      if (!tracking) return;
++      if (Math.abs(event.clientX - startX) > 10 || Math.abs(event.clientY - startY) > 10) {
++        moved = true;
++      }
++    };
++    const up = (event: PointerEvent): void => {
++      if (!tracking) return;
++      tracking = false;
++      if (!this.#interactive) return;
++      const dx = event.clientX - startX;
++      const dy = event.clientY - startY;
++      if (Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.4) {
++        if (dx < 0) handlers.onNext();
++        else handlers.onPrev();
++        return;
++      }
++      if (!moved) handlers.onOpen();
++    };
++    const cancel = (): void => {
++      tracking = false;
++    };
++    surface.addEventListener('pointerdown', down);
++    surface.addEventListener('pointermove', move);
++    surface.addEventListener('pointerup', up);
++    surface.addEventListener('pointercancel', cancel);
++    this.#unbindSwipe = () => {
++      surface.removeEventListener('pointerdown', down);
++      surface.removeEventListener('pointermove', move);
++      surface.removeEventListener('pointerup', up);
++      surface.removeEventListener('pointercancel', cancel);
++    };
++  }
++
++  /** Browse gestures are suspended while detail owns direct manipulation. */
++  public setInteractive(interactive: boolean): void {
++    this.#interactive = interactive;
++  }
++
++  public dispose(): void {
++    this.#unbindSwipe?.();
++    this.#unbindSwipe = null;
++    this.#unmount();
++  }
++
++  #emitAmbient(): void {
++    const ambient = deriveAmbient(this.#view);
++    this.#options.onAmbient(ambient.color, ambient.strength);
++  }
++
++  #loadOverrideModel(view: DeviceView): void {
++    const resolved = this.#options.registry.resolve(view.id, view.manufacturer, view.model);
++    if (resolved.kind === 'fallback' || !resolved.override.url) return;
++    const token = (this.#loadToken += 1);
++    void this.#options.engine.assets
++      .load(`hero-model.${view.id}`, resolved.override.url)
++      .then((asset) => {
++        if (token !== this.#loadToken || this.#view?.id !== view.id || !this.#hero) return;
++        const mount = new Group();
++        mount.add(asset.scene);
++        const object = this.#hero.object;
++        object.clear();
++        object.add(mount);
++        applyOverrideTransform(object, resolved.override);
++        this.frame(this.#framing, true);
++      })
++      .catch(() => {
++        /* keep the procedural fallback on load failure */
++      });
++  }
++
++  #unmount(): void {
++    this.#loadToken += 1;
++    this.#behaviour?.dispose();
++    this.#behaviour = null;
++    if (this.#hero) {
++      this.#options.engine.graph.remove('hero.stage');
++      this.#options.engine.resources.untrackObject(this.#hero.object);
++      this.#hero.dispose();
++    }
++    this.#hero = null;
++    this.#view = null;
++  }
++}
+diff --git a/apps/dashboard/src/phase5/home-content.ts b/apps/dashboard/src/phase5/home-content.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..945adf253b8fcda39fb9569d5de735139949bafd
+--- /dev/null
++++ b/apps/dashboard/src/phase5/home-content.ts
+@@ -0,0 +1,289 @@
++/**
++ * Slide-up content beneath the hero. Home: favourites, live summary tiles,
++ * rooms and the full device inventory. Room: room identity, environment,
++ * quick lighting control and the room's device hierarchy. Alarm: security
++ * overview. All values derive from the live DeviceView models; controls
++ * dispatch through the shared command path via shell delegation attributes.
++ */
++
++import { categoryLabel, primaryStatus, type DeviceView } from './experience-model.js';
++import type { RoomView } from './experience-model.js';
++
++export interface HomeSummary {
++  readonly lightsOn: number;
++  readonly lightsTotal: number;
++  readonly averageTemp: number | null;
++  readonly humidity: number | null;
++  readonly locked: number;
++  readonly locksTotal: number;
++  readonly coversOpen: number;
++  readonly coversTotal: number;
++  readonly mediaPlaying: number;
++  readonly cleaning: number;
++  readonly offline: readonly string[];
++}
++
++/** Pure summary derivation over a set of device views. */
++export const deriveSummary = (views: readonly DeviceView[]): HomeSummary => {
++  const lights = views.filter((view) => view.category === 'light');
++  const climates = views.filter(
++    (view) => view.category === 'climate' || view.category === 'sensor',
++  );
++  const locks = views.filter((view) => view.capabilities.includes('lock'));
++  const covers = views.filter((view) => view.category === 'cover');
++  const temps = climates
++    .map((view) => view.state.currentTemp)
++    .filter((value) => Number.isFinite(value));
++  const humidities = climates
++    .map((view) => view.state.humidity)
++    .filter((value) => Number.isFinite(value) && value > 0);
++  return {
++    lightsOn: lights.filter((view) => view.state.on).length,
++    lightsTotal: lights.length,
++    averageTemp: temps.length
++      ? temps.reduce((total, value) => total + value, 0) / temps.length
++      : null,
++    humidity: humidities.length
++      ? humidities.reduce((total, value) => total + value, 0) / humidities.length
++      : null,
++    locked: locks.filter((view) => view.state.locked).length,
++    locksTotal: locks.length,
++    coversOpen: covers.filter((view) => view.state.position > 1).length,
++    coversTotal: covers.length,
++    mediaPlaying: views.filter((view) => view.category === 'media' && view.state.playing).length,
++    cleaning: views.filter((view) => view.category === 'cleaning' && view.state.cleaning).length,
++    offline: views.filter((view) => !view.state.available).map((view) => view.name),
++  };
++};
++
++export interface SummaryTile {
++  readonly id: string;
++  readonly label: string;
++  readonly value: string;
++  readonly detail: string;
++  readonly jumpDeviceId: string | null;
++}
++
++/** Pure: summary tiles with a jump target into the matching device. */
++export const buildSummaryTiles = (
++  views: readonly DeviceView[],
++  summary: HomeSummary,
++): readonly SummaryTile[] => {
++  const first = (predicate: (view: DeviceView) => boolean): string | null =>
++    views.find(predicate)?.id ?? null;
++  const tiles: SummaryTile[] = [];
++  if (summary.lightsTotal > 0) {
++    tiles.push({
++      id: 'lights',
++      label: 'Lights',
++      value: summary.lightsOn === 0 ? 'All off' : `${summary.lightsOn} on`,
++      detail: `${summary.lightsTotal} fixtures`,
++      jumpDeviceId: first((view) => view.category === 'light'),
++    });
++  }
++  if (summary.averageTemp !== null) {
++    tiles.push({
++      id: 'climate',
++      label: 'Climate',
++      value: `${summary.averageTemp.toFixed(1)}°`,
++      detail: summary.humidity !== null ? `${Math.round(summary.humidity)}% humidity` : 'Ambient',
++      jumpDeviceId:
++        first((view) => view.category === 'climate') ?? first((v) => v.category === 'sensor'),
++    });
++  }
++  if (summary.locksTotal > 0) {
++    tiles.push({
++      id: 'security',
++      label: 'Security',
++      value:
++        summary.locked === summary.locksTotal
++          ? 'Secured'
++          : `${summary.locksTotal - summary.locked} open`,
++      detail: `${summary.locked}/${summary.locksTotal} locked`,
++      jumpDeviceId: first((view) => view.capabilities.includes('lock')),
++    });
++  }
++  if (summary.coversTotal > 0) {
++    tiles.push({
++      id: 'covers',
++      label: 'Covers',
++      value: summary.coversOpen === 0 ? 'Closed' : `${summary.coversOpen} open`,
++      detail: `${summary.coversTotal} covers`,
++      jumpDeviceId: first((view) => view.category === 'cover'),
++    });
++  }
++  if (views.some((view) => view.category === 'media')) {
++    tiles.push({
++      id: 'media',
++      label: 'Media',
++      value: summary.mediaPlaying > 0 ? 'Playing' : 'Idle',
++      detail: `${views.filter((view) => view.category === 'media').length} players`,
++      jumpDeviceId: first((view) => view.category === 'media'),
++    });
++  }
++  if (views.some((view) => view.category === 'cleaning')) {
++    tiles.push({
++      id: 'cleaning',
++      label: 'Cleaning',
++      value: summary.cleaning > 0 ? 'Cleaning' : 'Docked',
++      detail: `${views.filter((view) => view.category === 'cleaning').length} robots`,
++      jumpDeviceId: first((view) => view.category === 'cleaning'),
++    });
++  }
++  return tiles;
++};
++
++const escapeHtml = (value: string): string =>
++  value
++    .replaceAll('&', '&amp;')
++    .replaceAll('<', '&lt;')
++    .replaceAll('>', '&gt;')
++    .replaceAll('"', '&quot;');
++
++const deviceRow = (view: DeviceView): string => `
++  <button class="p5-device-row" type="button" data-p5-open="${escapeHtml(view.id)}" aria-label="Open ${escapeHtml(view.name)}">
++    <span class="p5-device-glyph" data-category="${escapeHtml(view.category)}" aria-hidden="true"></span>
++    <span class="p5-device-row-copy"><strong>${escapeHtml(view.name)}</strong><small>${escapeHtml(categoryLabel(view.category))}</small></span>
++    <span class="p5-device-status" data-p5-status="${escapeHtml(view.id)}">${escapeHtml(primaryStatus(view))}</span>
++    <span class="p5-device-chevron" aria-hidden="true">›</span>
++  </button>`;
++
++const tileMarkup = (tile: SummaryTile): string => `
++  <button class="p5-tile" type="button" ${tile.jumpDeviceId ? `data-p5-jump="${escapeHtml(tile.jumpDeviceId)}"` : 'disabled'}>
++    <small>${escapeHtml(tile.label)}</small>
++    <strong data-p5-tile-value="${escapeHtml(tile.id)}">${escapeHtml(tile.value)}</strong>
++    <span data-p5-tile-detail="${escapeHtml(tile.id)}">${escapeHtml(tile.detail)}</span>
++  </button>`;
++
++export const renderHomeContent = (
++  favourites: readonly DeviceView[],
++  views: readonly DeviceView[],
++  rooms: readonly RoomView[],
++): string => {
++  const summary = deriveSummary(views);
++  const tiles = buildSummaryTiles(views, summary);
++  return `
++    <div class="p5-content-grip" aria-hidden="true"></div>
++    ${
++      summary.offline.length
++        ? `<p class="p5-home-alert" role="alert">${escapeHtml(summary.offline.join(', '))} offline</p>`
++        : ''
++    }
++    ${
++      favourites.length
++        ? `<section class="p5-section" aria-label="Favourite devices">
++         
