@@ -21,7 +21,7 @@ import { createRuntime, DeviceStore } from '@home-configurator/runtime';
 import { ExperienceDataSource } from './phase5/experience-data.js';
 import { ExperienceShell } from './phase5/experience-shell.js';
 import './phase5/experience.css';
-import './phase5/prototype-home-v1.css';
+import './phase5/iyo-fidelity-v2.css';
 
 const root = document.querySelector<HTMLElement>('#app');
 if (!root) throw new Error('Application root was not found');
@@ -120,7 +120,7 @@ const homeAssistant = new HomeAssistantEngine({
         device_id: 'kitchen-sensor',
       },
       {
-        entity_id: 'vacuum.robot_vac',
+        entity_id: 'vacuum.robot_vacuum',
         unique_id: 'robot-vac-vacuum',
         platform: 'roborock',
         device_id: 'robot-vac',
@@ -135,109 +135,96 @@ const homeAssistant = new HomeAssistantEngine({
     states: [
       entityState('light.ikea_lamp', 'on', {
         friendly_name: 'Floor Lamp',
-        brightness: 168,
-        color_temp_kelvin: 3200,
-        rgb_color: [255, 191, 128],
-        supported_color_modes: ['rgb', 'color_temp'],
+        brightness: 184,
+        color_temp_kelvin: 2700,
+        rgb_color: [255, 190, 120],
+        supported_color_modes: ['color_temp', 'rgb'],
       }),
-      entityState('media_player.living_room_tv', 'playing', {
+      entityState('media_player.living_room_tv', 'off', {
         friendly_name: 'Living Room TV',
-        volume_level: 0.34,
-        source: 'tv',
-        media_title: 'Home Configurator Demo',
+        supported_features: 152463,
+        volume_level: 0.24,
       }),
       entityState('lock.front_door', 'locked', { friendly_name: 'Front Door' }),
       entityState('climate.bedroom_ac', 'cool', {
         friendly_name: 'Bedroom Climate',
-        temperature: 22,
-        current_temperature: 23.5,
-        current_humidity: 48,
+        current_temperature: 23,
+        temperature: 21,
+        hvac_modes: ['off', 'cool', 'heat', 'auto'],
+        fan_modes: ['low', 'medium', 'high', 'auto'],
         fan_mode: 'auto',
-        fan_modes: ['auto', 'low', 'high'],
       }),
       entityState('light.bedroom_lamp', 'off', {
         friendly_name: 'Bedside Light',
         brightness: 90,
+        color_temp_kelvin: 3000,
         supported_color_modes: ['color_temp'],
       }),
-      entityState('sensor.kitchen_temperature', '24.1', {
-        friendly_name: 'Temperature',
+      entityState('sensor.kitchen_temperature', '22.7', {
+        friendly_name: 'Kitchen Temperature',
         unit_of_measurement: '°C',
       }),
-      entityState('sensor.kitchen_humidity', '52', {
-        friendly_name: 'Humidity',
+      entityState('sensor.kitchen_humidity', '48', {
+        friendly_name: 'Kitchen Humidity',
         unit_of_measurement: '%',
       }),
-      entityState('vacuum.robot_vac', 'docked', {
+      entityState('vacuum.robot_vacuum', 'docked', {
         friendly_name: 'Robot Vacuum',
-        battery_level: 96,
+        battery_level: 92,
+        supported_features: 20539,
       }),
       entityState('cover.terrace_shade', 'open', {
         friendly_name: 'Terrace Shade',
-        current_position: 72,
+        current_position: 82,
+        supported_features: 15,
       }),
     ],
   }),
 });
 
 const deviceStore = new DeviceStore();
-const homeAssistantState = new HomeAssistantStateAdapter({ homeAssistant, store: deviceStore });
-homeAssistantState.start();
-
-let latestSnapshot: ConfirmedRuntimeSnapshot | null = null;
-
 const data = new ExperienceDataSource({
-  snapshot: () => latestSnapshot,
-  store: deviceStore,
+  deviceStore,
+  snapshot: () => homeAssistant.getSnapshot(),
+  diagnostics: runtime.diagnostics,
 });
 
 const shell = new ExperienceShell({
   root,
-  sink: homeAssistantState,
+  sink: {
+    dispatch: async (command) => {
+      await homeAssistant.dispatch(command);
+    },
+  },
   data,
   reducedMotion,
 });
 
-const graphicsHandle = attachGraphicsRuntime({
-  runtime,
-  canvas: shell.canvas,
-  viewportElement: shell.stage,
-  qualityTier: 'balanced',
-});
-graphicsHandle.engine.setBackground(0x101010);
-shell.attach(graphicsHandle.engine);
+const graphics = attachGraphicsRuntime({ runtime, canvas: shell.canvas });
+shell.attach(graphics);
 
-const unregisterExperienceTick = runtime.scheduler.register({
-  id: 'phase5.experience',
-  priority: 200,
-  tick: (context) => shell.tick(context.deltaMs),
-});
+let lastTime = performance.now();
+const tick = (time: number): void => {
+  const delta = Math.min(64, time - lastTime);
+  lastTime = time;
+  graphics.tick(delta);
+  shell.tick(delta);
+  requestAnimationFrame(tick);
+};
+requestAnimationFrame(tick);
 
-homeAssistant.subscribe(({ snapshot }) => {
-  latestSnapshot = snapshot;
-});
-
-const unsubscribeStore = deviceStore.subscribe(() => shell.refresh());
-
-runtime.events.on('runtime.phase', ({ current }) => {
-  runtime.diagnostics.record('info', 'phase5', 'Runtime phase', { current });
-});
-
-void Promise.all([runtime.start(), homeAssistant.connect()]);
-
-let disposed = false;
-const shutdown = async (): Promise<void> => {
-  if (disposed) return;
-  disposed = true;
-  unregisterExperienceTick();
-  unsubscribeStore();
-  shell.dispose();
-  homeAssistantState.dispose();
-  deviceStore.dispose();
-  await homeAssistant.disconnect();
-  homeAssistant.dispose();
-  await runtime.stop();
-  graphicsHandle.dispose();
+const applySnapshot = (snapshot: ConfirmedRuntimeSnapshot): void => {
+  deviceStore.reconcile(snapshot);
+  shell.refresh();
 };
 
-window.addEventListener('pagehide', () => void shutdown());
+homeAssistant.subscribe(applySnapshot);
+await homeAssistant.start();
+applySnapshot(homeAssistant.getSnapshot());
+
+window.addEventListener('beforeunload', () => {
+  shell.dispose();
+  graphics.dispose();
+  homeAssistant.dispose();
+  runtime.dispose();
+});
