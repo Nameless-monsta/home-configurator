@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: agent/design-recovery
-          fetch-depth: 1
+          fetch-depth: 0
       - name: Assemble complete implementation
         run: |
           cat .agent/chunks/shell.* > apps/dashboard/src/phase5/experience-shell.ts
@@ -26,9 +26,35 @@ jobs:
           from pathlib import Path
           registry = Path('apps/dashboard/src/phase5/device-model-registry.ts')
           source = registry.read_text()
-          source = source.replace('  Box3,\n', '  Box3,\n  type BufferGeometry,\n')
           source = source.replace('    const mesh = node as Mesh;', '    const mesh = node;')
-          source = source.replace('    mesh.geometry.dispose();', '    (mesh.geometry as BufferGeometry).dispose();')
+          source = source.replace(
+          """const disposeObject = (object: Object3D): void => {
+            object.traverse((node) => {
+              if (!(node instanceof Mesh)) return;
+              const mesh = node;
+              mesh.geometry.dispose();
+              const material = mesh.material as Material | Material[];
+              const materials = Array.isArray(material) ? material : [material];
+              materials.forEach((entry) => entry.dispose());
+            });
+          };""",
+          """const isMaterialArray = (value: Material | Material[]): value is Material[] =>
+            Array.isArray(value);
+
+          const disposeObject = (object: Object3D): void => {
+            object.traverse((node) => {
+              if (!(node instanceof Mesh)) return;
+              const mesh = node;
+              mesh.geometry.dispose();
+              const material = mesh.material as Material | Material[];
+              if (isMaterialArray(material)) {
+                for (const entry of material) entry.dispose();
+              } else {
+                material.dispose();
+              }
+            });
+          };"""
+          )
           registry.write_text(source)
 
           shell = Path('apps/dashboard/src/phase5/experience-shell.ts')
@@ -49,20 +75,13 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-      - name: Format
-        run: pnpm format
-      - name: Format check
-        run: pnpm format:check
-      - name: Lint
-        run: pnpm lint
-      - name: Strict typecheck
-        run: pnpm typecheck
-      - name: Tests
-        run: pnpm test:ci
-      - name: Production build
-        run: pnpm build
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm format
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test:ci
+      - run: pnpm build
       - name: Commit completed recovery
         run: |
           rm -f .github/workflows/agent-finalize.yml .github/workflows/agent-repository-recovery.yml
