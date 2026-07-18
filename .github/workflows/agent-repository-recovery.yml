@@ -11,16 +11,17 @@ permissions:
 
 jobs:
   apply-and-validate:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: agent/design-recovery
           fetch-depth: 0
-      - name: Reconstruct recovered experience
+      - name: Apply complete design recovery
         run: |
-          cat .agent/chunks/shell.* > apps/dashboard/src/phase5/experience-shell.ts
-          cat .agent/chunks/css.* > apps/dashboard/src/phase5/iyo-fidelity-v2.css
+          cat .agent/design-recovery.part* | base64 --decode | gzip --decompress > /tmp/design-recovery.patch
+          git apply --index /tmp/design-recovery.patch
           rm -rf .agent
       - uses: pnpm/action-setup@v4
         with:
