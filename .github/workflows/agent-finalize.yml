@@ -1,15 +1,16 @@
-name: Capture final design recovery lint
+name: Finalize and validate design recovery
 
 on:
   pull_request:
     branches: [main]
     types: [synchronize]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  lint-diagnostic:
+  finalize:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -17,15 +18,19 @@ jobs:
         with:
           ref: agent/design-recovery
           fetch-depth: 1
-      - name: Assemble implementation
+      - name: Assemble complete implementation
         run: |
           cat .agent/chunks/shell.* > apps/dashboard/src/phase5/experience-shell.ts
           cat .agent/chunks/css.* > apps/dashboard/src/phase5/iyo-fidelity-v2.css
           python - <<'PY'
           from pathlib import Path
           registry = Path('apps/dashboard/src/phase5/device-model-registry.ts')
-          source = registry.read_text().replace('    const mesh = node as Mesh;', '    const mesh = node;')
+          source = registry.read_text()
+          source = source.replace('  Box3,\n', '  Box3,\n  type BufferGeometry,\n')
+          source = source.replace('    const mesh = node as Mesh;', '    const mesh = node;')
+          source = source.replace('    mesh.geometry.dispose();', '    (mesh.geometry as BufferGeometry).dispose();')
           registry.write_text(source)
+
           shell = Path('apps/dashboard/src/phase5/experience-shell.ts')
           source = shell.read_text()
           marker = "const numberValue = (data: FormData, key: string, fallback: number): number => { const value = Number(data.get(key)); return Number.isFinite(value) ? value : fallback; };"
@@ -36,6 +41,7 @@ jobs:
               source = source.replace(marker, helpers)
           shell.write_text(source)
           PY
+          rm -rf .agent
       - uses: pnpm/action-setup@v4
         with:
           version: 10.13.1
@@ -43,18 +49,25 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --no-frozen-lockfile
-      - run: pnpm format
-      - name: Capture lint
-        shell: bash
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+      - name: Format
+        run: pnpm format
+      - name: Format check
+        run: pnpm format:check
+      - name: Lint
+        run: pnpm lint
+      - name: Strict typecheck
+        run: pnpm typecheck
+      - name: Tests
+        run: pnpm test:ci
+      - name: Production build
+        run: pnpm build
+      - name: Commit completed recovery
         run: |
-          set +e
-          pnpm lint > .agent/final-lint.txt 2>&1
-          status=$?
-          cat .agent/final-lint.txt
+          rm -f .github/workflows/agent-finalize.yml .github/workflows/agent-repository-recovery.yml
           git config user.name "OpenAI Agent"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .agent/final-lint.txt
-          git commit -m "chore: capture final lint diagnostics"
+          git add -A
+          git commit -m "Complete full design recovery"
           git push origin HEAD:agent/design-recovery
-          exit $status
