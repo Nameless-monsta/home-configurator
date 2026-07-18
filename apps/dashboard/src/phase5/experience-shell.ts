@@ -92,9 +92,13 @@ export class ExperienceShell {
         <span class="p5-nav-mark" aria-hidden="true"></span>
         <div class="p5-nav-items">
           <span class="p5-nav-pill" data-p5-nav-pill aria-hidden="true"></span>
-          ${NAV.map((item) => `<button class="p5-nav-item" data-p5-nav="${item.id}" aria-current="false" aria-label="${item.label}">
+          ${NAV.map(
+            (
+              item,
+            ) => `<button class="p5-nav-item" data-p5-nav="${item.id}" aria-current="false" aria-label="${item.label}">
               <svg viewBox="0 0 24 24" aria-hidden="true">${item.icon}</svg><span>${item.label}</span>
-            </button>`).join('')}
+            </button>`,
+          ).join('')}
         </div>
       </nav>
       <main class="p5-section" data-p5-section="home" data-active="true"></main>
@@ -115,7 +119,10 @@ export class ExperienceShell {
   }
 
   public attach(engine: GraphicsEngine): void {
-    this.#transition = new SpatialTransitionController({ root: this.#root, reducedMotion: this.#reducedMotion });
+    this.#transition = new SpatialTransitionController({
+      root: this.#root,
+      reducedMotion: this.#reducedMotion,
+    });
     this.#detail = new DeviceDetail({
       engine,
       surface: this.stage,
@@ -136,14 +143,19 @@ export class ExperienceShell {
     if (this.#refreshRaf) return;
     this.#refreshRaf = requestAnimationFrame(() => {
       this.#refreshRaf = 0;
-      if (this.#root.dataset['mode'] === 'detail') { this.#detail?.sync(); return; }
+      if (this.#root.dataset['mode'] === 'detail') {
+        this.#detail?.sync();
+        return;
+      }
       const nextKey = this.#structureKey();
       if (nextKey !== this.#structuralKey) this.#render();
       else this.#syncBrowse();
     });
   }
 
-  public tick(deltaMs: number): void { this.#detail?.tick(deltaMs); }
+  public tick(deltaMs: number): void {
+    this.#detail?.tick(deltaMs);
+  }
 
   #q<T extends HTMLElement = HTMLElement>(selector: string): T {
     const node = this.#root.querySelector<T>(selector);
@@ -151,13 +163,17 @@ export class ExperienceShell {
     return node;
   }
 
-  #announce(message: string): void { this.#q('[data-p5-announce]').textContent = message; }
+  #announce(message: string): void {
+    this.#q('[data-p5-announce]').textContent = message;
+  }
 
   #setSection(section: SectionId): void {
     this.#closeDetail();
     this.#section = section;
-    for (const node of this.#root.querySelectorAll<HTMLElement>('[data-p5-section]')) node.dataset['active'] = String(node.dataset['p5Section'] === section);
-    for (const button of this.#root.querySelectorAll<HTMLElement>('[data-p5-nav]')) button.setAttribute('aria-current', String(button.dataset['p5Nav'] === section));
+    for (const node of this.#root.querySelectorAll<HTMLElement>('[data-p5-section]'))
+      node.dataset['active'] = String(node.dataset['p5Section'] === section);
+    for (const button of this.#root.querySelectorAll<HTMLElement>('[data-p5-nav]'))
+      button.setAttribute('aria-current', String(button.dataset['p5Nav'] === section));
     const index = NAV.findIndex((item) => item.id === section);
     const pill = this.#q('[data-p5-nav-pill]');
     pill.style.width = `calc(${100 / NAV.length}% - 2px)`;
@@ -181,16 +197,27 @@ export class ExperienceShell {
     const favourites = this.#data.favourites();
     const carouselRoot = host.querySelector<HTMLElement>('[data-p5-favourite-carousel]');
     if (carouselRoot && favourites.length) {
-      const items: FavouriteCarouselItem[] = favourites.map((view) => ({ id: view.id, name: view.name, room: view.roomName, category: categoryLabel(view.category), status: primaryStatus(view) }));
+      const items: FavouriteCarouselItem[] = favourites.map((view) => ({
+        id: view.id,
+        name: view.name,
+        room: view.roomName,
+        category: categoryLabel(view.category),
+        status: primaryStatus(view),
+      }));
       this.#carousel = new FavouriteHeroCarousel({
         root: carouselRoot,
         items,
         mountHero: (mountHost, item) => this.#createPreview(mountHost, item.id, false),
         onSelect: (item, origin) => this.#openDetail(item.id, origin),
       });
-    } else if (carouselRoot) carouselRoot.innerHTML = '<p class="p5-empty">No favourite devices yet.</p>';
+    } else if (carouselRoot)
+      carouselRoot.innerHTML = '<p class="p5-empty">No favourite devices yet.</p>';
     const rail = host.querySelector<HTMLElement>('[data-p5-room-rail]');
-    if (rail) rail.innerHTML = this.#data.rooms().map((room) => roomChip(room.id, room.name, room.deviceIds.length)).join('');
+    if (rail)
+      rail.innerHTML = this.#data
+        .rooms()
+        .map((room) => roomChip(room.id, room.name, room.deviceIds.length))
+        .join('');
   }
 
   #renderRooms(): void {
@@ -201,11 +228,18 @@ export class ExperienceShell {
     if (!body) return;
     if (!this.#openRoomId) {
       if (title) title.textContent = 'Choose a space.';
-      body.innerHTML = `<div class="p5-room-rail">${this.#data.rooms().map((room) => roomChip(room.id, room.name, room.deviceIds.length)).join('')}</div>`;
+      body.innerHTML = `<div class="p5-room-rail">${this.#data
+        .rooms()
+        .map((room) => roomChip(room.id, room.name, room.deviceIds.length))
+        .join('')}</div>`;
       return;
     }
     const room = this.#data.rooms().find((entry) => entry.id === this.#openRoomId);
-    if (!room) { this.#openRoomId = null; this.#renderRooms(); return; }
+    if (!room) {
+      this.#openRoomId = null;
+      this.#renderRooms();
+      return;
+    }
     if (title) title.textContent = room.name;
     const devices = this.#data.devices().filter((device) => device.roomId === room.id);
     const byCategory = new Map<DeviceCategory, DeviceView[]>();
@@ -214,7 +248,14 @@ export class ExperienceShell {
       list.push(device);
       byCategory.set(device.category, list);
     }
-    body.innerHTML = `<button class="p5-back" data-p5-rooms-back>← Rooms</button>${CATEGORY_ORDER.filter((category) => byCategory.has(category)).map((category) => `${shelfHeading(category)}<div class="p5-shelf" data-p5-shelf="${category}"></div>`).join('')}`;
+    body.innerHTML = `<button class="p5-back" data-p5-rooms-back>← Rooms</button>${CATEGORY_ORDER.filter(
+      (category) => byCategory.has(category),
+    )
+      .map(
+        (category) =>
+          `${shelfHeading(category)}<div class="p5-shelf" data-p5-shelf="${category}"></div>`,
+      )
+      .join('')}`;
     for (const category of CATEGORY_ORDER) {
       const list = byCategory.get(category);
       const shelf = body.querySelector<HTMLElement>(`[data-p5-shelf="${category}"]`);
@@ -236,7 +277,13 @@ export class ExperienceShell {
 
   #createPreview(host: HTMLElement, deviceId: string, shellOwned: boolean): HeroPreview {
     const view = this.#data.device(deviceId);
-    const preview = new HeroPreview({ host, category: view?.category ?? 'appliance', capabilities: view?.capabilities ?? [], state: view?.state ?? defaultViewState(), reducedMotion: this.#reducedMotion });
+    const preview = new HeroPreview({
+      host,
+      category: view?.category ?? 'appliance',
+      capabilities: view?.capabilities ?? [],
+      state: view?.state ?? defaultViewState(),
+      reducedMotion: this.#reducedMotion,
+    });
     this.#previewRefs.set(deviceId, preview);
     if (shellOwned) this.#shelfPreviews.set(deviceId, preview);
     return preview;
@@ -250,19 +297,46 @@ export class ExperienceShell {
   }
 
   #structureKey(): string {
-    if (this.#section === 'home') return `home:${this.#data.favourites().map((view) => `${view.id}:${view.category}:${view.capabilities.join('.')}`).join(',')}:${this.#data.rooms().map((room) => `${room.id}:${room.deviceIds.length}`).join('|')}`;
-    if (!this.#openRoomId) return `rooms:index:${this.#data.rooms().map((room) => `${room.id}:${room.deviceIds.length}`).join('|')}`;
-    return `rooms:${this.#openRoomId}:${this.#data.devices().filter((view) => view.roomId === this.#openRoomId).map((view) => `${view.id}:${view.category}:${view.capabilities.join('.')}`).join(',')}`;
+    if (this.#section === 'home')
+      return `home:${this.#data
+        .favourites()
+        .map((view) => `${view.id}:${view.category}:${view.capabilities.join('.')}`)
+        .join(',')}:${this.#data
+        .rooms()
+        .map((room) => `${room.id}:${room.deviceIds.length}`)
+        .join('|')}`;
+    if (!this.#openRoomId)
+      return `rooms:index:${this.#data
+        .rooms()
+        .map((room) => `${room.id}:${room.deviceIds.length}`)
+        .join('|')}`;
+    return `rooms:${this.#openRoomId}:${this.#data
+      .devices()
+      .filter((view) => view.roomId === this.#openRoomId)
+      .map((view) => `${view.id}:${view.category}:${view.capabilities.join('.')}`)
+      .join(',')}`;
   }
 
   #syncBrowse(): void {
-    const views = this.#section === 'home' ? this.#data.favourites() : this.#data.devices().filter((view) => view.roomId === this.#openRoomId);
+    const views =
+      this.#section === 'home'
+        ? this.#data.favourites()
+        : this.#data.devices().filter((view) => view.roomId === this.#openRoomId);
     for (const view of views) {
       this.#previewRefs.get(view.id)?.update(view.state);
       const status = this.#statusRefs.get(view.id);
       if (status) status.textContent = primaryStatus(view);
     }
-    if (this.#section === 'home' && this.#carousel) this.#carousel.updateItems(views.map((view) => ({ id: view.id, name: view.name, room: view.roomName, category: categoryLabel(view.category), status: primaryStatus(view) })));
+    if (this.#section === 'home' && this.#carousel)
+      this.#carousel.updateItems(
+        views.map((view) => ({
+          id: view.id,
+          name: view.name,
+          room: view.roomName,
+          category: categoryLabel(view.category),
+          status: primaryStatus(view),
+        })),
+      );
   }
 
   #openDetail(deviceId: string, origin?: DOMRect): void {
@@ -283,16 +357,33 @@ export class ExperienceShell {
     const target = event.target as HTMLElement | null;
     if (!target) return;
     const nav = target.closest<HTMLElement>('[data-p5-nav]');
-    if (nav) { if (nav.dataset['p5Nav'] === 'rooms') this.#openRoomId = null; this.#setSection(nav.dataset['p5Nav'] as SectionId); return; }
+    if (nav) {
+      if (nav.dataset['p5Nav'] === 'rooms') this.#openRoomId = null;
+      this.#setSection(nav.dataset['p5Nav'] as SectionId);
+      return;
+    }
     const openRoom = target.closest<HTMLElement>('[data-p5-open-room]');
-    if (openRoom?.dataset['p5OpenRoom']) { this.#openRoomId = openRoom.dataset['p5OpenRoom']; this.#setSection('rooms'); return; }
-    if (target.closest('[data-p5-rooms-back]')) { this.#openRoomId = null; this.#render(); return; }
+    if (openRoom?.dataset['p5OpenRoom']) {
+      this.#openRoomId = openRoom.dataset['p5OpenRoom'];
+      this.#setSection('rooms');
+      return;
+    }
+    if (target.closest('[data-p5-rooms-back]')) {
+      this.#openRoomId = null;
+      this.#render();
+      return;
+    }
     const open = target.closest<HTMLElement>('[data-p5-open]');
-    if (open?.dataset['p5Open']) { this.#openDetail(open.dataset['p5Open'], open.getBoundingClientRect()); return; }
+    if (open?.dataset['p5Open']) {
+      this.#openDetail(open.dataset['p5Open'], open.getBoundingClientRect());
+      return;
+    }
     if (target.closest('[data-p5-close]')) this.#closeDetail();
   };
 
-  readonly #onKeydown = (event: KeyboardEvent): void => { if (event.key === 'Escape') this.#closeDetail(); };
+  readonly #onKeydown = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape') this.#closeDetail();
+  };
 
   public dispose(): void {
     if (this.#refreshRaf) cancelAnimationFrame(this.#refreshRaf);

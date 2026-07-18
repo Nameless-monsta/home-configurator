@@ -64,7 +64,8 @@ export const createDefaultLivingObjectRegistry = (): LivingObjectRegistry => {
         phase += deltaMs / 3600;
         response *= Math.pow(0.86, deltaMs / 16.67);
         const brightness = Number(context.state()['brightness'] ?? 0.5);
-        const breath = 1 + Math.sin(phase * Math.PI * 2) * (0.006 + brightness * 0.006) + response * 0.008;
+        const breath =
+          1 + Math.sin(phase * Math.PI * 2) * (0.006 + brightness * 0.006) + response * 0.008;
         context.object.scale.copy(baseScale).multiplyScalar(breath);
         context.object.rotation.y += deltaMs * 0.000045;
       },
@@ -82,7 +83,8 @@ export const createDefaultLivingObjectRegistry = (): LivingObjectRegistry => {
     return {
       tick(deltaMs) {
         settle *= Math.pow(0.82, deltaMs / 16.67);
-        if (!context.reducedMotion()) context.object.rotation.z = Math.sin(settle * Math.PI) * 0.006;
+        if (!context.reducedMotion())
+          context.object.rotation.z = Math.sin(settle * Math.PI) * 0.006;
       },
       pulse(strength = 1) {
         settle = Math.min(1, settle + strength * 0.45);

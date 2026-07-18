@@ -51,8 +51,12 @@ export class DeviceDetail {
     this.#options = options;
   }
 
-  public get open(): boolean { return this.#view !== null; }
-  public get deviceId(): string | null { return this.#view?.id ?? null; }
+  public get open(): boolean {
+    return this.#view !== null;
+  }
+  public get deviceId(): string | null {
+    return this.#view?.id ?? null;
+  }
 
   public show(deviceId: string): void {
     this.hide();
@@ -154,22 +158,32 @@ export class DeviceDetail {
       sphere.setSelection(view.state.hue, view.state.saturation);
       this.#detachers.push(sphere.bind(surface, engine.cameraRig.camera));
       this.#sphere = sphere;
-      this.#detachers.push(this.#verticalDrag(
-        (delta) => {
-          const next = Math.min(1, Math.max(0, (this.#view?.state.brightness ?? 0) - delta * 0.004));
-          this.#send(`brightness:${next.toFixed(3)}`, false);
-        },
-        () => this.#send(`brightness:${(this.#view?.state.brightness ?? 0).toFixed(3)}`, true),
-        () => !sphere.dragging,
-      ));
+      this.#detachers.push(
+        this.#verticalDrag(
+          (delta) => {
+            const next = Math.min(
+              1,
+              Math.max(0, (this.#view?.state.brightness ?? 0) - delta * 0.004),
+            );
+            this.#send(`brightness:${next.toFixed(3)}`, false);
+          },
+          () => this.#send(`brightness:${(this.#view?.state.brightness ?? 0).toFixed(3)}`, true),
+          () => !sphere.dragging,
+        ),
+      );
     } else if (view.category === 'light' && view.capabilities.includes('brightness')) {
-      this.#detachers.push(this.#verticalDrag(
-        (delta) => {
-          const next = Math.min(1, Math.max(0, (this.#view?.state.brightness ?? 0) - delta * 0.004));
-          this.#send(`brightness:${next.toFixed(3)}`, false);
-        },
-        () => this.#send(`brightness:${(this.#view?.state.brightness ?? 0).toFixed(3)}`, true),
-      ));
+      this.#detachers.push(
+        this.#verticalDrag(
+          (delta) => {
+            const next = Math.min(
+              1,
+              Math.max(0, (this.#view?.state.brightness ?? 0) - delta * 0.004),
+            );
+            this.#send(`brightness:${next.toFixed(3)}`, false);
+          },
+          () => this.#send(`brightness:${(this.#view?.state.brightness ?? 0).toFixed(3)}`, true),
+        ),
+      );
     } else if (view.category === 'climate' && view.capabilities.includes('targetTemperature')) {
       const ring = new ThermostatRing({
         hero: hero.object,
@@ -179,21 +193,28 @@ export class DeviceDetail {
       this.#detachers.push(ring.bind(surface, engine.cameraRig.camera));
       this.#ring = ring;
     } else if (view.category === 'cover') {
-      this.#detachers.push(this.#verticalDrag(
-        (delta) => {
-          const next = Math.min(100, Math.max(0, (this.#view?.state.position ?? 0) - delta * 0.4));
-          this.#send(`position:${Math.round(next)}`, false);
-        },
-        () => this.#send(`position:${Math.round((this.#view?.state.position ?? 0))}`, true),
-      ));
+      this.#detachers.push(
+        this.#verticalDrag(
+          (delta) => {
+            const next = Math.min(
+              100,
+              Math.max(0, (this.#view?.state.position ?? 0) - delta * 0.4),
+            );
+            this.#send(`position:${Math.round(next)}`, false);
+          },
+          () => this.#send(`position:${Math.round(this.#view?.state.position ?? 0)}`, true),
+        ),
+      );
     } else if (view.category === 'media' && view.capabilities.includes('volume')) {
-      this.#detachers.push(this.#verticalDrag(
-        (delta) => {
-          const next = Math.min(1, Math.max(0, (this.#view?.state.volume ?? 0) - delta * 0.004));
-          this.#send(`volume:${next.toFixed(3)}`, false);
-        },
-        () => this.#send(`volume:${(this.#view?.state.volume ?? 0).toFixed(3)}`, true),
-      ));
+      this.#detachers.push(
+        this.#verticalDrag(
+          (delta) => {
+            const next = Math.min(1, Math.max(0, (this.#view?.state.volume ?? 0) - delta * 0.004));
+            this.#send(`volume:${next.toFixed(3)}`, false);
+          },
+          () => this.#send(`volume:${(this.#view?.state.volume ?? 0).toFixed(3)}`, true),
+        ),
+      );
     } else if (view.category === 'security' && view.capabilities.includes('lock')) {
       this.#detachers.push(this.#hold(650, () => this.#send('lock.toggle', true)));
     }
@@ -216,13 +237,15 @@ export class DeviceDetail {
     const promise = dispatchAction(this.#options.sink, this.#view, action);
     this.#behaviour?.pulse?.(0.6);
     if (!promise) return;
-    void promise.then((receipt) => {
-      if (receipt.state === 'failed' || receipt.state === 'timed-out') {
-        this.#options.onError(receipt.error?.userMessage ?? 'Command failed');
-      }
-    }).catch((error: unknown) => {
-      this.#options.onError(error instanceof Error ? error.message : 'Command failed');
-    });
+    void promise
+      .then((receipt) => {
+        if (receipt.state === 'failed' || receipt.state === 'timed-out') {
+          this.#options.onError(receipt.error?.userMessage ?? 'Command failed');
+        }
+      })
+      .catch((error: unknown) => {
+        this.#options.onError(error instanceof Error ? error.message : 'Command failed');
+      });
     if (final) window.setTimeout(() => this.sync(), 60);
   }
 
@@ -248,7 +271,8 @@ export class DeviceDetail {
     const up = (event: PointerEvent): void => {
       if (active) onEnd();
       active = false;
-      if (surface.hasPointerCapture(event.pointerId)) surface.releasePointerCapture(event.pointerId);
+      if (surface.hasPointerCapture(event.pointerId))
+        surface.releasePointerCapture(event.pointerId);
     };
     surface.addEventListener('pointerdown', down);
     surface.addEventListener('pointermove', move);
@@ -267,8 +291,13 @@ export class DeviceDetail {
   #hold(durationMs: number, onHold: () => void): () => void {
     const surface = this.#options.surface;
     let timer: ReturnType<typeof setTimeout> | null = null;
-    const down = (): void => { timer = setTimeout(onHold, durationMs); };
-    const cancel = (): void => { if (timer) clearTimeout(timer); timer = null; };
+    const down = (): void => {
+      timer = setTimeout(onHold, durationMs);
+    };
+    const cancel = (): void => {
+      if (timer) clearTimeout(timer);
+      timer = null;
+    };
     surface.addEventListener('pointerdown', down);
     surface.addEventListener('pointerup', cancel);
     surface.addEventListener('pointercancel', cancel);
@@ -292,17 +321,46 @@ export class DeviceDetail {
     let primary = '';
     let unit = '';
     switch (view.category) {
-      case 'light': primary = s.on ? String(Math.round(s.brightness * 100)) : 'Off'; unit = s.on ? '% brightness' : ''; break;
-      case 'climate': primary = s.targetTemp.toFixed(1); unit = `° target · now ${s.currentTemp.toFixed(1)}°`; break;
-      case 'cover': primary = String(Math.round(s.position)); unit = '% open'; break;
-      case 'media': primary = s.playing ? 'Playing' : 'Paused'; unit = `${Math.round(s.volume * 100)}% volume`; break;
-      case 'security': primary = view.capabilities.includes('lock') ? (s.locked ? 'Locked' : 'Unlocked') : (s.privacy ? 'Privacy' : 'Live'); break;
-      case 'cleaning': primary = s.cleaning ? 'Cleaning' : s.docked ? 'Docked' : 'Paused'; unit = `${Math.round(s.battery)}% battery`; break;
-      case 'sensor': primary = s.reading || s.currentTemp.toFixed(1); break;
-      case 'appliance': primary = s.on ? 'On' : 'Off'; break;
+      case 'light':
+        primary = s.on ? String(Math.round(s.brightness * 100)) : 'Off';
+        unit = s.on ? '% brightness' : '';
+        break;
+      case 'climate':
+        primary = s.targetTemp.toFixed(1);
+        unit = `° target · now ${s.currentTemp.toFixed(1)}°`;
+        break;
+      case 'cover':
+        primary = String(Math.round(s.position));
+        unit = '% open';
+        break;
+      case 'media':
+        primary = s.playing ? 'Playing' : 'Paused';
+        unit = `${Math.round(s.volume * 100)}% volume`;
+        break;
+      case 'security':
+        primary = view.capabilities.includes('lock')
+          ? s.locked
+            ? 'Locked'
+            : 'Unlocked'
+          : s.privacy
+            ? 'Privacy'
+            : 'Live';
+        break;
+      case 'cleaning':
+        primary = s.cleaning ? 'Cleaning' : s.docked ? 'Docked' : 'Paused';
+        unit = `${Math.round(s.battery)}% battery`;
+        break;
+      case 'sensor':
+        primary = s.reading || s.currentTemp.toFixed(1);
+        break;
+      case 'appliance':
+        primary = s.on ? 'On' : 'Off';
+        break;
     }
     const unavailable = !s.available ? '<span class="p5-readout-flag">Unavailable</span>' : '';
-    const pending = s.pending ? '<span class="p5-readout-flag" data-pending="true">Updating</span>' : '';
+    const pending = s.pending
+      ? '<span class="p5-readout-flag" data-pending="true">Updating</span>'
+      : '';
     this.#options.readoutEl.innerHTML = `
       <div class="p5-readout" role="status" aria-live="polite">
         <strong>${primary}</strong><span>${unit}</span>${pending}${unavailable}

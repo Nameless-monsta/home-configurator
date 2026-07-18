@@ -106,7 +106,9 @@ export class ColourSphere {
     this.setLuminosity(this.#luminosity);
   }
 
-  public get dragging(): boolean { return this.#dragging; }
+  public get dragging(): boolean {
+    return this.#dragging;
+  }
 
   public setLuminosity(value: number): void {
     this.#luminosity = Math.min(1, Math.max(0, value));

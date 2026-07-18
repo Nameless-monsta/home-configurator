@@ -1,5 +1,12 @@
 /** Lightweight standalone hero preview for carousel and shelf cards. */
-import { AmbientLight, DirectionalLight, Group, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
+import {
+  AmbientLight,
+  DirectionalLight,
+  Group,
+  PerspectiveCamera,
+  Scene,
+  WebGLRenderer,
+} from 'three';
 import type { FavouriteHeroMount } from './favourite-carousel.js';
 import { createHero, type HeroHandle } from './hero-models.js';
 import type { DeviceCategory, DeviceViewState } from './experience-model.js';
@@ -70,15 +77,23 @@ export class HeroPreview implements FavouriteHeroMount {
 
     try {
       const canvas = document.createElement('canvas');
-      this.#renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' });
+      this.#renderer = new WebGLRenderer({
+        canvas,
+        antialias: true,
+        alpha: true,
+        powerPreference: 'low-power',
+      });
       this.#renderer.setClearColor(0x000000, 0);
       this.#host.appendChild(canvas);
       shared.count += 1;
-      this.#resizeObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver((entries) => {
-        const entry = entries[0];
-        if (!entry) return;
-        this.#resize(entry.contentRect.width, entry.contentRect.height);
-      });
+      this.#resizeObserver =
+        typeof ResizeObserver === 'undefined'
+          ? null
+          : new ResizeObserver((entries) => {
+              const entry = entries[0];
+              if (!entry) return;
+              this.#resize(entry.contentRect.width, entry.contentRect.height);
+            });
       this.#resizeObserver?.observe(this.#host);
       const rect = this.#host.getBoundingClientRect();
       this.#resize(rect.width, rect.height);
@@ -148,6 +163,11 @@ export class HeroPreview implements FavouriteHeroMount {
     this.#raf = requestAnimationFrame(loop);
   }
 
-  #stop(): void { if (this.#raf) cancelAnimationFrame(this.#raf); this.#raf = 0; }
-  #renderFrame(): void { if (this.#renderer && !this.#disposed) this.#renderer.render(this.#scene, this.#camera); }
+  #stop(): void {
+    if (this.#raf) cancelAnimationFrame(this.#raf);
+    this.#raf = 0;
+  }
+  #renderFrame(): void {
+    if (this.#renderer && !this.#disposed) this.#renderer.render(this.#scene, this.#camera);
+  }
 }

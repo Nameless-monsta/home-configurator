@@ -335,13 +335,21 @@ export const createHero = (
   capabilities: readonly string[],
 ): HeroHandle => {
   switch (category) {
-    case 'light': return lightHero();
-    case 'climate': return climateHero();
-    case 'cover': return coverHero();
-    case 'media': return mediaHero();
-    case 'security': return securityHero(capabilities.includes('lock'));
-    case 'cleaning': return cleaningHero();
-    case 'sensor': return sensorHero();
-    case 'appliance': return applianceHero();
+    case 'light':
+      return lightHero();
+    case 'climate':
+      return climateHero();
+    case 'cover':
+      return coverHero();
+    case 'media':
+      return mediaHero();
+    case 'security':
+      return securityHero(capabilities.includes('lock'));
+    case 'cleaning':
+      return cleaningHero();
+    case 'sensor':
+      return sensorHero();
+    case 'appliance':
+      return applianceHero();
   }
 };

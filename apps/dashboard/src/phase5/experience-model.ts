@@ -38,11 +38,29 @@ export interface DeviceViewState {
 }
 
 export const defaultViewState = (): DeviceViewState => ({
-  on: false, available: true, brightness: 0.5, hue: 38, saturation: 40,
-  colourTempK: 3200, targetTemp: 22, currentTemp: 22, humidity: 45,
-  hvac: 'off', fan: 'auto', volume: 0.3, playing: false, source: '',
-  position: 0, locked: true, cleaning: false, docked: true, battery: 100,
-  privacy: false, recording: false, reading: '', pending: false,
+  on: false,
+  available: true,
+  brightness: 0.5,
+  hue: 38,
+  saturation: 40,
+  colourTempK: 3200,
+  targetTemp: 22,
+  currentTemp: 22,
+  humidity: 45,
+  hvac: 'off',
+  fan: 'auto',
+  volume: 0.3,
+  playing: false,
+  source: '',
+  position: 0,
+  locked: true,
+  cleaning: false,
+  docked: true,
+  battery: 100,
+  privacy: false,
+  recording: false,
+  reading: '',
+  pending: false,
 });
 
 export interface DeviceView {
@@ -75,7 +93,14 @@ const READABLE_CATEGORY: Record<DeviceCategory, string> = {
 };
 
 export const CATEGORY_ORDER: readonly DeviceCategory[] = [
-  'light', 'climate', 'cover', 'media', 'security', 'cleaning', 'appliance', 'sensor',
+  'light',
+  'climate',
+  'cover',
+  'media',
+  'security',
+  'cleaning',
+  'appliance',
+  'sensor',
 ];
 
 export const categoryLabel = (category: DeviceCategory): string => READABLE_CATEGORY[category];
@@ -90,11 +115,14 @@ export const deriveCategory = (device: CanonicalDevice): DeviceCategory => {
   if (domains.includes('camera')) return 'security';
   if (has(caps, 'vacuumCleaning') || has(caps, 'vacuumReturnHome')) return 'cleaning';
   if (has(caps, 'coverPosition') || domains.includes('cover')) return 'cover';
-  if (has(caps, 'targetTemperature') || has(caps, 'hvacMode') || domains.includes('climate')) return 'climate';
-  if (has(caps, 'mediaPlayback') || has(caps, 'volume') || domains.includes('media_player')) return 'media';
+  if (has(caps, 'targetTemperature') || has(caps, 'hvacMode') || domains.includes('climate'))
+    return 'climate';
+  if (has(caps, 'mediaPlayback') || has(caps, 'volume') || domains.includes('media_player'))
+    return 'media';
   if (has(caps, 'brightness') || has(caps, 'color') || domains.includes('light')) return 'light';
   if (domains.some((domain) => domain === 'switch' || domain === 'fan')) return 'appliance';
-  if (has(caps, 'sensor') || domains.includes('sensor') || domains.includes('binary_sensor')) return 'sensor';
+  if (has(caps, 'sensor') || domains.includes('sensor') || domains.includes('binary_sensor'))
+    return 'sensor';
   return 'appliance';
 };
 
@@ -154,15 +182,22 @@ export const primaryStatus = (view: DeviceView): string => {
   const s = view.state;
   if (!s.available) return 'Unavailable';
   switch (view.category) {
-    case 'light': return s.on ? `${Math.round(s.brightness * 100)}%` : 'Off';
-    case 'climate': return s.hvac === 'off' ? 'Off' : `${Math.round(s.targetTemp)}° · ${s.hvac}`;
-    case 'cover': return s.position <= 1 ? 'Closed' : `${Math.round(s.position)}% open`;
-    case 'media': return s.playing ? 'Playing' : 'Idle';
+    case 'light':
+      return s.on ? `${Math.round(s.brightness * 100)}%` : 'Off';
+    case 'climate':
+      return s.hvac === 'off' ? 'Off' : `${Math.round(s.targetTemp)}° · ${s.hvac}`;
+    case 'cover':
+      return s.position <= 1 ? 'Closed' : `${Math.round(s.position)}% open`;
+    case 'media':
+      return s.playing ? 'Playing' : 'Idle';
     case 'security':
       if (view.capabilities.includes('lock')) return s.locked ? 'Locked' : 'Unlocked';
       return s.privacy ? 'Privacy' : s.recording ? 'Recording' : 'Idle';
-    case 'cleaning': return s.cleaning ? 'Cleaning' : s.docked ? 'Docked' : 'Paused';
-    case 'sensor': return s.reading || `${s.currentTemp.toFixed(1)}°`;
-    case 'appliance': return s.on ? 'On' : 'Off';
+    case 'cleaning':
+      return s.cleaning ? 'Cleaning' : s.docked ? 'Docked' : 'Paused';
+    case 'sensor':
+      return s.reading || `${s.currentTemp.toFixed(1)}°`;
+    case 'appliance':
+      return s.on ? 'On' : 'Off';
   }
 };
