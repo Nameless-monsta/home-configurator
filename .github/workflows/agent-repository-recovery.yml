@@ -1,44 +1,115 @@
-name: Diagnose design recovery payload
+name: Apply and validate design recovery
 
 on:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  diagnose:
+  apply-and-validate:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: agent/design-recovery
-          fetch-depth: 1
-      - name: Diagnose payload
-        shell: bash
+          fetch-depth: 0
+      - name: Reconstruct recovered experience
         run: |
-          set +e
-          {
-            cat .agent/design-recovery.part* > /tmp/design-recovery.b64
-            wc -c /tmp/design-recovery.b64
-            sha256sum /tmp/design-recovery.b64
-            base64 --decode /tmp/design-recovery.b64 > /tmp/design-recovery.patch.gz
-            echo "base64=$?"
-            gzip --test /tmp/design-recovery.patch.gz
-            echo "gzip=$?"
-            gzip --decompress --stdout /tmp/design-recovery.patch.gz > /tmp/design-recovery.patch
-            wc -c /tmp/design-recovery.patch
-            sha256sum /tmp/design-recovery.patch
-            git apply --check --3way /tmp/design-recovery.patch
-            echo "apply=$?"
-          } > .agent/apply-diagnostic.txt 2>&1
-          cat .agent/apply-diagnostic.txt
+          cat .agent/chunks/shell.* > apps/dashboard/src/phase5/experience-shell.ts
+          cat .agent/chunks/css.* > apps/dashboard/src/phase5/iyo-fidelity-v2.css
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/dashboard/src/phase5/device-model-registry.ts')
+          source = path.read_text()
+          source = source.replace(
+          """const mergeTransform = (
+            ...values: Array<Partial<DeviceModelTransform> | undefined>
+          ): DeviceModelTransform => {
+            const merged = Object.assign({}, DEFAULT_TRANSFORM, ...values);
+            return {
+              scale: finite(merged.scale, 1),
+              rotation: tuple(merged.rotation, [0, 0, 0]),
+              offset: tuple(merged.offset, [0, 0, 0]),
+              roughness: clamp(finite(merged.roughness, 0.42), 0, 1),
+              metalness: clamp(finite(merged.metalness, 0.12), 0, 1),
+              tint: typeof merged.tint === 'string' ? merged.tint : '#ffffff',
+            };
+          };""",
+          """const mergeTransform = (
+            ...values: Array<Partial<DeviceModelTransform> | undefined>
+          ): DeviceModelTransform => {
+            let scale = DEFAULT_TRANSFORM.scale;
+            let rotation = DEFAULT_TRANSFORM.rotation;
+            let offset = DEFAULT_TRANSFORM.offset;
+            let roughness = DEFAULT_TRANSFORM.roughness;
+            let metalness = DEFAULT_TRANSFORM.metalness;
+            let tint = DEFAULT_TRANSFORM.tint;
+            for (const value of values) {
+              if (!value) continue;
+              scale = value.scale ?? scale;
+              rotation = value.rotation ?? rotation;
+              offset = value.offset ?? offset;
+              roughness = value.roughness ?? roughness;
+              metalness = value.metalness ?? metalness;
+              tint = value.tint ?? tint;
+            }
+            return {
+              scale: finite(scale, 1),
+              rotation: tuple(rotation, [0, 0, 0]),
+              offset: tuple(offset, [0, 0, 0]),
+              roughness: clamp(finite(roughness, 0.42), 0, 1),
+              metalness: clamp(finite(metalness, 0.12), 0, 1),
+              tint,
+            };
+          };"""
+          )
+          source = source.replace(
+          """const disposeObject = (object: Object3D): void => {
+            object.traverse((node) => {
+              if (!(node instanceof Mesh)) return;
+              node.geometry.dispose();
+              const materials: Material[] = Array.isArray(node.material) ? node.material : [node.material];
+              materials.forEach((material) => material.dispose());
+            });
+          };""",
+          """const disposeObject = (object: Object3D): void => {
+            object.traverse((node) => {
+              if (!(node instanceof Mesh)) return;
+              const mesh = node as Mesh;
+              mesh.geometry.dispose();
+              const material = mesh.material as Material | Material[];
+              const materials = Array.isArray(material) ? material : [material];
+              materials.forEach((entry) => entry.dispose());
+            });
+          };"""
+          )
+          path.write_text(source)
+          PY
+          rm -rf .agent
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.13.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm format
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test:ci
+      - run: pnpm build
+      - name: Commit completed recovery
+        run: |
+          rm .github/workflows/agent-repository-recovery.yml
           git config user.name "OpenAI Agent"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .agent/apply-diagnostic.txt
-          git commit -m "chore: capture design recovery diagnostics"
+          git add -A
+          git commit -m "Complete full design recovery"
           git push origin HEAD:agent/design-recovery
-          exit 1
