@@ -1,0 +1,2 @@
+  state: { on: false, available: false, brightness: 0, hue: 0, saturation: 0, colourTempK: 3200, targetTemp: 22, currentTemp: 22, humidity: 45, hvac: 'off', fan: 'auto', volume: 0, playing: false, source: '', position: 0, locked: true, cleaning: false, docked: true, battery: 0, privacy: false, recording: false, reading: '', pending: false },
+});
