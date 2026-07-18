@@ -1,48 +1,13 @@
-name: Agent repository recovery
+name: Agent design recovery staging
 
 on:
-  push:
-    branches: [agent/design-recovery]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  recover:
+  staged:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Create full-history bundle
-        run: |
-          git bundle create home-configurator.bundle --all
-          git archive --format=zip --output=home-configurator-worktree.zip HEAD
-      - uses: actions/upload-artifact@v4
-        with:
-          name: home-configurator-repository
-          path: |
-            home-configurator.bundle
-            home-configurator-worktree.zip
-          retention-days: 1
-
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.13.1
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm format:check
-      - run: pnpm lint
-      - run: pnpm typecheck
-      - run: pnpm test:ci
-      - run: pnpm build
+      - run: echo "Design recovery payload staged."
