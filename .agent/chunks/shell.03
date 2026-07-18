@@ -61,9 +61,9 @@
     const form = this.#query<HTMLFormElement>('[data-p5-model-form]');
     const data = new FormData(form);
     const current = this.#models.config(deviceId);
-    const source = String(data.get('source') ?? 'automatic') as DeviceModelSource;
-    const libraryId = String(data.get('libraryId') ?? '');
-    const url = String(data.get('url') ?? '');
+    const source = modelSource(formString(data, 'source', 'automatic'));
+    const libraryId = formString(data, 'libraryId', '');
+    const url = formString(data, 'url', '');
     return {
       source,
       ...(libraryId ? { libraryId } : {}),
@@ -75,7 +75,7 @@
         offset: [current.transform.offset[0], numberValue(data, 'offsetY', 0), current.transform.offset[2]],
         roughness: numberValue(data, 'roughness', 0.42),
         metalness: numberValue(data, 'metalness', 0.12),
-        tint: String(data.get('tint') ?? '#ffffff'),
+        tint: formString(data, 'tint', '#ffffff'),
       },
     };
   }
