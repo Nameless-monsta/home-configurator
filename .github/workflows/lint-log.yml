@@ -19,7 +19,11 @@ jobs:
       - run: pnpm install --no-frozen-lockfile
       - name: Capture lint output
         run: pnpm lint > lint.log 2>&1 || true
+      - name: Capture typecheck output
+        run: pnpm typecheck > typecheck.log 2>&1 || true
       - uses: actions/upload-artifact@v4
         with:
           name: interaction-lint-log
-          path: lint.log
+          path: |
+            lint.log
+            typecheck.log
