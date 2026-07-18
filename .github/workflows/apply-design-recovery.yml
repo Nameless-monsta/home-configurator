@@ -1,0 +1,62 @@
+name: Apply design recovery import
+
+on:
+  push:
+    branches:
+      - design-recovery-v3
+    paths:
+      - '.github/recovery/**'
+      - '.github/workflows/apply-design-recovery.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: design-recovery-import
+  cancel-in-progress: true
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check import payload
+        id: payload
+        shell: bash
+        run: |
+          required=(
+            .github/recovery/part-00
+            .github/recovery/part-01
+            .github/recovery/part-02
+            .github/recovery/part-03
+            .github/recovery/part-04
+          )
+          for file in "${required[@]}"; do
+            if [[ ! -f "$file" ]]; then
+              echo "ready=false" >> "$GITHUB_OUTPUT"
+              echo "Waiting for complete recovery payload."
+              exit 0
+            fi
+          done
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - name: Apply exact reviewed patch
+        if: steps.payload.outputs.ready == 'true'
+        shell: bash
+        run: |
+          cat .github/recovery/part-* > /tmp/design-recovery.patch.gz.b64
+          echo '13c286e7d26f239f012fbc5d32f76e63dd16d77b9d0e40bb0fd75708e569a7ae  /tmp/design-recovery.patch.gz.b64' | sha256sum --check -
+          base64 --decode /tmp/design-recovery.patch.gz.b64 | gzip --decompress > /tmp/design-recovery.patch
+          echo '8265b5b9bde4d37c343573e61ab4919de5acf4638bb03b63d61e02a2c898b587  /tmp/design-recovery.patch' | sha256sum --check -
+          git apply --check /tmp/design-recovery.patch
+          git apply --index /tmp/design-recovery.patch
+          rm -rf .github/recovery .github/workflows/apply-design-recovery.yml
+          git add -A
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Full design recovery: persistent stage, navigation, Home, Rooms, model fidelity'
+          git push origin HEAD:design-recovery-v3
