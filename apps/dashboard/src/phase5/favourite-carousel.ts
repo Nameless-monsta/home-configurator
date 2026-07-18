@@ -9,6 +9,7 @@ export interface FavouriteCarouselItem {
 export interface FavouriteHeroMount {
   dispose(): void;
   setActive(active: boolean): void;
+  update?(state: unknown): void;
 }
 
 export interface FavouriteHeroCarouselOptions {
@@ -21,7 +22,7 @@ export interface FavouriteHeroCarouselOptions {
 
 export class FavouriteHeroCarousel {
   readonly #root: HTMLElement;
-  readonly #items: readonly FavouriteCarouselItem[];
+  #items: readonly FavouriteCarouselItem[];
   readonly #mountHero: FavouriteHeroCarouselOptions['mountHero'];
   readonly #onSelect: FavouriteHeroCarouselOptions['onSelect'];
   readonly #onActiveChange?: FavouriteHeroCarouselOptions['onActiveChange'];
@@ -58,15 +59,30 @@ export class FavouriteHeroCarousel {
     this.#setActive(0);
   }
 
-  public get activeIndex(): number {
-    return this.#activeIndex;
-  }
+  public get activeIndex(): number { return this.#activeIndex; }
 
   public focusIndex(index: number, smooth = true): void {
     const clamped = Math.min(this.#items.length - 1, Math.max(0, index));
     const card = this.#root.querySelector<HTMLElement>(`[data-p5-hero-index="${clamped}"]`);
     card?.scrollIntoView({ behavior: smooth ? 'smooth' : 'instant', block: 'nearest', inline: 'center' });
     this.#setActive(clamped);
+  }
+
+  public updateItems(items: readonly FavouriteCarouselItem[]): void {
+    if (items.length !== this.#items.length || items.some((item, index) => item.id !== this.#items[index]?.id)) {
+      throw new Error('Carousel structure changed; rebuild required');
+    }
+    this.#items = items;
+    for (const item of items) {
+      const card = this.#root.querySelector<HTMLElement>(`[data-p5-hero-item="${item.id}"]`);
+      if (!card) continue;
+      const label = card.querySelector<HTMLElement>('.p5-label');
+      const name = card.querySelector<HTMLElement>('.p5-hero-copy strong');
+      const status = card.querySelector<HTMLElement>('.p5-hero-copy > span:last-child');
+      if (label) label.textContent = `${item.room} · ${item.category}`;
+      if (name) name.textContent = item.name;
+      if (status) status.textContent = item.status;
+    }
   }
 
   public dispose(): void {
@@ -93,9 +109,7 @@ export class FavouriteHeroCarousel {
   }
 
   readonly #onIntersection = (entries: IntersectionObserverEntry[]): void => {
-    const visible = entries
-      .filter((entry) => entry.isIntersecting)
-      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
     if (!visible) return;
     const index = Number((visible.target as HTMLElement).dataset['p5HeroIndex']);
     if (Number.isFinite(index)) this.#setActive(index);
@@ -113,11 +127,7 @@ export class FavouriteHeroCarousel {
   readonly #onKeydown = (event: KeyboardEvent): void => {
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight' && event.key !== 'Home' && event.key !== 'End') return;
     event.preventDefault();
-    const next = event.key === 'Home'
-      ? 0
-      : event.key === 'End'
-        ? this.#items.length - 1
-        : this.#activeIndex + (event.key === 'ArrowRight' ? 1 : -1);
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? this.#items.length - 1 : this.#activeIndex + (event.key === 'ArrowRight' ? 1 : -1);
     this.focusIndex(next);
   };
 
