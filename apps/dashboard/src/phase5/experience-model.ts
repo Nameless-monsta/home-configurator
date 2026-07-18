@@ -68,6 +68,9 @@ export interface DeviceView {
   readonly name: string;
   readonly roomId: string;
   readonly roomName: string;
+  readonly manufacturer?: string;
+  readonly model?: string;
+  readonly entityIds: readonly string[];
   readonly category: DeviceCategory;
   readonly capabilities: readonly CapabilityKind[];
   readonly favourite: boolean;
