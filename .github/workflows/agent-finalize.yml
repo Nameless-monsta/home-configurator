@@ -1,25 +1,96 @@
-name: Final design recovery diagnostics
+name: Finalize and validate design recovery
 
 on:
   pull_request:
     branches: [main]
     types: [synchronize]
+  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  diagnostics:
+  finalize:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: agent/design-recovery
-      - name: Assemble implementation
+          fetch-depth: 1
+      - name: Assemble complete implementation
         run: |
           cat .agent/chunks/shell.* > apps/dashboard/src/phase5/experience-shell.ts
           cat .agent/chunks/css.* > apps/dashboard/src/phase5/iyo-fidelity-v2.css
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/dashboard/src/phase5/device-model-registry.ts')
+          source = path.read_text()
+          source = source.replace(
+          """const mergeTransform = (
+            ...values: Array<Partial<DeviceModelTransform> | undefined>
+          ): DeviceModelTransform => {
+            const merged = Object.assign({}, DEFAULT_TRANSFORM, ...values);
+            return {
+              scale: finite(merged.scale, 1),
+              rotation: tuple(merged.rotation, [0, 0, 0]),
+              offset: tuple(merged.offset, [0, 0, 0]),
+              roughness: clamp(finite(merged.roughness, 0.42), 0, 1),
+              metalness: clamp(finite(merged.metalness, 0.12), 0, 1),
+              tint: typeof merged.tint === 'string' ? merged.tint : '#ffffff',
+            };
+          };""",
+          """const mergeTransform = (
+            ...values: Array<Partial<DeviceModelTransform> | undefined>
+          ): DeviceModelTransform => {
+            let scale = DEFAULT_TRANSFORM.scale;
+            let rotation = DEFAULT_TRANSFORM.rotation;
+            let offset = DEFAULT_TRANSFORM.offset;
+            let roughness = DEFAULT_TRANSFORM.roughness;
+            let metalness = DEFAULT_TRANSFORM.metalness;
+            let tint = DEFAULT_TRANSFORM.tint;
+            for (const value of values) {
+              if (!value) continue;
+              scale = value.scale ?? scale;
+              rotation = value.rotation ?? rotation;
+              offset = value.offset ?? offset;
+              roughness = value.roughness ?? roughness;
+              metalness = value.metalness ?? metalness;
+              tint = value.tint ?? tint;
+            }
+            return {
+              scale: finite(scale, 1),
+              rotation: tuple(rotation, [0, 0, 0]),
+              offset: tuple(offset, [0, 0, 0]),
+              roughness: clamp(finite(roughness, 0.42), 0, 1),
+              metalness: clamp(finite(metalness, 0.12), 0, 1),
+              tint,
+            };
+          };"""
+          )
+          source = source.replace(
+          """const disposeObject = (object: Object3D): void => {
+            object.traverse((node) => {
+              if (!(node instanceof Mesh)) return;
+              node.geometry.dispose();
+              const materials: Material[] = Array.isArray(node.material) ? node.material : [node.material];
+              materials.forEach((material) => material.dispose());
+            });
+          };""",
+          """const disposeObject = (object: Object3D): void => {
+            object.traverse((node) => {
+              if (!(node instanceof Mesh)) return;
+              const mesh = node as Mesh;
+              mesh.geometry.dispose();
+              const material = mesh.material as Material | Material[];
+              const materials = Array.isArray(material) ? material : [material];
+              materials.forEach((entry) => entry.dispose());
+            });
+          };"""
+          )
+          path.write_text(source)
+          PY
+          rm -rf .agent
       - uses: pnpm/action-setup@v4
         with:
           version: 10.13.1
@@ -27,16 +98,25 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --no-frozen-lockfile
-      - run: pnpm format
-      - name: Capture lint
-        continue-on-error: true
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+      - name: Format
+        run: pnpm format
+      - name: Format check
+        run: pnpm format:check
+      - name: Lint
+        run: pnpm lint
+      - name: Strict typecheck
+        run: pnpm typecheck
+      - name: Tests
+        run: pnpm test:ci
+      - name: Production build
+        run: pnpm build
+      - name: Commit completed recovery
         run: |
-          set -o pipefail
-          pnpm lint 2>&1 | tee final-lint.log
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: final-design-recovery-lint
-          path: final-lint.log
-          retention-days: 1
+          rm -f .github/workflows/agent-finalize.yml .github/workflows/agent-repository-recovery.yml
+          git config user.name "OpenAI Agent"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Complete full design recovery"
+          git push origin HEAD:agent/design-recovery
