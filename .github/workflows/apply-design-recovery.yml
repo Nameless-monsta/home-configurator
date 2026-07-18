@@ -33,6 +33,7 @@ jobs:
             .github/recovery/part-02
             .github/recovery/part-03
             .github/recovery/part-04
+            .github/recovery/part-05
           )
           for file in "${required[@]}"; do
             if [[ ! -f "$file" ]]; then
@@ -47,9 +48,7 @@ jobs:
         if: steps.payload.outputs.ready == 'true'
         shell: bash
         run: |
-          cat .github/recovery/part-* > /tmp/design-recovery.patch.gz.b64
-          echo '13c286e7d26f239f012fbc5d32f76e63dd16d77b9d0e40bb0fd75708e569a7ae  /tmp/design-recovery.patch.gz.b64' | sha256sum --check -
-          base64 --decode /tmp/design-recovery.patch.gz.b64 | gzip --decompress > /tmp/design-recovery.patch
+          cat .github/recovery/part-* > /tmp/design-recovery.patch
           echo '8265b5b9bde4d37c343573e61ab4919de5acf4638bb03b63d61e02a2c898b587  /tmp/design-recovery.patch' | sha256sum --check -
           git apply --check /tmp/design-recovery.patch
           git apply --index /tmp/design-recovery.patch
