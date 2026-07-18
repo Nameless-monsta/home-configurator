@@ -30,6 +30,19 @@ jobs:
         shell: bash
         run: test -f .github/recovery/complete
 
+      - name: Record payload diagnostics
+        shell: bash
+        run: |
+          sha256sum .github/recovery/part-* > .github/recovery/actual-sha.txt
+          wc -c .github/recovery/part-* >> .github/recovery/actual-sha.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/recovery/actual-sha.txt
+          if ! git diff --cached --quiet; then
+            git commit -m 'Record recovery payload diagnostics'
+            git push origin HEAD:design-recovery-v3
+          fi
+
       - name: Assemble recovery patch
         shell: bash
         run: |
