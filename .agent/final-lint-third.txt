@@ -1,0 +1,82 @@
+
+> home-configurator@0.7.2 lint /home/runner/work/home-configurator/home-configurator
+> turbo run lint
+
+
+Attention:
+Turborepo now collects completely anonymous telemetry regarding usage.
+This information is used to shape the Turborepo roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://turborepo.dev/docs/telemetry
+
+
+   • Packages in scope: @home-configurator/dashboard, @home-configurator/graphics, @home-configurator/home-assistant, @home-configurator/interaction, @home-configurator/runtime, @home-configurator/shared, @home-configurator/ui
+   • Running lint in 7 packages
+   • Remote caching disabled
+
+::group::@home-configurator/shared:lint
+cache miss, executing 47b7bcba25b3d07d
+
+> @home-configurator/shared@0.0.0 lint /home/runner/work/home-configurator/home-configurator/packages/shared
+> eslint src test
+
+::endgroup::
+::group::@home-configurator/runtime:lint
+cache miss, executing 058e2ee58b67c1d7
+
+> @home-configurator/runtime@0.7.2 lint /home/runner/work/home-configurator/home-configurator/packages/runtime
+> eslint src test
+
+::endgroup::
+::group::@home-configurator/home-assistant:lint
+cache miss, executing 64e6885a8eba025e
+
+> @home-configurator/home-assistant@0.7.2 lint /home/runner/work/home-configurator/home-configurator/packages/home-assistant
+> eslint src test
+
+::endgroup::
+::group::@home-configurator/ui:lint
+cache miss, executing d2f8c8661739e115
+
+> @home-configurator/ui@0.6.8 lint /home/runner/work/home-configurator/home-configurator/packages/ui
+> eslint src test
+
+::endgroup::
+::group::@home-configurator/graphics:lint
+cache miss, executing d4c387ae9e4999cc
+
+> @home-configurator/graphics@0.3.0 lint /home/runner/work/home-configurator/home-configurator/packages/graphics
+> eslint src test
+
+::endgroup::
+::group::@home-configurator/interaction:lint
+cache miss, executing 0c00db8ca1d4c388
+
+> @home-configurator/interaction@0.4.0 lint /home/runner/work/home-configurator/home-configurator/packages/interaction
+> eslint src test
+
+::endgroup::
+[;31m@home-configurator/dashboard:lint[;0m
+cache miss, executing 66b75c5b451f69d9
+
+> @home-configurator/dashboard@0.7.4 lint /home/runner/work/home-configurator/home-configurator/apps/dashboard
+> eslint src test vite.config.ts
+
+
+/home/runner/work/home-configurator/home-configurator/apps/dashboard/src/phase5/device-model-registry.ts
+  386:5   error  Unsafe call of an `any` typed value              @typescript-eslint/no-unsafe-call
+  386:19  error  Unsafe member access .dispose on an `any` value  @typescript-eslint/no-unsafe-member-access
+
+✖ 2 problems (2 errors, 0 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+::error::command (/home/runner/work/home-configurator/home-configurator/apps/dashboard) /home/runner/setup-pnpm/node_modules/.bin/pnpm run lint exited (1)
+@home-configurator/dashboard#lint:  ERROR  command (/home/runner/work/home-configurator/home-configurator/apps/dashboard) /home/runner/setup-pnpm/node_modules/.bin/pnpm run lint exited (1)
+
+ Tasks:    6 successful, 7 total
+Cached:    0 cached, 7 total
+  Time:    20.838s 
+Failed:    @home-configurator/dashboard#lint
+
+ ERROR  run failed: command  exited (1)
+ ELIFECYCLE  Command failed with exit code 1.
