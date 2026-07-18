@@ -1,0 +1,140 @@
+          ${rangeField('Vertical position', 'offsetY', config.transform.offset[1], -2, 2, 0.05)}
+          ${rangeField('Roughness', 'roughness', config.transform.roughness, 0, 1, 0.05)}
+          ${rangeField('Metalness', 'metalness', config.transform.metalness, 0, 1, 0.05)}
+          <label>Tint<input name="tint" type="color" value="${escapeHtml(config.transform.tint)}" /></label>
+          <div class="p5-model-actions p5-form-wide"><button type="button" data-p5-model-preview>Preview</button><button type="button" data-p5-model-reset>Reset</button><button class="p5-primary-action" type="button" data-p5-model-save>Save model</button></div>
+        </form>
+      </section>`;
+    if (selected) this.#presentBrowse(selected, 0);
+  }
+
+  #renderAlarm(): void {
+    const security = this.#data.devices().filter((view) => view.category === 'security');
+    const locks = security.filter((view) => view.capabilities.includes('lock'));
+    const secured = locks.filter((view) => view.state.locked).length;
+    const featured = security[0] ?? this.#data.devices()[0];
+    this.#query('[data-p5-surface]').innerHTML = `
+      <section class="p5-page-head p5-alarm-head"><p class="p5-eyebrow">Security</p><h1>${secured === locks.length ? 'Home is secure.' : `${locks.length - secured} entry needs attention.`}</h1><p>Alarm, cameras, locks, and openings remain connected to the existing Home Assistant entities.</p><div class="p5-alarm-actions"><button type="button" data-p5-scene="away">Arm away</button><button type="button" data-p5-scene="settle">Disarm</button></div></section>
+      <section class="p5-alarm-grid">${security.length ? security.map(deviceCard).join('') : '<p class="p5-empty">No security devices are currently exposed.</p>'}</section>`;
+    if (featured) this.#presentBrowse(featured, 0);
+  }
+
+  #renderDetail(): void {
+    const view = this.#data.device(this.#detailDeviceId ?? '');
+    if (!view) return this.#closeDetail();
+    this.#query('[data-p5-surface]').setAttribute('inert', '');
+    this.#query('[data-p5-detail]').setAttribute('aria-hidden', 'false');
+    this.#renderDetailContext(view);
+    void this.#detail?.present(view.id, 'detail');
+    this.#applyAtmosphere(view);
+  }
+
+  #renderDetailContext(view: DeviceView): void {
+    const context = this.#query('[data-p5-detail-context]');
+    const model = this.#models.resolve(view);
+    context.innerHTML = `
+      <section><p class="p5-eyebrow">Live state</p><dl><div><dt>Room</dt><dd>${escapeHtml(view.roomName)}</dd></div><div><dt>Status</dt><dd>${escapeHtml(primaryStatus(view))}</dd></div><div><dt>Availability</dt><dd>${view.available ? 'Online' : 'Unavailable'}</dd></div></dl></section>
+      <section><p class="p5-eyebrow">Visual model</p><strong>${escapeHtml(model.label)}</strong><small>${escapeHtml([view.manufacturer, view.model].filter(Boolean).join(' · ') || 'Automatic category mapping')}</small><button type="button" data-p5-configure="${escapeHtml(view.id)}">Configure model</button></section>
+      <section><p class="p5-eyebrow">Context</p><p>Controls, scenes, and automations affecting this device stay within the shared Home Assistant state model.</p></section>`;
+  }
+
+  #mountCarousel(devices: readonly DeviceView[]): void {
+    const host = this.#root.querySelector<HTMLElement>('[data-p5-carousel]');
+    if (!host || !devices.length) return;
+    const items = devices.map((view) => this.#carouselItem(view));
+    this.#carousel = new FavouriteHeroCarousel({
+      root: host,
+      items,
+      onSelect: (item, origin) => this.#openDetail(item.id, origin),
+      onActiveChange: (item, index) => {
+        const previous = this.#featuredDeviceId;
+        this.#featuredDeviceId = item.id;
+        const view = this.#data.device(item.id);
+        if (view) {
+          this.#syncHero(view, index);
+          if (previous && previous !== item.id) this.#transition?.switchDevice(index > devices.findIndex((candidate) => candidate.id === previous) ? 1 : -1);
+          void this.#detail?.present(item.id, 'browse');
+        }
+      },
+    });
+  }
+
+  #carouselItem(view: DeviceView): FavouriteCarouselItem {
+    return { id: view.id, name: view.name, room: view.roomName, category: categoryLabel(view.category), categoryKey: view.category, status: primaryStatus(view) };
+  }
+
+  #presentBrowse(view: DeviceView, index: number): void {
+    this.#featuredDeviceId = view.id;
+    this.#syncHero(view, index);
+    this.#applyAtmosphere(view);
+    void this.#detail?.present(view.id, 'browse');
+  }
+
+  #syncHero(view: DeviceView, index = 0): void {
+    const name = this.#root.querySelector<HTMLElement>('[data-p5-featured-name]');
+    const status = this.#root.querySelector<HTMLElement>('[data-p5-featured-status]');
+    const counter = this.#root.querySelector<HTMLElement>('[data-p5-featured-index]');
+    if (name) name.textContent = view.name;
+    if (status) status.textContent = primaryStatus(view);
+    if (counter) counter.textContent = String(index + 1).padStart(2, '0');
+  }
+
+  #sync(): void {
+    this.#detail?.sync();
+    if (this.#detailDeviceId) {
+      const view = this.#data.device(this.#detailDeviceId);
+      if (view) this.#renderDetailContext(view);
+      return;
+    }
+    const devices = this.#contextDevices();
+    const featured = this.#featuredFrom(devices);
+    if (featured) this.#syncHero(featured, Math.max(0, devices.indexOf(featured)));
+    this.#carousel?.updateItems(devices.map((view) => this.#carouselItem(view)));
+    for (const node of this.#root.querySelectorAll<HTMLElement>('[data-p5-device-status]')) {
+      const view = this.#data.device(node.dataset['p5DeviceStatus'] ?? '');
+      if (view) node.textContent = primaryStatus(view);
+    }
+  }
+
+  #setSection(section: SectionId): void {
+    if (this.#detailDeviceId) this.#detailDeviceId = null;
+    this.#section = section;
+    this.#root.dataset['mode'] = 'browse';
+    this.#detail?.setMode('browse');
+    window.scrollTo({ top: 0, behavior: this.#reducedMotion() ? 'auto' : 'smooth' });
+    this.#render();
+  }
+
+  #openDetail(deviceId: string, origin?: DOMRect): void {
+    const view = this.#data.device(deviceId);
+    if (!view) return;
+    this.#detailOpener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    this.#detailDeviceId = deviceId;
+    this.#root.dataset['mode'] = 'detail';
+    this.#query('[data-p5-detail]').setAttribute('aria-hidden', 'false');
+    this.#transition?.enterDetail(origin);
+    this.#renderDetail();
+    window.setTimeout(() => this.#query<HTMLButtonElement>('[data-p5-close-detail]').focus(), this.#reducedMotion() ? 0 : 240);
+  }
+
+  #closeDetail(): void {
+    if (!this.#detailDeviceId) return;
+    this.#detailDeviceId = null;
+    this.#root.dataset['mode'] = 'browse';
+    this.#transition?.leaveDetail();
+    this.#detail?.setMode('browse');
+    this.#query('[data-p5-detail]').setAttribute('aria-hidden', 'true');
+    this.#query('[data-p5-surface]').removeAttribute('inert');
+    this.#render();
+    this.#detailOpener?.focus();
+  }
+
+  #switchDetail(direction: number): void {
+    const devices = this.#contextDevices();
+    const index = devices.findIndex((view) => view.id === this.#detailDeviceId);
+    if (index < 0 || !devices.length) return;
+    const next = devices[(index + direction + devices.length) % devices.length];
+    if (!next) return;
+    this.#detailDeviceId = next.id;
+    this.#transition?.switchDevice(direction);
+    this.#renderDetail();
