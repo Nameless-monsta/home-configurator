@@ -7,7 +7,6 @@ import {
   MeshStandardMaterial,
   Sphere,
   Vector3,
-  type Material,
   type Object3D,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -61,20 +60,55 @@ const DEFAULT_TRANSFORM: DeviceModelTransform = {
 };
 
 const LIBRARY: readonly DeviceModelLibraryEntry[] = [
-  { id: 'light-pendant', label: 'Pendant light', category: 'light', models: ['pendant', 'ceiling'] },
+  {
+    id: 'light-pendant',
+    label: 'Pendant light',
+    category: 'light',
+    models: ['pendant', 'ceiling'],
+  },
   { id: 'light-floor', label: 'Floor lamp', category: 'light', models: ['floor', 'lamp'] },
-  { id: 'thermostat-round', label: 'Round thermostat', category: 'climate', models: ['nest', 'round'] },
-  { id: 'thermostat-panel', label: 'Climate panel', category: 'climate', models: ['panel', 'thermostat'] },
-  { id: 'curtain-track', label: 'Curtain system', category: 'cover', models: ['curtain', 'shade', 'blind'] },
-  { id: 'television', label: 'Television', category: 'media', models: ['tv', 'television', 'screen'] },
+  {
+    id: 'thermostat-round',
+    label: 'Round thermostat',
+    category: 'climate',
+    models: ['nest', 'round'],
+  },
+  {
+    id: 'thermostat-panel',
+    label: 'Climate panel',
+    category: 'climate',
+    models: ['panel', 'thermostat'],
+  },
+  {
+    id: 'curtain-track',
+    label: 'Curtain system',
+    category: 'cover',
+    models: ['curtain', 'shade', 'blind'],
+  },
+  {
+    id: 'television',
+    label: 'Television',
+    category: 'media',
+    models: ['tv', 'television', 'screen'],
+  },
   { id: 'speaker', label: 'Speaker', category: 'media', models: ['speaker', 'sonos', 'homepod'] },
-  { id: 'vacuum-roborock', label: 'Roborock vacuum', category: 'cleaning', manufacturers: ['roborock'] },
+  {
+    id: 'vacuum-roborock',
+    label: 'Roborock vacuum',
+    category: 'cleaning',
+    manufacturers: ['roborock'],
+  },
   { id: 'vacuum-disc', label: 'Robot vacuum', category: 'cleaning', models: ['vacuum', 'roomba'] },
   { id: 'camera', label: 'Security camera', category: 'security', models: ['camera'] },
   { id: 'door-lock', label: 'Smart lock', category: 'security', models: ['lock'] },
   { id: 'air-purifier', label: 'Air purifier', category: 'appliance', models: ['purifier', 'air'] },
   { id: 'wall-switch', label: 'Wall switch', category: 'appliance', models: ['switch'] },
-  { id: 'presence-sensor', label: 'Presence sensor', category: 'sensor', models: ['presence', 'motion', 'sensor'] },
+  {
+    id: 'presence-sensor',
+    label: 'Presence sensor',
+    category: 'sensor',
+    models: ['presence', 'motion', 'sensor'],
+  },
 ];
 
 const STORAGE_KEY = 'home-configurator.device-models.v1';
@@ -167,7 +201,8 @@ export class DeviceModelRegistry {
     const resolved = this.resolve(view);
     if ((resolved.source === 'url' || resolved.source === 'upload') && resolved.url) {
       try {
-        const url = resolved.source === 'upload' ? await uploadObjectUrl(resolved.url) : resolved.url;
+        const url =
+          resolved.source === 'upload' ? await uploadObjectUrl(resolved.url) : resolved.url;
         if (url) return await this.#externalHero(url, resolved.transform, view.state);
       } catch {
         // Fall through to the production-safe procedural model.
@@ -219,8 +254,12 @@ export class DeviceModelRegistry {
   #load(): void {
     if (typeof localStorage === 'undefined') return;
     try {
-      const value = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as Record<string, DeviceModelConfig>;
-      for (const [id, config] of Object.entries(value)) this.#configs.set(id, normaliseConfig(config));
+      const value = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as Record<
+        string,
+        DeviceModelConfig
+      >;
+      for (const [id, config] of Object.entries(value))
+        this.#configs.set(id, normaliseConfig(config));
     } catch {
       localStorage.removeItem(STORAGE_KEY);
     }
@@ -278,7 +317,8 @@ const tuple = (
 ];
 const finite = (value: unknown, fallback: number): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : fallback;
-const clamp = (value: number, min: number, max: number): number => Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number): number =>
+  Math.min(max, Math.max(min, value));
 
 const applyTransform = (object: Object3D, transform: DeviceModelTransform): void => {
   object.scale.setScalar(Math.max(0.02, transform.scale));
@@ -323,14 +363,28 @@ const applyExternalState = (object: Object3D, state: DeviceViewState): void => {
   });
 };
 
+interface DisposableResource {
+  dispose(): void;
+}
+
+const isDisposableResource = (value: unknown): value is DisposableResource => {
+  if (typeof value !== 'object' || value === null || !('dispose' in value)) return false;
+  return typeof (value as { dispose?: unknown }).dispose === 'function';
+};
+
+const disposeResource = (value: unknown): void => {
+  if (Array.isArray(value)) {
+    for (const entry of value as unknown[]) disposeResource(entry);
+  } else if (isDisposableResource(value)) {
+    value.dispose();
+  }
+};
+
 const disposeObject = (object: Object3D): void => {
   object.traverse((node) => {
     if (!(node instanceof Mesh)) return;
-    const mesh = node as Mesh;
-    mesh.geometry.dispose();
-    const material = mesh.material as Material | Material[];
-    const materials = Array.isArray(material) ? material : [material];
-    materials.forEach((entry) => entry.dispose());
+    disposeResource(node.geometry as unknown);
+    disposeResource(node.material as unknown);
   });
 };
 
@@ -339,7 +393,8 @@ const openUploadDb = (): Promise<IDBDatabase | null> =>
     if (typeof indexedDB === 'undefined') return resolve(null);
     const request = indexedDB.open(DB_NAME, 1);
     request.onupgradeneeded = () => {
-      if (!request.result.objectStoreNames.contains(DB_STORE)) request.result.createObjectStore(DB_STORE);
+      if (!request.result.objectStoreNames.contains(DB_STORE))
+        request.result.createObjectStore(DB_STORE);
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => resolve(null);

@@ -64,7 +64,8 @@ export class DeviceDetail {
   public async present(deviceId: string, mode: DevicePresentationMode): Promise<void> {
     const view = this.#options.resolve(deviceId);
     if (!view) return;
-    const sameObject = this.#view?.id === deviceId && this.#modelRevision === this.#options.models.revision;
+    const sameObject =
+      this.#view?.id === deviceId && this.#modelRevision === this.#options.models.revision;
     this.#mode = mode;
     if (sameObject && this.#hero) {
       this.#view = view;
@@ -198,7 +199,10 @@ export class DeviceDetail {
         target: [pose.target[0] + shift, pose.target[1], pose.target[2]],
         fov: this.#mode === 'detail' ? 32 : 34,
       },
-      { durationMs: this.#mode === 'detail' ? 720 : 560, reducedMotion: this.#options.reducedMotion() },
+      {
+        durationMs: this.#mode === 'detail' ? 720 : 560,
+        reducedMotion: this.#options.reducedMotion(),
+      },
     );
   }
 
@@ -231,7 +235,10 @@ export class DeviceDetail {
         ),
       );
     } else if (view.category === 'climate' && view.capabilities.includes('targetTemperature')) {
-      const ring = new ThermostatRing({ hero: hero.object, onChange: (target, final) => this.#send(`target:${target}`, final) });
+      const ring = new ThermostatRing({
+        hero: hero.object,
+        onChange: (target, final) => this.#send(`target:${target}`, final),
+      });
       ring.setValue(view.state.targetTemp);
       this.#detachers.push(ring.bind(surface, engine.cameraRig.camera));
       this.#ring = ring;
@@ -239,7 +246,10 @@ export class DeviceDetail {
       this.#detachers.push(
         this.#verticalDrag(
           (delta) => {
-            const next = Math.min(100, Math.max(0, (this.#view?.state.position ?? 0) - delta * 0.4));
+            const next = Math.min(
+              100,
+              Math.max(0, (this.#view?.state.position ?? 0) - delta * 0.4),
+            );
             this.#send(`position:${Math.round(next)}`, false);
           },
           () => this.#send(`position:${Math.round(this.#view?.state.position ?? 0)}`, true),
@@ -314,7 +324,8 @@ export class DeviceDetail {
     const up = (event: PointerEvent): void => {
       if (active) onEnd();
       active = false;
-      if (surface.hasPointerCapture(event.pointerId)) surface.releasePointerCapture(event.pointerId);
+      if (surface.hasPointerCapture(event.pointerId))
+        surface.releasePointerCapture(event.pointerId);
     };
     surface.addEventListener('pointerdown', down);
     surface.addEventListener('pointermove', move);
@@ -366,7 +377,9 @@ export class DeviceDetail {
     const s = view.state;
     const [primary, unit] = readout(view);
     const unavailable = !s.available ? '<span class="p5-readout-flag">Unavailable</span>' : '';
-    const pending = s.pending ? '<span class="p5-readout-flag" data-pending="true">Updating</span>' : '';
+    const pending = s.pending
+      ? '<span class="p5-readout-flag" data-pending="true">Updating</span>'
+      : '';
     this.#options.readoutEl.innerHTML = `<div class="p5-readout" role="status" aria-live="polite"><strong>${escapeHtml(primary)}</strong><span>${escapeHtml(unit)}</span>${pending}${unavailable}</div>`;
   }
 
@@ -381,16 +394,40 @@ export class DeviceDetail {
 const readout = (view: DeviceView): [string, string] => {
   const s = view.state;
   switch (view.category) {
-    case 'light': return [s.on ? String(Math.round(s.brightness * 100)) : 'Off', s.on ? '% brightness' : ''];
-    case 'climate': return [s.targetTemp.toFixed(1), `° target · now ${s.currentTemp.toFixed(1)}°`];
-    case 'cover': return [String(Math.round(s.position)), '% open'];
-    case 'media': return [s.playing ? 'Playing' : 'Paused', `${Math.round(s.volume * 100)}% volume`];
-    case 'security': return [view.capabilities.includes('lock') ? (s.locked ? 'Locked' : 'Unlocked') : s.privacy ? 'Privacy' : 'Live', ''];
-    case 'cleaning': return [s.cleaning ? 'Cleaning' : s.docked ? 'Docked' : 'Paused', `${Math.round(s.battery)}% battery`];
-    case 'sensor': return [s.reading || s.currentTemp.toFixed(1), ''];
-    case 'appliance': return [s.on ? 'On' : 'Off', ''];
+    case 'light':
+      return [s.on ? String(Math.round(s.brightness * 100)) : 'Off', s.on ? '% brightness' : ''];
+    case 'climate':
+      return [s.targetTemp.toFixed(1), `° target · now ${s.currentTemp.toFixed(1)}°`];
+    case 'cover':
+      return [String(Math.round(s.position)), '% open'];
+    case 'media':
+      return [s.playing ? 'Playing' : 'Paused', `${Math.round(s.volume * 100)}% volume`];
+    case 'security':
+      return [
+        view.capabilities.includes('lock')
+          ? s.locked
+            ? 'Locked'
+            : 'Unlocked'
+          : s.privacy
+            ? 'Privacy'
+            : 'Live',
+        '',
+      ];
+    case 'cleaning':
+      return [
+        s.cleaning ? 'Cleaning' : s.docked ? 'Docked' : 'Paused',
+        `${Math.round(s.battery)}% battery`,
+      ];
+    case 'sensor':
+      return [s.reading || s.currentTemp.toFixed(1), ''];
+    case 'appliance':
+      return [s.on ? 'On' : 'Off', ''];
   }
 };
 
 const escapeHtml = (value: string): string =>
-  value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
