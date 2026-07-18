@@ -1,0 +1,140 @@
+  }
+
+  #applyAtmosphere(view: DeviceView): void {
+    const values = atmosphere(view);
+    this.#root.style.setProperty('--p5-hue', String(values.hue));
+    this.#root.style.setProperty('--p5-intensity', String(values.intensity));
+    this.#root.style.setProperty('--p5-daylight', String(values.daylight));
+  }
+
+  #structureKey(): string {
+    return `${this.#section}|${this.#activeRoomId ?? ''}|${this.#detailDeviceId ?? ''}|${this.#data.rooms().map((room) => `${room.id}:${room.deviceIds.join(',')}`).join('|')}|${this.#data.devices().map((view) => `${view.id}:${view.category}`).join('|')}`;
+  }
+
+  #announce(message: string): void {
+    this.#query('[data-p5-announce]').textContent = message;
+  }
+
+  readonly #onClick = (event: Event): void => {
+    const target = event.target as HTMLElement | null;
+    const nav = target?.closest<HTMLElement>('[data-p5-nav]')?.dataset['p5Nav'] as SectionId | undefined;
+    if (nav) return this.#setSection(nav);
+    if (target?.closest('[data-p5-room-menu]')) return this.#toggleRoomMenu();
+    if (target?.closest('[data-p5-search]')) return this.#openSearch();
+    if (target?.closest('[data-p5-search-close]')) return this.#closeSearch();
+    if (target?.closest('[data-p5-close-detail]')) return this.#closeDetail();
+    if (target?.closest('[data-p5-detail-prev]')) return this.#switchDetail(-1);
+    if (target?.closest('[data-p5-detail-next]')) return this.#switchDetail(1);
+    const room = target?.closest<HTMLElement>('[data-p5-room]')?.dataset['p5Room'];
+    if (room) {
+      this.#activeRoomId = room;
+      this.#section = 'rooms';
+      this.#featuredDeviceId = null;
+      this.#toggleRoomMenu(false);
+      return this.#render();
+    }
+    if (target?.closest('[data-p5-all-rooms]')) {
+      this.#activeRoomId = this.#data.rooms()[0]?.id ?? null;
+      this.#section = 'rooms';
+      this.#toggleRoomMenu(false);
+      return this.#render();
+    }
+    const searchResult = target?.closest<HTMLElement>('[data-p5-device]')?.dataset['p5Device'];
+    if (searchResult) {
+      this.#closeSearch();
+      return this.#openDetail(searchResult);
+    }
+    const open = target?.closest<HTMLElement>('[data-p5-open]');
+    if (open?.dataset['p5Open']) return this.#openDetail(open.dataset['p5Open'], open.getBoundingClientRect());
+    const scene = target?.closest<HTMLElement>('[data-p5-scene]')?.dataset['p5Scene'] as ScenePreset | undefined;
+    if (scene) return this.#runScene(scene);
+    const modelDevice = target?.closest<HTMLElement>('[data-p5-model-device]')?.dataset['p5ModelDevice'];
+    if (modelDevice) { this.#featuredDeviceId = modelDevice; return this.#renderSettings(); }
+    if (target?.closest('[data-p5-model-preview]')) { void this.#previewModel(); return; }
+    if (target?.closest('[data-p5-model-save]')) { void this.#saveModel(); return; }
+    if (target?.closest('[data-p5-model-reset]')) { void this.#resetModel(); return; }
+    const configure = target?.closest<HTMLElement>('[data-p5-configure]')?.dataset['p5Configure'];
+    if (configure) { this.#featuredDeviceId = configure; this.#detailDeviceId = null; this.#section = 'settings'; return this.#render(); }
+  };
+
+  readonly #onInput = (event: Event): void => {
+    const input = event.target as HTMLInputElement | null;
+    if (input?.matches('[data-p5-search-input]')) this.#renderSearch(input.value);
+  };
+
+  readonly #onChange = (event: Event): void => {
+    const input = event.target as HTMLInputElement | null;
+    if (input?.matches('[name="upload"]')) void this.#handleUpload(input);
+  };
+
+  readonly #onKeydown = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape') {
+      if (!this.#query('[data-p5-search-panel]').hidden) this.#closeSearch();
+      else if (this.#detailDeviceId) this.#closeDetail();
+      else this.#toggleRoomMenu(false);
+    } else if (event.key === '/' && !isEditable(event.target)) {
+      event.preventDefault();
+      this.#openSearch();
+    } else if (this.#detailDeviceId && event.key === 'ArrowLeft') this.#switchDetail(-1);
+    else if (this.#detailDeviceId && event.key === 'ArrowRight') this.#switchDetail(1);
+  };
+
+  readonly #onScroll = (): void => {
+    const hero = this.#root.querySelector<HTMLElement>('.p5-hero, .p5-room-hero');
+    if (!hero) return;
+    this.#transition?.setScrollProgress(Math.min(1, window.scrollY / Math.max(1, hero.offsetHeight * 0.75)));
+  };
+
+  readonly #onDocumentPointerDown = (event: PointerEvent): void => {
+    const target = event.target as Node | null;
+    const panel = this.#query('[data-p5-room-menu-panel]');
+    if (!panel.hidden && target && !panel.contains(target) && !this.#query('[data-p5-room-menu]').contains(target)) this.#toggleRoomMenu(false);
+  };
+}
+
+const summaryCard = (title: string, value: string, note: string, deviceId?: string): string =>
+  `<${deviceId ? 'button' : 'article'} class="p5-summary-card" ${deviceId ? `type="button" data-p5-open="${escapeHtml(deviceId)}"` : ''}><span>${escapeHtml(title)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></${deviceId ? 'button' : 'article'}>`;
+const sceneCards = (): string => (['settle', 'bright', 'night', 'away'] as ScenePreset[]).map((scene) => `<button type="button" class="p5-scene-card" data-p5-scene="${scene}"><span>${sceneIcon(scene)}</span><strong>${sceneLabel(scene)}</strong><small>${sceneDescription(scene)}</small></button>`).join('');
+const sceneLabel = (scene: ScenePreset): string => ({ settle: 'Settle in', away: 'Away', bright: 'Bright', night: 'Night' })[scene];
+const sceneDescription = (scene: ScenePreset): string => ({ settle: 'Welcome lighting', away: 'Secure and power down', bright: 'Lift every light', night: 'Quiet the house' })[scene];
+const sceneIcon = (scene: ScenePreset): string => ({ settle: '◒', away: '⌂', bright: '☼', night: '◐' })[scene];
+const primaryActionLabel = (view?: DeviceView): string => !view ? 'No device' : view.category === 'cleaning' ? (view.state.cleaning ? 'Cleaning now' : 'Open vacuum') : view.category === 'climate' ? 'Adjust climate' : view.category === 'security' ? 'View security' : 'Open controls';
+const metric = (label: string, value: string): string => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+const roomCard = (room: RoomView, all: readonly DeviceView[]): string => {
+  const devices = all.filter((view) => view.roomId === room.id);
+  return `<button type="button" class="p5-room-card" data-p5-room="${escapeHtml(room.id)}"><span>${String(devices.length).padStart(2, '0')}</span><strong>${escapeHtml(room.name)}</strong><small>${escapeHtml(devices.filter((view) => view.state.on || view.state.cleaning || view.state.playing).length ? 'Active now' : 'Settled')}</small></button>`;
+};
+const deviceRow = (view: DeviceView): string => `<button type="button" class="p5-device-row" data-p5-device="${escapeHtml(view.id)}" data-p5-open="${escapeHtml(view.id)}"><span class="p5-device-glyph" data-category="${view.category}"></span><span><strong>${escapeHtml(view.name)}</strong><small>${escapeHtml(view.roomName)} · ${escapeHtml(categoryLabel(view.category))}</small></span><em data-p5-device-status="${escapeHtml(view.id)}">${escapeHtml(primaryStatus(view))}</em></button>`;
+const deviceCard = (view: DeviceView): string => `<button type="button" class="p5-device-card" data-p5-open="${escapeHtml(view.id)}"><span class="p5-device-glyph" data-category="${view.category}"></span><span><small>${escapeHtml(categoryLabel(view.category))}</small><strong>${escapeHtml(view.name)}</strong></span><em data-p5-device-status="${escapeHtml(view.id)}">${escapeHtml(primaryStatus(view))}</em></button>`;
+const rangeField = (label: string, name: string, value: number, min: number, max: number, step: number): string => `<label>${escapeHtml(label)}<input name="${name}" type="range" min="${min}" max="${max}" step="${step}" value="${value}" /></label>`;
+const modelSourceOptions = (selected: DeviceModelSource): string => ([['automatic', 'Automatic match'], ['library', 'Model library'], ['url', 'GLB / GLTF URL'], ['upload', 'Uploaded model'], ['procedural', 'Procedural fallback']] as const).map(([value, label]) => `<option value="${value}" ${selected === value ? 'selected' : ''}>${label}</option>`).join('');
+const numberValue = (data: FormData, key: string, fallback: number): number => { const value = Number(data.get(key)); return Number.isFinite(value) ? value : fallback; };
+const isEditable = (target: EventTarget | null): boolean => target instanceof HTMLElement && Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+const escapeHtml = (value: string): string => value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+
+const roomEnvironment = (devices: readonly DeviceView[]): { temperature: string; humidity: string; air: string; presence: string } => {
+  const climate = devices.find((view) => view.category === 'climate');
+  const sensor = devices.find((view) => view.category === 'sensor');
+  const presence = devices.find((view) => view.entityIds.some((id) => id.includes('presence') || id.includes('occupancy')));
+  return {
+    temperature: `${(climate?.state.currentTemp ?? sensor?.state.currentTemp ?? 22).toFixed(1)}°`,
+    humidity: `${Math.round(sensor?.state.humidity ?? climate?.state.humidity ?? 45)}%`,
+    air: devices.some((view) => view.entityIds.some((id) => id.includes('air_quality'))) ? 'Live' : 'Good',
+    presence: presence?.state.on ? 'Occupied' : 'Clear',
+  };
+};
+
+const atmosphere = (view: DeviceView): { hue: number; intensity: number; daylight: number } => {
+  switch (view.category) {
+    case 'light': return { hue: view.state.hue, intensity: view.state.on ? 0.55 + view.state.brightness * 0.45 : 0.2, daylight: 0.45 };
+    case 'climate': return { hue: view.state.targetTemp < 22 ? 205 : 24, intensity: 0.52, daylight: 0.4 };
+    case 'cover': return { hue: 38, intensity: 0.45, daylight: Math.max(0.2, view.state.position / 100) };
+    case 'media': return { hue: 258, intensity: view.state.playing ? 0.68 : 0.36, daylight: 0.24 };
+    case 'cleaning': return { hue: 178, intensity: 0.46, daylight: 0.36 };
+    case 'security': return { hue: view.state.locked ? 152 : 8, intensity: 0.42, daylight: 0.3 };
+    default: return { hue: 36, intensity: 0.38, daylight: 0.42 };
+  }
+};
+
+const emptyDevice = (): DeviceView => ({
+  id: '', name: '', roomId: '', roomName: '', entityIds: [], category: 'appliance', capabilities: [], favourite: false, available: false,
