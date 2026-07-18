@@ -27,23 +27,27 @@ jobs:
           fetch-depth: 0
 
       - name: Check import payload
-        id: payload
         shell: bash
-        run: |
-          if [[ ! -f .github/recovery/complete ]]; then
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "Waiting for complete recovery payload."
-            exit 0
-          fi
-          echo "ready=true" >> "$GITHUB_OUTPUT"
+        run: test -f .github/recovery/complete
 
-      - name: Apply exact reviewed patch
-        if: steps.payload.outputs.ready == 'true'
+      - name: Assemble recovery patch
         shell: bash
         run: |
           cat .github/recovery/part-* > /tmp/design-recovery.patch
-          echo '8265b5b9bde4d37c343573e61ab4919de5acf4638bb03b63d61e02a2c898b587  /tmp/design-recovery.patch' | sha256sum --check -
-          git apply --check /tmp/design-recovery.patch
+          wc -c /tmp/design-recovery.patch
+          sha256sum /tmp/design-recovery.patch
+
+      - name: Verify recovery checksum
+        shell: bash
+        run: echo '8265b5b9bde4d37c343573e61ab4919de5acf4638bb03b63d61e02a2c898b587  /tmp/design-recovery.patch' | sha256sum --check -
+
+      - name: Validate recovery patch
+        shell: bash
+        run: git apply --check /tmp/design-recovery.patch
+
+      - name: Apply and publish recovery
+        shell: bash
+        run: |
           git apply --index /tmp/design-recovery.patch
           rm -rf .github/recovery .github/workflows/apply-design-recovery.yml
           git add -A
