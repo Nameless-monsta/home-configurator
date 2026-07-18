@@ -1,0 +1,383 @@
+    <p class="p5-section-label">Favourites</p>
++            <div class="p5-fav-strip">
++              ${favourites
++                .map(
++                  (
++                    view,
++                  ) => `<button class="p5-fav" type="button" data-p5-jump="${escapeHtml(view.id)}">
++                    <strong>${escapeHtml(view.name)}</strong>
++                    <span data-p5-fav-status="${escapeHtml(view.id)}">${escapeHtml(primaryStatus(view))}</span>
++                  </button>`,
++                )
++                .join('')}
++            </div>
++          </section>`
++        : ''
++    }
++    ${
++      tiles.length
++        ? `<section class="p5-section" aria-label="Home summary">
++            <p class="p5-section-label">At a glance</p>
++            <div class="p5-tile-grid">${tiles.map(tileMarkup).join('')}</div>
++          </section>`
++        : ''
++    }
++    ${
++      rooms.length
++        ? `<section class="p5-section" aria-label="Rooms">
++            <p class="p5-section-label">Rooms</p>
++            <div class="p5-room-grid">
++              ${rooms
++                .map(
++                  (
++                    room,
++                  ) => `<button class="p5-room-card" type="button" data-p5-nav-room="${escapeHtml(room.id)}">
++                    <strong>${escapeHtml(room.name)}</strong>
++                    <span>${room.deviceIds.length} devices</span>
++                  </button>`,
++                )
++                .join('')}
++            </div>
++          </section>`
++        : ''
++    }
++    <section class="p5-section p5-inventory" aria-label="All devices">
++      <div class="p5-inventory-head"><p>All devices</p><span>${views.length}</span></div>
++      <div class="p5-device-grid">${views.map(deviceRow).join('')}</div>
++    </section>
++  `;
++};
++
++export const renderRoomContent = (room: RoomView, views: readonly DeviceView[]): string => {
++  const summary = deriveSummary(views);
++  const tiles = buildSummaryTiles(views, summary);
++  const lights = views.filter((view) => view.category === 'light');
++  const env = [
++    summary.averageTemp !== null ? `${summary.averageTemp.toFixed(1)}°` : null,
++    summary.humidity !== null ? `${Math.round(summary.humidity)}% humidity` : null,
++    summary.locksTotal > 0
++      ? summary.locked === summary.locksTotal
++        ? 'Secured'
++        : 'Unlocked'
++      : null,
++  ]
++    .filter(Boolean)
++    .join(' · ');
++  return `
++    <div class="p5-content-grip" aria-hidden="true"></div>
++    <section class="p5-section p5-room-identity" aria-label="${escapeHtml(room.name)} overview">
++      <p class="p5-section-label">Room</p>
++      <h2>${escapeHtml(room.name)}</h2>
++      <p class="p5-room-env" data-p5-room-env>${escapeHtml(env || 'No environment data')}</p>
++      ${
++        lights.length
++          ? `<div class="p5-quick-row" role="group" aria-label="Quick lighting">
++              <button type="button" class="p5-quick" data-p5-quick="lights-on">All lights on</button>
++              <button type="button" class="p5-quick" data-p5-quick="lights-off">All lights off</button>
++            </div>`
++          : ''
++      }
++    </section>
++    ${
++      tiles.length
++        ? `<section class="p5-section" aria-label="Room summary">
++            <p class="p5-section-label">At a glance</p>
++            <div class="p5-tile-grid">${tiles.map(tileMarkup).join('')}</div>
++          </section>`
++        : ''
++    }
++    <section class="p5-section p5-inventory" aria-label="Devices in ${escapeHtml(room.name)}">
++      <div class="p5-inventory-head"><p>Devices</p><span>${views.length}</span></div>
++      <div class="p5-device-grid">${views.map(deviceRow).join('')}</div>
++    </section>
++  `;
++};
++
++export const renderAlarmContent = (views: readonly DeviceView[]): string => {
++  const summary = deriveSummary(views);
++  const secured = summary.locksTotal > 0 && summary.locked === summary.locksTotal;
++  return `
++    <div class="p5-content-grip" aria-hidden="true"></div>
++    <section class="p5-section p5-room-identity" aria-label="Security overview">
++      <p class="p5-section-label">Alarm</p>
++      <h2>${secured ? 'Home secured' : summary.locksTotal > 0 ? 'Attention needed' : 'Security'}</h2>
++      <p class="p5-room-env" data-p5-room-env>${
++        summary.locksTotal > 0
++          ? `${summary.locked} of ${summary.locksTotal} locks secured`
++          : 'No security devices discovered'
++      }</p>
++    </section>
++    <section class="p5-section p5-inventory" aria-label="Security devices">
++      <div class="p5-inventory-head"><p>Security devices</p><span>${views.length}</span></div>
++      <div class="p5-device-grid">${views.map(deviceRow).join('')}</div>
++    </section>
++  `;
++};
+diff --git a/apps/dashboard/src/phase5/index.ts b/apps/dashboard/src/phase5/index.ts
+index b2bda98e9410295fb460fdf3ba9948d91775b636..5cc8dd611241c80591a8ed23b549778ac250ccc8 100644
+--- a/apps/dashboard/src/phase5/index.ts
++++ b/apps/dashboard/src/phase5/index.ts
+@@ -1,10 +1,17 @@
+ export * from './adaptive-controls.js';
++export * from './device-rail.js';
+ export * from './favourite-carousel.js';
+ export * from './living-object.js';
+ export * from './motion-system.js';
+ export * from './experience-model.js';
+ export * from './hero-models.js';
+ export * from './hero-preview.js';
++export * from './hero-stage.js';
++export * from './home-content.js';
++export * from './model-registry.js';
++export * from './navigation-bar.js';
++export * from './search-overlay.js';
++export * from './settings-view.js';
+ export * from './colour-sphere.js';
+ export * from './thermostat-ring.js';
+ export * from './control-map.js';
+diff --git a/apps/dashboard/src/phase5/iyo-fidelity-v2.css b/apps/dashboard/src/phase5/iyo-fidelity-v2.css
+index cdc2f539ea628d55da2894294e90a6bb1f81b3e5..0e4c02a1efffea2c82af9f32b8bcb5fb8e649bdf 100644
+--- a/apps/dashboard/src/phase5/iyo-fidelity-v2.css
++++ b/apps/dashboard/src/phase5/iyo-fidelity-v2.css
+@@ -179,7 +179,8 @@ html.p5-scroll-lock body {
+   position: relative;
+   z-index: 10;
+   min-height: 100vh;
+-  padding: max(108px, calc(env(safe-area-inset-top) + 88px)) 0 max(90px, env(safe-area-inset-bottom));
++  padding: max(108px, calc(env(safe-area-inset-top) + 88px)) 0
++    max(128px, calc(env(safe-area-inset-bottom) + 108px));
+   transition:
+     opacity 260ms ease,
+     transform 620ms var(--iyo-ease),
+@@ -663,6 +664,152 @@ html.p5-scroll-lock body {
+   }
+ }
+ 
++/* Cross-device navigation rail — persistent product switching, IYO style. */
++.p5-rail {
++  position: fixed;
++  left: 50%;
++  bottom: max(18px, env(safe-area-inset-bottom));
++  transform: translateX(-50%);
++  z-index: 55;
++  display: flex;
++  align-items: center;
++  gap: 16px;
++  max-width: min(760px, calc(100vw - 32px));
++  padding: 10px 18px;
++  border: 1px solid var(--iyo-line);
++  border-radius: 22px;
++  background: rgba(10, 10, 10, 0.72);
++  backdrop-filter: blur(24px) saturate(1.08);
++  -webkit-backdrop-filter: blur(24px) saturate(1.08);
++  transition:
++    transform 620ms var(--iyo-ease),
++    opacity 320ms ease;
++}
++
++.p5-rail[hidden] {
++  display: none;
++}
++
++.p5-rail-index {
++  color: var(--iyo-faint);
++  font-size: 0.72rem;
++  letter-spacing: 0.14em;
++  font-variant-numeric: tabular-nums;
++  white-space: nowrap;
++}
++
++.p5-rail-names {
++  display: flex;
++  align-items: center;
++  gap: 4px;
++  overflow-x: auto;
++  scrollbar-width: none;
++  overscroll-behavior-inline: contain;
++}
++
++.p5-rail-names::-webkit-scrollbar {
++  display: none;
++}
++
++.p5-rail-names button {
++  flex: none;
++  border: 0;
++  background: transparent;
++  color: var(--iyo-faint);
++  font: inherit;
++  font-size: 0.88rem;
++  letter-spacing: -0.01em;
++  padding: 8px 12px;
++  border-radius: 13px;
++  white-space: nowrap;
++  cursor: pointer;
++  transition:
++    color 260ms ease,
++    background 260ms ease;
++}
++
++.p5-rail-names button:hover,
++.p5-rail-names button:focus-visible {
++  color: var(--iyo-text);
++}
++
++.p5-rail-names button[aria-selected='true'] {
++  color: var(--iyo-text);
++  background: var(--iyo-surface-strong);
++}
++
++/* Detail mode: the tray owns the bottom centre, so the rail docks upright on
++   the right edge and keeps device switching one tap away. */
++.p5[data-mode='detail'] .p5-rail {
++  left: auto;
++  right: clamp(16px, 3vw, 40px);
++  top: 50%;
++  bottom: auto;
++  transform: translateY(-50%);
++  flex-direction: column;
++  align-items: flex-end;
++  gap: 10px;
++  max-width: min(260px, 30vw);
++  max-height: min(52vh, 480px);
++  padding: 14px 14px;
++  background: rgba(10, 10, 10, 0.55);
++}
++
++.p5[data-mode='detail'] .p5-rail-names {
++  flex-direction: column;
++  align-items: flex-end;
++  overflow-y: auto;
++  overflow-x: hidden;
++  max-height: min(44vh, 420px);
++}
++
++.p5[data-mode='detail'] .p5-rail-names button {
++  font-size: 0.84rem;
++  text-align: right;
++}
++
++@media (max-width: 760px) {
++  .p5-browse {
++    padding-bottom: max(132px, calc(env(safe-area-inset-bottom) + 116px));
++  }
++
++  .p5-rail {
++    max-width: calc(100vw - 24px);
++    padding: 8px 14px;
++    gap: 12px;
++  }
++
++  .p5-rail-names {
++    max-width: 66vw;
++  }
++
++  /* On phones the tray, readout and hero own the detail viewport; back and
++     arrow keys remain, and the browse rail returns on close. */
++  .p5[data-mode='detail'] .p5-rail {
++    display: none;
++  }
++}
++
++@media (min-width: 761px) and (max-width: 1100px) and (orientation: landscape) {
++  /* Landscape tablet places the tray on the right; keep the rail beneath it. */
++  .p5[data-mode='detail'] .p5-rail {
++    top: auto;
++    bottom: max(18px, env(safe-area-inset-bottom));
++    right: 4vw;
++    transform: none;
++    flex-direction: row;
++    max-width: min(420px, 44vw);
++    max-height: none;
++  }
++
++  .p5[data-mode='detail'] .p5-rail-names {
++    flex-direction: row;
++    overflow-x: auto;
++    overflow-y: hidden;
++    max-height: none;
++  }
++}
++
+ @media (prefers-reduced-motion: reduce) {
+   .p5 *,
+   .p5 *::before,
+diff --git a/apps/dashboard/src/phase5/iyo-recovery-v3.css b/apps/dashboard/src/phase5/iyo-recovery-v3.css
+new file mode 100644
+index 0000000000000000000000000000000000000000..360ec8b3b00224c59c7a6c6e7b074b2bf7dcb737
+--- /dev/null
++++ b/apps/dashboard/src/phase5/iyo-recovery-v3.css
+@@ -0,0 +1,862 @@
++/*
++ * IYO recovery v3 — persistent navigation, full-viewport hero with editorial
++ * typography, atmospheric stage, slide-up content, room/alarm sections,
++ * settings and search overlays. Layered after iyo-fidelity-v2.css; overrides
++ * the earlier carousel-era layout where the structures changed.
++ */
++
++:root {
++  --p5-ambient: rgb(120, 104, 88);
++  --p5-ambient-strength: 0.16;
++  --p5-nav-h: 64px;
++}
++
++/* ---------------------------------------------------------------- stage --- */
++
++.p5-stage {
++  position: fixed;
++  inset: 0;
++  z-index: 0;
++  opacity: 1;
++  visibility: visible;
++  pointer-events: auto;
++  transition: none;
++}
++
++.p5[data-mode='detail'] .p5-stage {
++  opacity: 1;
++  visibility: visible;
++  pointer-events: auto;
++}
++
++.p5-stage canvas {
++  position: absolute;
++  inset: 0;
++  z-index: 1;
++  width: 100%;
++  height: 100%;
++  touch-action: pan-y;
++}
++
++/* Detail owns direct manipulation: no browser panning on the stage. */
++.p5[data-mode='detail'] .p5-stage canvas {
++  touch-action: none;
++}
++
++/* Atmospheric depth: device-aware glow, floor falloff and vignette. */
++.p5-atmos {
++  position: absolute;
++  inset: 0;
++  z-index: 2;
++  pointer-events: none;
++  background:
++    radial-gradient(
++      ellipse 70% 52% at 50% 44%,
++      color-mix(in srgb, var(--p5-ambient) calc(var(--p5-ambient-strength) * 100%), transparent),
++      transparent 72%
++    ),
++    radial-gradient(ellipse 90% 40% at 50% 96%, rgba(0, 0, 0, 0.55), transparent 70%),
++    linear-gradient(
++      180deg,
++      rgba(20, 19, 17, 0.35),
++      transparent 32%,
++      transparent 70%,
++      rgba(4, 4, 4, 0.7)
++    );
++  transition: background 900ms ease;
++}
++
++.p5-atmos::after {
++  content: '';
++  position: absolute;
++  inset: 0;
++  background: radial-gradi
