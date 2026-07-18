@@ -1,0 +1,445 @@
+a-inset-bottom));
++  z-index: 65;
++  width: min(400px, calc(100vw - 28px));
++  pointer-events: none;
++}
++
++.p5-settings-panel {
++  max-height: 100%;
++  overflow-y: auto;
++  padding: 20px;
++  border: 1px solid var(--iyo-line);
++  border-radius: 24px;
++  background: rgba(12, 12, 11, 0.94);
++  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.55);
++  backdrop-filter: blur(26px);
++  -webkit-backdrop-filter: blur(26px);
++  pointer-events: auto;
++}
++
++.p5-settings-head {
++  display: flex;
++  align-items: flex-start;
++  justify-content: space-between;
++  gap: 12px;
++  margin-bottom: 18px;
++}
++
++.p5-settings-head h2 {
++  margin: 2px 0 0;
++  font-size: 1.5rem;
++  font-weight: 440;
++  letter-spacing: -0.03em;
++}
++
++.p5-settings-close {
++  min-height: 40px;
++  padding: 0 14px;
++  border: 1px solid var(--iyo-line);
++  border-radius: 13px;
++  background: transparent;
++  color: var(--iyo-text);
++  font: inherit;
++  font-size: 0.88rem;
++  cursor: pointer;
++}
++
++.p5-settings-close:hover,
++.p5-settings-close:focus-visible {
++  background: var(--iyo-surface);
++}
++
++.p5-field {
++  display: block;
++  margin: 0 0 16px;
++  border: 0;
++  padding: 0;
++}
++
++.p5-field > span,
++.p5-field > legend {
++  display: flex;
++  justify-content: space-between;
++  gap: 10px;
++  margin-bottom: 8px;
++  color: var(--iyo-muted);
++  font-size: 0.82rem;
++}
++
++.p5-field output {
++  color: var(--iyo-text);
++  font-variant-numeric: tabular-nums;
++}
++
++.p5-field select,
++.p5-field input[type='url'] {
++  width: 100%;
++  min-height: 46px;
++  padding: 0 14px;
++  border: 1px solid var(--iyo-line);
++  border-radius: 14px;
++  background: var(--iyo-surface);
++  color: var(--iyo-text);
++  font: inherit;
++}
++
++.p5-field input[type='range'] {
++  width: 100%;
++  accent-color: var(--iyo-warm);
++}
++
++.p5-settings-meta {
++  margin: -8px 0 16px;
++  color: var(--iyo-faint);
++  font-size: 0.8rem;
++}
++
++.p5-settings-actions {
++  display: flex;
++  gap: 10px;
++  margin-top: 4px;
++}
++
++.p5-settings-note {
++  margin: 14px 0 0;
++  color: var(--iyo-faint);
++  font-size: 0.78rem;
++  line-height: 1.5;
++}
++
++/* --------------------------------------------------------------- states --- */
++
++.p5[data-section='settings'] .p5-hero-overlay .p5-hero-scroll,
++.p5[data-section='settings'] .p5-hero-open {
++  opacity: 0;
++  pointer-events: none;
++}
++
++/* Detail prev/next — the mobile device-switching pattern (rail docks away). */
++.p5-detail-step {
++  position: fixed;
++  top: 50%;
++  transform: translateY(-50%);
++  z-index: 45;
++  width: 44px;
++  height: 56px;
++  display: none;
++  place-items: center;
++  border: 1px solid var(--iyo-line);
++  border-radius: 15px;
++  background: rgba(10, 10, 10, 0.6);
++  color: var(--iyo-text);
++  font-size: 1.4rem;
++  line-height: 1;
++  cursor: pointer;
++  pointer-events: auto;
++  backdrop-filter: blur(16px);
++  -webkit-backdrop-filter: blur(16px);
++}
++
++[data-p5-detail-prev] {
++  left: 10px;
++}
++
++[data-p5-detail-next] {
++  right: 10px;
++}
++
++@media (max-width: 760px) {
++  .p5[data-mode='detail'] .p5-detail-step {
++    display: grid;
++  }
++}
++
++/* ------------------------------------------------------------ responsive --- */
++
++@media (max-width: 1100px) {
++  .p5-hero-name {
++    font-size: clamp(2.4rem, 8vw, 4.6rem);
++  }
++}
++
++@media (max-width: 760px) {
++  :root {
++    --p5-nav-h: 58px;
++  }
++
++  .p5-nav {
++    gap: 10px;
++    padding-inline: 12px;
++  }
++
++  .p5-nav-items > button,
++  .p5-nav-rooms-wrap > button {
++    padding: 0 11px;
++    font-size: 0.88rem;
++  }
++
++  .p5-hero-overlay {
++    padding-inline: 20px;
++    padding-bottom: max(150px, calc(env(safe-area-inset-bottom) + 134px));
++  }
++
++  .p5-hero-name {
++    font-size: clamp(2.2rem, 12vw, 3.4rem);
++  }
++
++  .p5-hero-scroll {
++    display: none;
++  }
++
++  .p5-content {
++    padding-inline: 16px;
++    border-radius: 24px 24px 0 0;
++  }
++
++  .p5-tile-grid,
++  .p5-room-grid {
++    grid-template-columns: repeat(2, 1fr);
++  }
++
++  .p5-settings {
++    top: auto;
++    right: 10px;
++    left: 10px;
++    bottom: max(12px, env(safe-area-inset-bottom));
++    width: auto;
++    max-height: 72vh;
++  }
++}
++
++@media (max-width: 420px) {
++  .p5-tile-grid,
++  .p5-room-grid {
++    grid-template-columns: 1fr;
++  }
++
++  .p5-fav {
++    min-width: 148px;
++  }
++}
++
++@media (prefers-reduced-motion: reduce) {
++  .p5-hero-scroll::after {
++    animation: none;
++  }
++
++  .p5-atmos {
++    transition: none;
++  }
++}
+diff --git a/apps/dashboard/src/phase5/model-registry.ts b/apps/dashboard/src/phase5/model-registry.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..5441a9023e067b273435fc653f99b2ca00661269
+--- /dev/null
++++ b/apps/dashboard/src/phase5/model-registry.ts
+@@ -0,0 +1,166 @@
++/**
++ * Hero model registry — presentation-layer resolution of a device to its 3D
++ * representation, following docs/02-architecture/2.7-model-registry.md
++ * matching priority: explicit user override → manufacturer/model alias →
++ * category fallback (the procedural heroes). Overrides are persisted locally;
++ * they are visual configuration only and never touch device state.
++ */
++
++import type { Object3D } from 'three';
++
++export type ModelSource = 'procedural' | 'url';
++
++export interface ModelOverride {
++  readonly source: ModelSource;
++  readonly url: string;
++  readonly scale: number;
++  readonly rotationYDeg: number;
++  readonly offsetY: number;
++}
++
++export const defaultOverride = (): ModelOverride => ({
++  source: 'procedural',
++  url: '',
++  scale: 1,
++  rotationYDeg: 0,
++  offsetY: 0,
++});
++
++const clampNumber = (value: unknown, min: number, max: number, fallback: number): number => {
++  const parsed = typeof value === 'number' ? value : Number(value);
++  if (!Number.isFinite(parsed)) return fallback;
++  return Math.min(max, Math.max(min, parsed));
++};
++
++/** Validate and normalise persisted or user-entered override data. */
++export const normalizeOverride = (raw: unknown): ModelOverride => {
++  const base = defaultOverride();
++  if (typeof raw !== 'object' || raw === null) return base;
++  const record = raw as Record<string, unknown>;
++  const url = typeof record['url'] === 'string' ? record['url'].trim() : '';
++  const source: ModelSource = record['source'] === 'url' && url !== '' ? 'url' : 'procedural';
++  return {
++    source,
++    url,
++    scale: clampNumber(record['scale'], 0.2, 4, base.scale),
++    rotationYDeg: clampNumber(record['rotationYDeg'], -360, 360, base.rotationYDeg),
++    offsetY: clampNumber(record['offsetY'], -1.5, 1.5, base.offsetY),
++  };
++};
++
++/**
++ * Manufacturer/model alias table. Entries map a lowercase
++ * `${manufacturer}::${model}` (or `${manufacturer}::*`) key to a bundled GLB
++ * URI. The table ships empty of proprietary assets; installations extend it
++ * through user overrides or by hosting their own models.
++ */
++export type AliasTable = Readonly<Record<string, string>>;
++
++export interface ResolvedModel {
++  readonly kind: 'override' | 'alias' | 'fallback';
++  readonly override: ModelOverride;
++}
++
++/** Pure resolution following the registry matching priority. */
++export const resolveModel = (
++  deviceId: string,
++  overrides: Readonly<Record<string, ModelOverride>>,
++  manufacturer?: string,
++  model?: string,
++  aliases: AliasTable = {},
++): ResolvedModel => {
++  const override = overrides[deviceId];
++  if (override && override.source === 'url' && override.url) {
++    return { kind: 'override', override };
++  }
++  const maker = manufacturer?.trim().toLowerCase() ?? '';
++  if (maker) {
++    const exact = aliases[`${maker}::${model?.trim().toLowerCase() ?? ''}`];
++    const family = aliases[`${maker}::*`];
++    const uri = exact ?? family;
++    if (uri) {
++      return {
++        kind: 'alias',
++        override: { ...(override ?? defaultOverride()), source: 'url', url: uri },
++      };
++    }
++  }
++  return { kind: 'fallback', override: override ?? defaultOverride() };
++};
++
++/** Apply scale, rotation and vertical anchor adjustments to a mounted object. */
++export const applyOverrideTransform = (object: Object3D, override: ModelOverride): void => {
++  object.scale.setScalar(override.scale);
++  object.rotation.y = (override.rotationYDeg * Math.PI) / 180;
++  object.position.y = override.offsetY;
++};
++
++export interface OverrideStorage {
++  getItem(key: string): string | null;
++  setItem(key: string, value: string): void;
++  removeItem(key: string): void;
++}
++
++const STORAGE_KEY = 'home-configurator.model-overrides.v1';
++
++export class HeroModelRegistry {
++  readonly #storage: OverrideStorage | null;
++  readonly #aliases: AliasTable;
++  #overrides: Record<string, ModelOverride>;
++
++  public constructor(storage?: OverrideStorage | null, aliases: AliasTable = {}) {
++    this.#storage = storage ?? null;
++    this.#aliases = aliases;
++    this.#overrides = this.#load();
++  }
++
++  public get(deviceId: string): ModelOverride {
++    return this.#overrides[deviceId] ?? defaultOverride();
++  }
++
++  public has(deviceId: string): boolean {
++    return deviceId in this.#overrides;
++  }
++
++  public set(deviceId: string, override: ModelOverride): void {
++    this.#overrides = { ...this.#overrides, [deviceId]: normalizeOverride(override) };
++    this.#persist();
++  }
++
++  public clear(deviceId: string): void {
++    if (!(deviceId in this.#overrides)) return;
++    const next = { ...this.#overrides };
++    delete next[deviceId];
++    this.#overrides = next;
++    this.#persist();
++  }
++
++  public resolve(deviceId: string, manufacturer?: string, model?: string): ResolvedModel {
++    return resolveModel(deviceId, this.#overrides, manufacturer, model, this.#aliases);
++  }
++
++  #load(): Record<string, ModelOverride> {
++    if (!this.#storage) return {};
++    try {
++      const raw = this.#storage.getItem(STORAGE_KEY);
++      if (!raw) return {};
++      const parsed: unknown = JSON.parse(raw);
++      if (typeof parsed !== 'object' || parsed === null) return {};
++      const result: Record<string, ModelOverride> = {};
++      for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
++        result[key] = normalizeOverride(value);
++      }
++      return result;
++    } catch {
++      return {};
++    }
++  }
++
++  #persist(): void {
++    try {
++      this.#storage?.setItem(STORAGE_KEY, JSON.stringify(this.#overrides));
++    } catch {
++      /* storage unavailable — keep in-memory only */
++    }
++  }
++}
+diff --git a/apps/dashboard/src/phase5/motion-system.ts b/apps/dashboard/src/phase5/motion-system.ts
+index 34d7e8e4f57afabf316a9f333788910844e0d726..ccaa5a25b0f91a2a38bf31bad90ac68fffe33b0a 100644
+--- a/apps/dashboard/src/phase5/motion-system.ts
++++ b/apps/dashboard/src/phase5/motion-system.ts
+@@ -100,6 +100,21 @@ export class SpatialTransitionController {
+     );
+   }
+ 
++  /** In-place device switch inside detail: a short lateral travel, no route change. */
++  public swapDetail(): void {
++    this.#cancel();
++    if (this.#reducedMotion()) return;
++    this.#active.push(
++      this.#root.animate(
++        [
++          { opacity: 0.94, transform: 'translate3d(0,6px,0) scale(.992)' },
++          { opacity: 1, transform: 'translate3d(0,0,0) scale(1)' },
++        ],
++        { duration: MOTION.standardMs, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'both' },
++      ),
++    );
++  }
++
+   public leaveDetail(): void {
+     this.#cancel();
+     this.#root.dataset['spatialState'] = 'browse';
+diff --git a/apps/dashboard/src/phase5/navigation-bar.ts b/apps/dashboard/src/phase5/navigation-bar.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..9ea0d716dd67fda86b84bd3ccb0824dd5a878f6d
+--- /dev/null
++++ b/apps/dashboard/src/phase5/navigation-bar.ts
+@@ -0,0 +1,163 @@
++/**
++ * Persistent global navigation — Home, Rooms (selector), Alarm, Settings and
++ * Search stay fixed across every section including Device Detail. The rooms
++ * selector is one item inside the navigation, never a replacement for it.
++ */
++
++import type { RoomView } from './experience-model.js';
++
++export type NavSection =
++  | { readonly kind: 'home' }
++  | { readonly kind: '
