@@ -243,14 +243,28 @@ const normaliseConfig = (value: DeviceModelConfig): DeviceModelConfig => ({
 const mergeTransform = (
   ...values: Array<Partial<DeviceModelTransform> | undefined>
 ): DeviceModelTransform => {
-  const merged = Object.assign({}, DEFAULT_TRANSFORM, ...values);
+  let scale = DEFAULT_TRANSFORM.scale;
+  let rotation = DEFAULT_TRANSFORM.rotation;
+  let offset = DEFAULT_TRANSFORM.offset;
+  let roughness = DEFAULT_TRANSFORM.roughness;
+  let metalness = DEFAULT_TRANSFORM.metalness;
+  let tint = DEFAULT_TRANSFORM.tint;
+  for (const value of values) {
+    if (!value) continue;
+    scale = value.scale ?? scale;
+    rotation = value.rotation ?? rotation;
+    offset = value.offset ?? offset;
+    roughness = value.roughness ?? roughness;
+    metalness = value.metalness ?? metalness;
+    tint = value.tint ?? tint;
+  }
   return {
-    scale: finite(merged.scale, 1),
-    rotation: tuple(merged.rotation, [0, 0, 0]),
-    offset: tuple(merged.offset, [0, 0, 0]),
-    roughness: clamp(finite(merged.roughness, 0.42), 0, 1),
-    metalness: clamp(finite(merged.metalness, 0.12), 0, 1),
-    tint: typeof merged.tint === 'string' ? merged.tint : '#ffffff',
+    scale: finite(scale, 1),
+    rotation: tuple(rotation, [0, 0, 0]),
+    offset: tuple(offset, [0, 0, 0]),
+    roughness: clamp(finite(roughness, 0.42), 0, 1),
+    metalness: clamp(finite(metalness, 0.12), 0, 1),
+    tint,
   };
 };
 
@@ -312,9 +326,11 @@ const applyExternalState = (object: Object3D, state: DeviceViewState): void => {
 const disposeObject = (object: Object3D): void => {
   object.traverse((node) => {
     if (!(node instanceof Mesh)) return;
-    node.geometry.dispose();
-    const materials: Material[] = Array.isArray(node.material) ? node.material : [node.material];
-    materials.forEach((material) => material.dispose());
+    const mesh = node as Mesh;
+    mesh.geometry.dispose();
+    const material = mesh.material as Material | Material[];
+    const materials = Array.isArray(material) ? material : [material];
+    materials.forEach((entry) => entry.dispose());
   });
 };
 
