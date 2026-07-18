@@ -1,0 +1,37 @@
+name: Apply Phase 5 Format Patch
+
+on:
+  push:
+    branches: [phase-5-complete]
+    paths: [.github/workflows/apply-phase5-format.yml]
+
+permissions:
+  contents: write
+
+env:
+  ARTIFACT_ID: '8427089101'
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase-5-complete
+          fetch-depth: 0
+      - name: Download formatting patch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api -H 'Accept: application/vnd.github+json' \
+            /repos/${{ github.repository }}/actions/artifacts/${ARTIFACT_ID}/zip > /tmp/format.zip
+          unzip -q /tmp/format.zip -d /tmp/format
+      - name: Apply and commit formatting
+        run: |
+          git apply /tmp/format/format.patch
+          rm .github/workflows/apply-phase5-format.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Format complete Phase 5 implementation'
+          git push origin HEAD:phase-5-complete
