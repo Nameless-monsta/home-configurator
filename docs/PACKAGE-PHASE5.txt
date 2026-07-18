@@ -1,0 +1,1 @@
+This marker triggers the Phase 5 repository packaging workflow for the Claude handoff archive.
