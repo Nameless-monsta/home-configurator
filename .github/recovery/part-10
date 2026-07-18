@@ -1,0 +1,301 @@
+s.#onInput);
++  }
++
++  public get open(): boolean {
++    return this.#open;
++  }
++
++  public show(preferredDeviceId?: string): void {
++    this.#open = true;
++    const devices = this.#options.devices();
++    this.#selectedId =
++      preferredDeviceId && devices.some((view) => view.id === preferredDeviceId)
++        ? preferredDeviceId
++        : (this.#selectedId ?? devices[0]?.id ?? null);
++    this.#options.root.hidden = false;
++    this.#render();
++    if (this.#selectedId) this.#options.onPreview(this.#selectedId);
++    this.#options.root.querySelector<HTMLElement>('[data-p5-settings-close]')?.focus();
++  }
++
++  public hide(): void {
++    if (!this.#open) return;
++    this.#open = false;
++    this.#options.root.hidden = true;
++  }
++
++  public dispose(): void {
++    this.#options.root.removeEventListener('click', this.#onClick);
++    this.#options.root.removeEventListener('change', this.#onChange);
++    this.#options.root.removeEventListener('input', this.#onInput);
++    this.#options.root.innerHTML = '';
++  }
++
++  #current(): ModelOverride {
++    return this.#selectedId ? this.#options.registry.get(this.#selectedId) : defaultOverride();
++  }
++
++  #render(): void {
++    const devices = this.#options.devices();
++    const override = this.#current();
++    const selected = devices.find((view) => view.id === this.#selectedId);
++    this.#options.root.innerHTML = `
++      <div class="p5-settings-panel" role="dialog" aria-modal="false" aria-label="Model settings">
++        <header class="p5-settings-head">
++          <div>
++            <p class="p5-section-label">Settings</p>
++            <h2>Device model</h2>
++          </div>
++          <button type="button" class="p5-settings-close" data-p5-settings-close aria-label="Close settings">Close</button>
++        </header>
++        <label class="p5-field">
++          <span>Device</span>
++          <select data-p5-settings-device>
++            ${devices
++              .map(
++                (view) =>
++                  `<option value="${escapeHtml(view.id)}" ${view.id === this.#selectedId ? 'selected' : ''}>${escapeHtml(view.name)} — ${escapeHtml(view.roomName)}</option>`,
++              )
++              .join('')}
++          </select>
++        </label>
++        ${
++          selected?.manufacturer || selected?.model
++            ? `<p class="p5-settings-meta">${escapeHtml([selected.manufacturer, selected.model].filter(Boolean).join(' · '))}</p>`
++            : ''
++        }
++        <fieldset class="p5-field">
++          <legend>Model source</legend>
++          <div class="p5-segmented">
++            <button type="button" data-p5-settings-source="procedural" aria-pressed="${override.source === 'procedural'}">Built-in</button>
++            <button type="button" data-p5-settings-source="url" aria-pressed="${override.source === 'url'}">GLB / GLTF</button>
++          </div>
++        </fieldset>
++        <label class="p5-field" ${override.source === 'url' ? '' : 'hidden'} data-p5-settings-url-field>
++          <span>Model URL (.glb / .gltf)</span>
++          <input type="url" data-p5-settings-url value="${escapeHtml(override.url)}" placeholder="https://…/lamp.glb" />
++        </label>
++        <label class="p5-field">
++          <span>Scale <output data-p5-settings-out="scale">${override.scale.toFixed(2)}×</output></span>
++          <input type="range" min="0.2" max="4" step="0.05" value="${override.scale}" data-p5-settings-range="scale" />
++        </label>
++        <label class="p5-field">
++          <span>Rotation <output data-p5-settings-out="rotationYDeg">${Math.round(override.rotationYDeg)}°</output></span>
++          <input type="range" min="-180" max="180" step="1" value="${override.rotationYDeg}" data-p5-settings-range="rotationYDeg" />
++        </label>
++        <label class="p5-field">
++          <span>Height <output data-p5-settings-out="offsetY">${override.offsetY.toFixed(2)}</output></span>
++          <input type="range" min="-1" max="1" step="0.02" value="${override.offsetY}" data-p5-settings-range="offsetY" />
++        </label>
++        <div class="p5-settings-actions">
++          <button type="button" class="p5-quick" data-p5-settings-apply>Save &amp; preview</button>
++          <button type="button" class="p5-quick" data-p5-settings-reset>Reset</button>
++        </div>
++        <p class="p5-settings-note">Built-in models remain the fallback when a custom model cannot load.</p>
++      </div>
++    `;
++  }
++
++  #draft(): ModelOverride {
++    const root = this.#options.root;
++    const source =
++      root.querySelector<HTMLButtonElement>('[data-p5-settings-source][aria-pressed="true"]')
++        ?.dataset['p5SettingsSource'] === 'url'
++        ? 'url'
++        : 'procedural';
++    const url = root.querySelector<HTMLInputElement>('[data-p5-settings-url]')?.value ?? '';
++    const range = (key: string): number =>
++      Number(root.querySelector<HTMLInputElement>(`[data-p5-settings-range="${key}"]`)?.value ?? 0);
++    return normalizeOverride({
++      source,
++      url,
++      scale: range('scale'),
++      rotationYDeg: range('rotationYDeg'),
++      offsetY: range('offsetY'),
++    });
++  }
++
++  #apply(): void {
++    if (!this.#selectedId) return;
++    this.#options.registry.set(this.#selectedId, this.#draft());
++    this.#options.onApply(this.#selectedId);
++    this.#render();
++  }
++
++  readonly #onClick = (event: Event): void => {
++    const target = event.target as HTMLElement | null;
++    if (!target) return;
++    if (target.closest('[data-p5-settings-close]')) {
++      this.#options.onClose();
++      return;
++    }
++    const source = target.closest<HTMLElement>('[data-p5-settings-source]');
++    if (source?.dataset['p5SettingsSource']) {
++      for (const button of this.#options.root.querySelectorAll<HTMLElement>(
++        '[data-p5-settings-source]',
++      )) {
++        button.setAttribute('aria-pressed', String(button === source));
++      }
++      const urlField = this.#options.root.querySelector<HTMLElement>(
++        '[data-p5-settings-url-field]',
++      );
++      if (urlField) urlField.hidden = source.dataset['p5SettingsSource'] !== 'url';
++      return;
++    }
++    if (target.closest('[data-p5-settings-apply]')) {
++      this.#apply();
++      return;
++    }
++    if (target.closest('[data-p5-settings-reset]')) {
++      if (this.#selectedId) {
++        this.#options.registry.clear(this.#selectedId);
++        this.#options.onApply(this.#selectedId);
++      }
++      this.#render();
++    }
++  };
++
++  readonly #onChange = (event: Event): void => {
++    const target = event.target as HTMLElement | null;
++    const select = target?.closest<HTMLSelectElement>('[data-p5-settings-device]');
++    if (select) {
++      this.#selectedId = select.value;
++      this.#render();
++      this.#options.onPreview(select.value);
++    }
++  };
++
++  readonly #onInput = (event: Event): void => {
++    const target = event.target as HTMLElement | null;
++    const range = target?.closest<HTMLInputElement>('[data-p5-settings-range]');
++    if (!range) return;
++    const key = range.dataset['p5SettingsRange'];
++    const output = this.#options.root.querySelector<HTMLElement>(
++      `[data-p5-settings-out="${key ?? ''}"]`,
++    );
++    if (!output) return;
++    const value = Number(range.value);
++    if (key === 'scale') output.textContent = `${value.toFixed(2)}×`;
++    else if (key === 'rotationYDeg') output.textContent = `${Math.round(value)}°`;
++    else output.textContent = value.toFixed(2);
++  };
++}
+diff --git a/apps/dashboard/test/device-rail.test.ts b/apps/dashboard/test/device-rail.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..883c1716b5a9e26d7b2a2da863f233940f335602
+--- /dev/null
++++ b/apps/dashboard/test/device-rail.test.ts
+@@ -0,0 +1,38 @@
++import { describe, expect, it } from 'vitest';
++
++import { buildRailModel, formatRailIndex, railNeighbour } from '../src/phase5/device-rail.js';
++
++const items = [
++  { id: 'lamp', name: 'Floor Lamp' },
++  { id: 'ac', name: 'Bedroom Climate' },
++  { id: 'vac', name: 'Robot Vacuum' },
++] as const;
++
++describe('device rail model', () => {
++  it('annotates entries with index and active flag', () => {
++    const model = buildRailModel(items, 'ac');
++    expect(model.map((entry) => entry.index)).toEqual([0, 1, 2]);
++    expect(model.map((entry) => entry.active)).toEqual([false, true, false]);
++    expect(model[1]?.name).toBe('Bedroom Climate');
++  });
++
++  it('marks nothing active for an unknown id', () => {
++    expect(buildRailModel(items, 'missing').every((entry) => !entry.active)).toBe(true);
++  });
++
++  it('formats a two-digit editorial counter and clamps out-of-range indices', () => {
++    expect(formatRailIndex(0, 3)).toBe('01 — 03');
++    expect(formatRailIndex(2, 3)).toBe('03 — 03');
++    expect(formatRailIndex(9, 3)).toBe('03 — 03');
++    expect(formatRailIndex(-2, 3)).toBe('01 — 03');
++    expect(formatRailIndex(0, 0)).toBe('');
++  });
++
++  it('resolves neighbours and returns null at the ends or for unknown ids', () => {
++    expect(railNeighbour(items, 'lamp', 1)).toBe('ac');
++    expect(railNeighbour(items, 'ac', -1)).toBe('lamp');
++    expect(railNeighbour(items, 'lamp', -1)).toBeNull();
++    expect(railNeighbour(items, 'vac', 1)).toBeNull();
++    expect(railNeighbour(items, 'missing', 1)).toBeNull();
++  });
++});
+diff --git a/apps/dashboard/test/home-content.test.ts b/apps/dashboard/test/home-content.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..da6f24f7d2adc725d8ebe6caa00bd999ef3a95e7
+--- /dev/null
++++ b/apps/dashboard/test/home-content.test.ts
+@@ -0,0 +1,80 @@
++import { describe, expect, it } from 'vitest';
++
++import { defaultViewState, type DeviceView } from '../src/phase5/experience-model.js';
++import { buildSummaryTiles, deriveSummary } from '../src/phase5/home-content.js';
++
++const view = (partial: Partial<DeviceView> & Pick<DeviceView, 'id' | 'category'>): DeviceView => ({
++  name: partial.id,
++  roomId: 'r1',
++  roomName: 'Living Room',
++  capabilities: [],
++  favourite: false,
++  available: true,
++  state: defaultViewState(),
++  ...partial,
++});
++
++const state = (partial: Partial<DeviceView['state']>): DeviceView['state'] => ({
++  ...defaultViewState(),
++  ...partial,
++});
++
++describe('home content summaries', () => {
++  const views: DeviceView[] = [
++    view({ id: 'l1', category: 'light', state: state({ on: true, brightness: 0.7 }) }),
++    view({ id: 'l2', category: 'light', state: state({ on: false }) }),
++    view({
++      id: 'c1',
++      category: 'climate',
++      state: state({ currentTemp: 22, humidity: 40 }),
++    }),
++    view({
++      id: 's1',
++      category: 'sensor',
++      state: state({ currentTemp: 24, humidity: 60 }),
++    }),
++    view({
++      id: 'lock1',
++      category: 'security',
++      capabilities: ['lock'],
++      state: state({ locked: true }),
++    }),
++    view({ id: 'cov1', category: 'cover', state: state({ position: 72 }) }),
++    view({ id: 'tv1', category: 'media', state: state({ playing: true }) }),
++    view({
++      id: 'off1',
++      category: 'appliance',
++      name: 'Heater',
++      state: state({ available: false }),
++    }),
++  ];
++
++  it('derives live counts, averages and offline devices', () => {
++    const summary = deriveSummary(views);
++    expect(summary.lightsOn).toBe(1);
++    expect(summary.lightsTotal).toBe(2);
++    expect(summary.averageTemp).toBeCloseTo(23);
++    expect(summary.humidity).toBeCloseTo(50);
++    expect(summary.locked).toBe(1);
++    expect(summary.locksTotal).toBe(1);
++    expect(summary.coversOpen).toBe(1);
++    expect(summary.mediaPlaying).toBe(1);
++    expect(summary.offline).toEqual(['Heater']);
++  });
++
++  it('builds jumpable summary tiles only for present categories', () => {
++    const tiles = buildSummaryTiles(views, deriveSummary(views));
++    const ids = tiles.map((tile) => tile.id);
++    expect(ids).toEqual(['lights', 'climate', 'security', 'covers', 'media']);
++    expect(tiles.find((tile) => tile.id === 'lights
