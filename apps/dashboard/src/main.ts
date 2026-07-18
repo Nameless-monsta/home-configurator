@@ -21,6 +21,7 @@ import { createRuntime, DeviceStore } from '@home-configurator/runtime';
 import { ExperienceDataSource } from './phase5/experience-data.js';
 import { ExperienceShell } from './phase5/experience-shell.js';
 import './phase5/experience.css';
+import './phase5/prototype-home-v1.css';
 
 const root = document.querySelector<HTMLElement>('#app');
 if (!root) throw new Error('Application root was not found');
@@ -206,7 +207,6 @@ const graphicsHandle = attachGraphicsRuntime({
 graphicsHandle.engine.setBackground(0x101010);
 shell.attach(graphicsHandle.engine);
 
-// Drive the experience heroes from the shared scheduler.
 const unregisterExperienceTick = runtime.scheduler.register({
   id: 'phase5.experience',
   priority: 200,

@@ -27,6 +27,16 @@ export class ResourceTracker {
     return root;
   }
 
+  public untrackObject(root: Object3D): void {
+    root.traverse((object) => {
+      if (!(object instanceof Mesh)) return;
+      const mesh = object as Mesh<BufferGeometry, Material | Material[]>;
+      if (mesh.geometry instanceof BufferGeometry) this.untrack(mesh.geometry);
+      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      for (const material of materials) this.#untrackMaterial(material);
+    });
+  }
+
   public get size(): number {
     return this.#resources.size;
   }
@@ -42,6 +52,13 @@ export class ResourceTracker {
     this.track(material);
     for (const value of Object.values(material as unknown as Record<string, unknown>)) {
       if (value instanceof Texture) this.track(value);
+    }
+  }
+
+  #untrackMaterial(material: Material): void {
+    this.untrack(material);
+    for (const value of Object.values(material as unknown as Record<string, unknown>)) {
+      if (value instanceof Texture) this.untrack(value);
     }
   }
 }
