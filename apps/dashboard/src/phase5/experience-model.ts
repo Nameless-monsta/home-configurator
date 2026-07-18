@@ -72,6 +72,8 @@ export interface DeviceView {
   readonly capabilities: readonly CapabilityKind[];
   readonly favourite: boolean;
   readonly available: boolean;
+  readonly manufacturer?: string;
+  readonly model?: string;
   readonly state: DeviceViewState;
 }
 
