@@ -8,6 +8,7 @@ import type { GraphicsEngine } from '@home-configurator/graphics';
 import { AdaptiveControlTray } from './adaptive-controls.js';
 import type { CommandSink } from './control-map.js';
 import { DeviceDetail } from './device-detail.js';
+import { DeviceRail } from './device-rail.js';
 import {
   categoryLabel,
   defaultViewState,
@@ -58,6 +59,7 @@ export class ExperienceShell {
   #transition: SpatialTransitionController | null = null;
   #detail: DeviceDetail | null = null;
   #carousel: FavouriteHeroCarousel | null = null;
+  #rail: DeviceRail;
   #context: BrowseContext = { type: 'home' };
   #state: SpatialState = 'browse';
   #structuralKey = '';
@@ -92,8 +94,14 @@ export class ExperienceShell {
         <div class="p5-detail-readout-wrap" data-p5-readout></div>
         <div class="p5-detail-tray" data-p5-tray></div>
       </div>
+      <nav class="p5-rail" data-p5-rail></nav>
       <p class="p5-sr" role="status" aria-live="polite" data-p5-announce></p>
     `;
+
+    this.#rail = new DeviceRail({
+      root: this.#q('[data-p5-rail]'),
+      onSelect: (id) => this.#onRailSelect(id),
+    });
 
     this.stage = this.#q('[data-p5-stage]');
     this.canvas = this.#q('[data-p5-canvas]');
@@ -199,10 +207,15 @@ export class ExperienceShell {
         items,
         mountHero: (mountHost, item) => this.#createPreview(mountHost, item.id),
         onSelect: (item, origin) => this.#openDetail(item.id, origin),
+        onActiveChange: (item) => {
+          if (this.#state === 'browse' || this.#state === 'menu-open') this.#rail.setActive(item.id);
+        },
       });
     } else if (carouselRoot) {
       carouselRoot.innerHTML = '<p class="p5-empty">No featured devices in this space.</p>';
     }
+
+    this.#rail.setItems(devices.map((view) => ({ id: view.id, name: view.name })));
 
     const grid = host.querySelector<HTMLElement>('[data-p5-device-grid]');
     if (grid) {
@@ -331,24 +344,49 @@ export class ExperienceShell {
     for (const preview of this.#previewRefs.values()) preview.setActive(false);
     this.#transition?.enterDetail(origin);
     this.#detail?.show(deviceId);
+    this.#rail.setActive(deviceId);
     requestAnimationFrame(() => this.#setState('detail'));
     this.#announce(`Opened ${this.#data.device(deviceId)?.name ?? 'device'}`);
+  }
+
+  #switchDetail(deviceId: string): void {
+    if (this.#state !== 'detail' || this.#detail?.deviceId === deviceId) return;
+    this.#transition?.swapDetail();
+    this.#detail?.show(deviceId);
+    this.#rail.setActive(deviceId);
+    this.#announce(`Showing ${this.#data.device(deviceId)?.name ?? 'device'}`);
   }
 
   #closeDetail(): void {
     if (this.#state !== 'detail' && this.#state !== 'opening-detail') return;
     this.#setState('closing-detail');
     this.#transition?.leaveDetail();
+    const railActive = this.#rail.activeId;
     this.#detail?.hide();
     this.#root.dataset['mode'] = 'browse';
     this.#q('[data-p5-browse]').removeAttribute('inert');
     document.documentElement.classList.remove('p5-scroll-lock');
     requestAnimationFrame(() => {
       this.#setState('browse');
-      this.#carousel?.focusIndex(this.#carousel.activeIndex, false);
+      const index = railActive
+        ? this.#contextDevices().findIndex((view) => view.id === railActive)
+        : -1;
+      this.#carousel?.focusIndex(index >= 0 ? index : this.#carousel.activeIndex, false);
       this.#detailOpener?.focus();
       this.#detailOpener = null;
     });
+  }
+
+  #onRailSelect(deviceId: string): void {
+    if (this.#state === 'detail') {
+      this.#switchDetail(deviceId);
+      return;
+    }
+    if (this.#state !== 'browse' && this.#state !== 'menu-open') return;
+    this.#closeMenu();
+    const index = this.#contextDevices().findIndex((view) => view.id === deviceId);
+    if (index >= 0) this.#carousel?.focusIndex(index);
+    this.#rail.setActive(deviceId);
   }
 
   readonly #onClick = (event: Event): void => {
@@ -385,9 +423,22 @@ export class ExperienceShell {
   };
 
   readonly #onKeydown = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape') return;
-    if (this.#state === 'menu-open') this.#closeMenu(true);
-    else this.#closeDetail();
+    if (event.key === 'Escape') {
+      if (this.#state === 'menu-open') this.#closeMenu(true);
+      else this.#closeDetail();
+      return;
+    }
+    if (
+      this.#state === 'detail' &&
+      (event.key === 'ArrowLeft' || event.key === 'ArrowRight') &&
+      !(event.target instanceof HTMLElement && event.target.closest('.p5-detail, .p5-rail'))
+    ) {
+      const next = this.#rail.neighbour(event.key === 'ArrowRight' ? 1 : -1);
+      if (next) {
+        event.preventDefault();
+        this.#switchDetail(next);
+      }
+    }
   };
 
   public dispose(): void {
@@ -397,6 +448,7 @@ export class ExperienceShell {
     document.removeEventListener('pointerdown', this.#onDocumentPointerDown);
     document.documentElement.classList.remove('p5-scroll-lock');
     this.#carousel?.dispose();
+    this.#rail.dispose();
     this.#detail?.hide();
     this.#transition?.dispose();
     this.#previewRefs.clear();
