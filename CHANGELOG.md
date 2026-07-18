@@ -15,6 +15,8 @@ All notable changes to Home Configurator will be documented here.
 - Runtime Core with lifecycle, services, events, scheduling, diagnostics, plugins and asset management
 - Graphics Engine with persistent Three.js rendering, camera framing, scene graph, lighting, quality tiers, post-processing, GLTF assets, HDR environments, LOD, context recovery and GPU-resource disposal
 - Runnable responsive dashboard milestone stage
+- Phase 5 IYO experience shell: hero carousel, device detail, adaptive tray, living objects
+- Cross-device navigation rail with editorial index counter, in-detail device switching and arrow-key travel
 
 ### In progress
 
