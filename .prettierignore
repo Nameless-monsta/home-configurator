@@ -6,3 +6,5 @@ pnpm-lock.yaml
 *.min.js
 docs
 *.md
+apps/dashboard/src/phase5/experience-shell.ts
+apps/dashboard/src/phase5/iyo-fidelity-v2.css
