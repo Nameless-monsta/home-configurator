@@ -1,0 +1,134 @@
+diff --git a/.gitignore b/.gitignore
+index 7e41a9ff65661f6531dc9a5a7f0c2c123db5ef75..062151fccd915dea51531b735ede11bcdbc81d59 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -13,3 +13,4 @@ __pycache__/
+ *.pyc
+ .vscode/settings.json
+ .idea/
++.turbo/
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 5d8d1522094aea1c57cb80a9dfe8525c141f0d33..51fe7aa8253a15e96bfba065a944e1d7f2d9d18a 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -15,6 +15,9 @@ All notable changes to Home Configurator will be documented here.
+ - Runtime Core with lifecycle, services, events, scheduling, diagnostics, plugins and asset management
+ - Graphics Engine with persistent Three.js rendering, camera framing, scene graph, lighting, quality tiers, post-processing, GLTF assets, HDR environments, LOD, context recovery and GPU-resource disposal
+ - Runnable responsive dashboard milestone stage
++- Phase 5 IYO experience shell: hero carousel, device detail, adaptive tray, living objects
++- Cross-device navigation rail with editorial index counter, in-detail device switching and arrow-key travel
++- Full design recovery: persistent global navigation, single persistent hero stage with camera choreography and device-aware atmosphere, slide-up Home content, Room and Alarm sections, search, and a model registry with GLB/GLTF overrides and a Settings configuration flow
+ 
+ ### In progress
+ 
+diff --git a/STATUS.md b/STATUS.md
+index bc9b6f77ede89978ade812525d8ab44ae9f90791..e811282350eacc9f42f149ec6c31736aa1f13210 100644
+--- a/STATUS.md
++++ b/STATUS.md
+@@ -94,13 +94,48 @@ Physical profiling remains a supporting engineering task. It does not block the
+ 
+ ## Phase 5 Product Experience
+ 
+-- [ ] **5.1 Application Shell** — Active
+-- [ ] 5.2 Visual Design Language
+-- [ ] 5.3 Hero Device Experience
+-- [ ] 5.4 Spatial Colour Sphere
+-- [ ] 5.5 Room Experience
++- [x] **5.1 Application Shell** — spatial shell, context menu, browse/detail modes
++- [x] 5.2 Visual Design Language — IYO fidelity v2 dark editorial styling
++- [x] 5.3 Hero Device Experience — hero carousel, device detail, adaptive tray
++- [x] 5.4 Spatial Colour Sphere — direct colour/brightness manipulation
++- [ ] 5.5 Room Experience — room browsing via context switcher (galleries pending)
+ - [ ] 5.6 AI Experience
+ 
++## Design recovery (2026-07-19)
++
++- One persistent spatial stage: `HeroStage` mounts a single hero object for
++  browse and detail; device switching swaps it in place and Device Detail only
++  reframes the camera. The duplicate carousel renderers are retired from the
++  shell.
++- Persistent global navigation (Home / Rooms selector / Alarm / Settings /
++  Search) fixed across every section including detail.
++- Home rebuilt: full-viewport editorial hero with device-aware atmosphere,
++  then a slide-up content sheet with favourites, live summary tiles, rooms and
++  the device inventory.
++- Rooms and Alarm are real sections with identity, environment, quick lighting
++  control and device hierarchy.
++- Model fidelity: `HeroModelRegistry` (override → manufacturer alias →
++  procedural fallback), GLB/GLTF loading through the engine asset loader, and
++  a Settings configuration flow with live preview.
++- All existing controls, gestures and the Home Assistant command path are
++  preserved; no second state store or rendering stage exists.
++- See docs/PROTOTYPE-3-DESIGN-RECOVERY.md. Full pipeline passes.
++
++## Prototype recovery (2026-07-18)
++
++- Added the IYO-style cross-device navigation rail: a persistent strip of
++  device names with an editorial `01 — 05` index counter.
++- The rail switches the hero while browsing (scrolls the carousel) and switches
++  the device in place inside Device Detail without leaving the stage, matching
++  the reference's cross-product navigation inside one persistent shell.
++- Arrow keys travel between devices in Device Detail; Escape still closes.
++- Closing detail returns the carousel to the device last viewed, preserving
++  spatial continuity.
++- All commands continue to flow through the existing Home Assistant command
++  path; no new state store was introduced.
++- Full pipeline (format, lint, strict TypeScript, tests, production build)
++  passes locally.
++
+ ## 5.1 exit criteria
+ 
+ Phase 5.1 is complete only when:
+diff --git a/apps/dashboard/src/main.ts b/apps/dashboard/src/main.ts
+index 6decd2ec55a2625323faf25e66c56477135d000b..42d726f87af03ab088755050c5eb9492157c9edf 100644
+--- a/apps/dashboard/src/main.ts
++++ b/apps/dashboard/src/main.ts
+@@ -22,6 +22,7 @@ import { ExperienceDataSource } from './phase5/experience-data.js';
+ import { ExperienceShell } from './phase5/experience-shell.js';
+ import './phase5/experience.css';
+ import './phase5/iyo-fidelity-v2.css';
++import './phase5/iyo-recovery-v3.css';
+ 
+ const root = document.querySelector<HTMLElement>('#app');
+ if (!root) throw new Error('Application root was not found');
+diff --git a/apps/dashboard/src/phase5/device-detail.ts b/apps/dashboard/src/phase5/device-detail.ts
+index 3abe2b2bdf893de1b51d06f4ad6a431ff3492c30..b2d3f0359b715dd9361f17c792fd485c51baf563 100644
+--- a/apps/dashboard/src/phase5/device-detail.ts
++++ b/apps/dashboard/src/phase5/device-detail.ts
+@@ -1,9 +1,10 @@
+ /**
+- * Device Detail — object-first control page. Mounts the category hero on the
+- * shared GraphicsEngine stage, frames the camera, registers the living-object
+- * behaviour, wires the primary direct manipulation (sphere / ring / drag / hold)
+- * and an adaptive control tray. All writes go through the shared command sink.
+- * docs/PHASE-5-IYO-EXPERIENCE §5.3–5.5.
++ * Device Detail — object-first control page around the hero that the shell's
++ * persistent HeroStage already has mounted. Detail never creates, duplicates
++ * or reframes the object itself: the shell owns the object and camera, and
++ * this layer wires the primary direct manipulation (sphere / ring / drag /
++ * hold), the adaptive control tray, identity and the live readout. All writes
++ * go through the shared command sink. docs/PHASE-5-IYO-EXPERIENCE §5.3–5.5.
+  */
+ 
+ import type { GraphicsEngine } from '@home-configurator/graphics';
+@@ -18,9 +19,7 @@ import {
+   type CommandSink,
+ } from './control-map.js';
+ import { categoryLabel, type DeviceView } from './experience-model.js';
+-import { createHero, type HeroHandle } from './hero-models.js';
+-import type { LivingObjectRegistry } from './living-object.js';
+-import { type LivingObjectBehaviour } from './living-object.js';
++import type { HeroHandle } from './hero-models.js';
+ import { ThermostatRing } from './thermostat-ring.js';
+ 
+ export interface DeviceDetailOptions {
+@@ -29,18 +28,17 @@ export interface DeviceDetailOptions {
+   readonly identityEl: HTMLElement;
+   readonly readoutEl: HTMLElement;
+   readonly trayEl: HTMLElement;
+-  readonly living: LivingObjectRegistry;
+   readonly sink: CommandSink;
+   reducedMotion: () => boolean;
+   resolve: (deviceId: string) => DeviceView | undefined;
+   onError: (message: string) => void;
++  onPulse?: (strength: number) => vo
