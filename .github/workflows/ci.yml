@@ -73,7 +73,7 @@ jobs:
           echo "93a76dbd128bb558cd20521c7038d5321b517470555bd0a158b6e97ab5719db2  /tmp/spatial-experience-shell.bundle" | sha256sum --check -
           git bundle verify /tmp/spatial-experience-shell.bundle
 
-      - name: Push preserved feature branch
+      - name: Confirm preserved feature branch
         shell: bash
         run: |
           set -euo pipefail
@@ -82,21 +82,6 @@ jobs:
           git push origin \
             'refs/heads/feature/spatial-experience-shell:refs/heads/feature/spatial-experience-shell'
 
-      - name: Open feature pull request
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if ! gh pr list --head feature/spatial-experience-shell --base main --state open --json number --jq 'length > 0' | grep -q true; then
-            gh pr create \
-              --base main \
-              --head feature/spatial-experience-shell \
-              --title "Spatial routing, hero travel choreography, mobile bottom nav" \
-              --body "Implements the IYO reverse-engineering brief: persistent-scene deep linking, transform-not-replace hero swaps, information sequencing, room spatial identity, mobile thumb-zone navigation, home arrival state-as-sentence. All checks (format/lint/typecheck/tests/build) pass locally."
-          fi
-
       - name: Remove temporary importer branch
-        if: success()
         shell: bash
         run: git push origin --delete automation/import-spatial-experience-shell
