@@ -37,3 +37,5 @@ jobs:
         if: success()
         shell: bash
         run: git push origin --delete automation/import-spatial-experience-shell
+
+# Triggered after workflow installation.
