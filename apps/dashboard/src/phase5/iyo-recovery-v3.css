@@ -1053,3 +1053,27 @@
     transition: none;
   }
 }
+
+/* ------------------------------------------------------- home arrival head ---
+ * The house speaks first: greeting, state-as-a-sentence, then the numbers.
+ */
+
+.p5-home-head {
+  margin-bottom: 36px;
+}
+
+.p5-home-sentence {
+  margin: 0;
+  max-width: 18ch;
+  font-size: clamp(1.7rem, 3.4vw, 2.6rem);
+  font-weight: 430;
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.p5-home-meta {
+  margin: 12px 0 0;
+  color: var(--iyo-muted);
+  font-size: 0.94rem;
+}

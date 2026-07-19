@@ -418,6 +418,7 @@ export class ExperienceShell {
       case 'home':
       case 'settings':
         content.innerHTML = renderHomeContent(
+          this.#data.ambient(),
           this.#data.favourites(),
           this.#data.devices(),
           this.#data.rooms(),
@@ -443,10 +444,14 @@ export class ExperienceShell {
     const status = this.#q('[data-p5-hero-status]');
     const enter = this.#q<HTMLButtonElement>('[data-p5-hero-enter]');
     if (!view) {
+      const connected = this.#data.ambient().connected;
       eyebrow.textContent = '';
-      name.textContent =
-        this.#section.kind === 'alarm' ? 'No security devices' : 'No devices yet';
-      status.textContent = '';
+      name.textContent = !connected
+        ? 'Waking your home…'
+        : this.#section.kind === 'alarm'
+          ? 'No security devices'
+          : 'No devices yet';
+      status.textContent = connected ? '' : 'Connecting to Home Assistant';
       enter.hidden = true;
       return;
     }
@@ -465,6 +470,11 @@ export class ExperienceShell {
       const fav = this.#root.querySelector<HTMLElement>(`[data-p5-fav-status="${view.id}"]`);
       if (fav) fav.textContent = primaryStatus(view);
     }
+    const ambient = this.#data.ambient();
+    const sentence = this.#root.querySelector<HTMLElement>('[data-p5-home-sentence]');
+    if (sentence) sentence.textContent = ambient.statusSentence;
+    const meta = this.#root.querySelector<HTMLElement>('[data-p5-home-meta]');
+    if (meta) meta.textContent = `${ambient.comfort} · ${ambient.security}`;
     const sectionViews = this.#sectionDevices();
     const summary = deriveSummary(
       this.#section.kind === 'home' || this.#section.kind === 'settings' ? views : sectionViews,

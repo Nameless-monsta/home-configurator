@@ -96,9 +96,11 @@ export class ExperienceDataSource implements ExperienceData {
         : `${locks.length - securedCount} unlocked`
       : 'No locks';
 
+    const status = snapshot?.status ?? 'connecting';
     return {
+      connected: status === 'ready' || status === 'degraded',
       greeting: greeting(),
-      statusSentence: statusSentence(snapshot?.status ?? 'connecting', unavailable.length),
+      statusSentence: statusSentence(status, unavailable.length),
       comfort: `${temp.toFixed(1)}° · ${Math.round(humidity)}% humidity`,
       air: 'Air good',
       security,

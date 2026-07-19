@@ -8,6 +8,7 @@
 
 import { categoryLabel, primaryStatus, type DeviceView } from './experience-model.js';
 import type { RoomView } from './experience-model.js';
+import type { AmbientSummary } from './experience-views.js';
 
 export interface HomeSummary {
   readonly lightsOn: number;
@@ -148,6 +149,11 @@ const deviceRow = (view: DeviceView): string => `
     <span class="p5-device-chevron" aria-hidden="true">›</span>
   </button>`;
 
+const deviceGrid = (views: readonly DeviceView[], emptyCopy: string): string =>
+  views.length
+    ? `<div class="p5-device-grid">${views.map(deviceRow).join('')}</div>`
+    : `<p class="p5-empty">${escapeHtml(emptyCopy)}</p>`;
+
 const tileMarkup = (tile: SummaryTile): string => `
   <button class="p5-tile" type="button" ${tile.jumpDeviceId ? `data-p5-jump="${escapeHtml(tile.jumpDeviceId)}"` : 'disabled'}>
     <small>${escapeHtml(tile.label)}</small>
@@ -156,6 +162,7 @@ const tileMarkup = (tile: SummaryTile): string => `
   </button>`;
 
 export const renderHomeContent = (
+  ambient: AmbientSummary,
   favourites: readonly DeviceView[],
   views: readonly DeviceView[],
   rooms: readonly RoomView[],
@@ -164,6 +171,11 @@ export const renderHomeContent = (
   const tiles = buildSummaryTiles(views, summary);
   return `
     <div class="p5-content-grip" aria-hidden="true"></div>
+    <header class="p5-section p5-home-head">
+      <p class="p5-section-label">${escapeHtml(ambient.greeting)}</p>
+      <h2 class="p5-home-sentence" data-p5-home-sentence>${escapeHtml(ambient.statusSentence)}</h2>
+      <p class="p5-home-meta" data-p5-home-meta>${escapeHtml(`${ambient.comfort} · ${ambient.security}`)}</p>
+    </header>
     ${
       summary.offline.length
         ? `<p class="p5-home-alert" role="alert">${escapeHtml(summary.offline.join(', '))} offline</p>`
@@ -217,7 +229,7 @@ export const renderHomeContent = (
     }
     <section class="p5-section p5-inventory" aria-label="All devices">
       <div class="p5-inventory-head"><p>All devices</p><span>${views.length}</span></div>
-      <div class="p5-device-grid">${views.map(deviceRow).join('')}</div>
+      ${deviceGrid(views, 'No devices discovered yet. Devices appear here as Home Assistant finds them.')}
     </section>
   `;
 };
@@ -262,7 +274,7 @@ export const renderRoomContent = (room: RoomView, views: readonly DeviceView[]):
     }
     <section class="p5-section p5-inventory" aria-label="Devices in ${escapeHtml(room.name)}">
       <div class="p5-inventory-head"><p>Devices</p><span>${views.length}</span></div>
-      <div class="p5-device-grid">${views.map(deviceRow).join('')}</div>
+      ${deviceGrid(views, 'This room has no devices yet.')}
     </section>
   `;
 };
@@ -283,7 +295,7 @@ export const renderAlarmContent = (views: readonly DeviceView[]): string => {
     </section>
     <section class="p5-section p5-inventory" aria-label="Security devices">
       <div class="p5-inventory-head"><p>Security devices</p><span>${views.length}</span></div>
-      <div class="p5-device-grid">${views.map(deviceRow).join('')}</div>
+      ${deviceGrid(views, 'No locks, cameras or alarms discovered.')}
     </section>
   `;
 };

@@ -7,6 +7,8 @@
 import { categoryLabel, type DeviceCategory } from './experience-model.js';
 
 export interface AmbientSummary {
+  /** Whether the Home Assistant connection has produced a snapshot. */
+  readonly connected: boolean;
   readonly greeting: string;
   readonly statusSentence: string;
   readonly comfort: string;
