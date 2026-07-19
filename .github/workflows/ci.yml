@@ -59,16 +59,18 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
+          fetch-depth: 1
+          show-progress: false
 
       - name: Reconstruct and verify bundle
         shell: bash
         run: |
           set -euo pipefail
-          wc -c .github/import-payload/spatial-experience-shell.bundle.b64
+          git fetch --quiet --depth=1 origin 2556a36964c33209862db4e6f05f3da22d7828c5
+          echo "payload-bytes=$(wc -c < .github/import-payload/spatial-experience-shell.bundle.b64)"
           base64 --decode .github/import-payload/spatial-experience-shell.bundle.b64 > /tmp/spatial-experience-shell.bundle
-          wc -c /tmp/spatial-experience-shell.bundle
-          sha256sum /tmp/spatial-experience-shell.bundle
+          echo "bundle-bytes=$(wc -c < /tmp/spatial-experience-shell.bundle)"
+          echo "bundle-sha=$(sha256sum /tmp/spatial-experience-shell.bundle | cut -d' ' -f1)"
           echo "93a76dbd128bb558cd20521c7038d5321b517470555bd0a158b6e97ab5719db2  /tmp/spatial-experience-shell.bundle" | sha256sum --check -
           git bundle verify /tmp/spatial-experience-shell.bundle
 
