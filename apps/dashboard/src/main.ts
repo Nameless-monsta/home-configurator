@@ -19,6 +19,7 @@ import {
 import { createRuntime, DeviceStore } from '@home-configurator/runtime';
 
 import { ExperienceDataSource } from './phase5/experience-data.js';
+import { ExperienceRouter } from './phase5/experience-router.js';
 import { ExperienceShell } from './phase5/experience-shell.js';
 import './phase5/experience.css';
 import './phase5/iyo-fidelity-v2.css';
@@ -197,7 +198,9 @@ const shell = new ExperienceShell({
   sink: homeAssistantState,
   data,
   reducedMotion,
+  onRoute: (route) => router.reflect(route),
 });
+const router = new ExperienceRouter(shell);
 
 const graphicsHandle = attachGraphicsRuntime({
   runtime,
@@ -207,6 +210,7 @@ const graphicsHandle = attachGraphicsRuntime({
 });
 graphicsHandle.engine.setBackground(0x101010);
 shell.attach(graphicsHandle.engine);
+router.start();
 
 const unregisterExperienceTick = runtime.scheduler.register({
   id: 'phase5.experience',
@@ -232,6 +236,7 @@ const shutdown = async (): Promise<void> => {
   disposed = true;
   unregisterExperienceTick();
   unsubscribeStore();
+  router.dispose();
   shell.dispose();
   homeAssistantState.dispose();
   deviceStore.dispose();

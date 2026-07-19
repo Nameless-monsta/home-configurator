@@ -860,3 +860,220 @@
     transition: none;
   }
 }
+
+/* ============================================================ v3.1 layer ===
+ * Information sequencing, room spatial identity, mobile bottom navigation.
+ * Appended after the base recovery layer; final word in the cascade.
+ * ========================================================================= */
+
+/* ------------------------------------------- detail information sequencing ---
+ * Major transition order: input acknowledged → camera travels → chrome quiets
+ * → object settles → identity, readout and controls reveal in sequence.
+ * Delays trail the 800ms detail camera move so information lands after motion.
+ */
+
+.p5-detail-identity,
+.p5-detail-readout-wrap,
+.p5-detail-tray,
+.p5-detail-close {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 380ms var(--iyo-ease),
+    transform 520ms var(--iyo-ease);
+}
+
+.p5-detail-close {
+  transform: translateY(-10px);
+}
+
+.p5[data-spatial-state='detail'] .p5-detail-close {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 200ms;
+}
+
+.p5[data-spatial-state='detail'] .p5-detail-identity {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 340ms;
+}
+
+.p5[data-spatial-state='detail'] .p5-detail-readout-wrap {
+  opacity: 1;
+  transform: translateY(0) translateX(-50%);
+  transition-delay: 480ms;
+}
+
+.p5-detail-readout-wrap {
+  transform: translateY(14px) translateX(-50%);
+}
+
+.p5[data-spatial-state='detail'] .p5-detail-tray {
+  opacity: 1;
+  transform: translateY(0) translateX(-50%);
+  transition-delay: 580ms;
+}
+
+.p5-detail-tray {
+  transform: translateY(18px) translateX(-50%);
+}
+
+.p5[data-spatial-state='closing-detail'] .p5-detail-identity,
+.p5[data-spatial-state='closing-detail'] .p5-detail-readout-wrap,
+.p5[data-spatial-state='closing-detail'] .p5-detail-tray,
+.p5[data-spatial-state='closing-detail'] .p5-detail-close {
+  opacity: 0;
+  transition-delay: 0ms;
+  transition-duration: 160ms;
+}
+
+/* -------------------------------------------------- room spatial identity ---
+ * Entering a room shifts the atmosphere toward the room's accent: the same
+ * scene, re-lit — never a page change. Luminance carries state, not chrome.
+ */
+
+:root {
+  --p5-room-accent: transparent;
+  --p5-room-accent-strength: 0;
+}
+
+.p5-atmos::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 88% 62% at 50% 30%,
+    color-mix(
+      in srgb,
+      var(--p5-room-accent) calc(var(--p5-room-accent-strength) * 100%),
+      transparent
+    ),
+    transparent 74%
+  );
+  transition: opacity 900ms ease;
+}
+
+/* ------------------------------------------------- mobile bottom navigation ---
+ * Portrait phones get a thumb-zone product: primary navigation docks to the
+ * bottom edge, its menu opens upward, and detail mode clears the thumb zone
+ * so the control tray owns it. Never a shrunken desktop bar.
+ */
+
+@media (max-width: 760px) {
+  .p5-nav {
+    top: auto;
+    bottom: 0;
+    height: calc(var(--p5-nav-h) + env(safe-area-inset-bottom));
+    padding: 0 12px env(safe-area-inset-bottom);
+    background: linear-gradient(0deg, rgba(5, 5, 5, 0.86), rgba(5, 5, 5, 0.5) 70%, transparent);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    transition:
+      transform 380ms var(--iyo-ease),
+      opacity 300ms ease;
+  }
+
+  .p5-nav-brand {
+    display: none;
+  }
+
+  .p5-nav-items {
+    flex: 1;
+    justify-content: space-between;
+  }
+
+  .p5-nav-menu {
+    top: auto;
+    bottom: calc(100% + 10px);
+  }
+
+  /* Detail owns the thumb zone: navigation steps aside, close remains up top. */
+  .p5[data-mode='detail'] .p5-nav {
+    transform: translateY(120%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Hero copy no longer needs to clear a top bar, but must clear bottom nav. */
+  .p5-hero-overlay {
+    padding-top: max(24px, env(safe-area-inset-top));
+    padding-bottom: max(150px, calc(var(--p5-nav-h) + env(safe-area-inset-bottom) + 88px));
+  }
+
+  .p5-content {
+    padding-bottom: max(150px, calc(var(--p5-nav-h) + env(safe-area-inset-bottom) + 40px));
+  }
+
+  .p5-search {
+    padding-top: max(24px, calc(env(safe-area-inset-top) + 16px));
+    padding-bottom: calc(var(--p5-nav-h) + env(safe-area-inset-bottom) + 12px);
+  }
+
+  .p5-settings {
+    bottom: calc(var(--p5-nav-h) + env(safe-area-inset-bottom) + 10px);
+  }
+
+  .p5-detail-tray {
+    bottom: max(14px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Landscape phones: everything remains reachable; guidance, never a trap. */
+@media (max-height: 460px) and (orientation: landscape) {
+  .p5-hero-overlay {
+    min-height: 100svh;
+    padding-bottom: 84px;
+  }
+
+  .p5-hero-name {
+    font-size: clamp(1.9rem, 6vh, 2.6rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .p5-detail-identity,
+  .p5-detail-readout-wrap,
+  .p5-detail-tray,
+  .p5-detail-close,
+  .p5-nav {
+    transition: none;
+  }
+
+  .p5-detail-identity,
+  .p5-detail-close {
+    transform: none;
+  }
+
+  .p5-detail-readout-wrap,
+  .p5-detail-tray {
+    transform: translateX(-50%);
+  }
+
+  .p5-atmos::before {
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------- home arrival head ---
+ * The house speaks first: greeting, state-as-a-sentence, then the numbers.
+ */
+
+.p5-home-head {
+  margin-bottom: 36px;
+}
+
+.p5-home-sentence {
+  margin: 0;
+  max-width: 18ch;
+  font-size: clamp(1.7rem, 3.4vw, 2.6rem);
+  font-weight: 430;
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.p5-home-meta {
+  margin: 12px 0 0;
+  color: var(--iyo-muted);
+  font-size: 0.94rem;
+}

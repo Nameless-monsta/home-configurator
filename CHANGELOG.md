@@ -6,6 +6,23 @@ All notable changes to Home Configurator will be documented here.
 
 ### Added
 
+- Spatial routing: stable deep links and browser back/forward for the persistent shell (`#/`, `#/room/{id}`, `#/alarm`, `#/settings`, `#/device/{id}`) with pending-route resolution against live Home Assistant data
+- Hero travel choreography: device switches physically depart/arrive along the direction of travel instead of hard remounts (reduced-motion safe)
+- Pointer examination: the hero leans subtly toward the pointer while browsing on hover-capable devices (interruptible springs)
+- Detail information sequencing: close, identity, readout and control tray reveal in order after the camera settles; unified fast fade on close
+- Room spatial identity: stable per-room ambient accent re-lights the persistent scene on room entry
+- Mobile bottom navigation: thumb-zone primary navigation on portrait phones with safe-area support, upward menu, and detail mode clearing the thumb zone for the control tray; landscape-phone fallback sizing
+
+### Changed
+
+- three.js split into its own long-cached build chunk (app chunk 733KB → 208KB)
+
+### Removed
+
+- Carousel-era orphans no longer reachable from the application: `favourite-carousel`, `hero-preview`, `prototype-home-v1.css`
+
+### Previously added
+
 - Project vision, roadmap and documentation structure
 - Phase 1 iyO research and interaction specification
 - Phase 2 product architecture and ADR system

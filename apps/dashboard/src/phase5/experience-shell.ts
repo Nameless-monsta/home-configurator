@@ -30,6 +30,7 @@ import {
   renderHomeContent,
   renderRoomContent,
 } from './home-content.js';
+import { routesEqual, type ExperienceRoute } from './experience-router.js';
 import { createDefaultLivingObjectRegistry } from './living-object.js';
 import { HeroModelRegistry } from './model-registry.js';
 import { SpatialTransitionController } from './motion-system.js';
@@ -50,9 +51,27 @@ export interface ExperienceShellOptions {
   readonly sink: CommandSink;
   readonly data: ExperienceData;
   reducedMotion: () => boolean;
+  /** Invoked whenever the spatial state changes so the URL can follow. */
+  onRoute?: (route: ExperienceRoute) => void;
 }
 
 type SpatialState = 'browse' | 'opening-detail' | 'detail' | 'closing-detail';
+
+const ROOM_ACCENTS: readonly string[] = [
+  'rgb(217 177 133)',
+  'rgb(139 168 199)',
+  'rgb(146 181 158)',
+  'rgb(178 156 199)',
+  'rgb(206 148 138)',
+  'rgb(140 182 186)',
+];
+
+/** Pure: a stable, restrained accent colour for a room's spatial identity. */
+export const roomAccent = (roomId: string): string => {
+  let hash = 0;
+  for (const char of roomId) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  return ROOM_ACCENTS[hash % ROOM_ACCENTS.length] ?? 'rgb(217 177 133)';
+};
 
 const storageOrNull = (): Storage | null => {
   try {
@@ -86,12 +105,16 @@ export class ExperienceShell {
   #structuralKey = '';
   #refreshRaf = 0;
   #detailOpener: HTMLElement | null = null;
+  readonly #onRoute: ((route: ExperienceRoute) => void) | undefined;
+  #lastRoute: ExperienceRoute | null = null;
+  #pendingRoute: ExperienceRoute | null = null;
 
   public constructor(options: ExperienceShellOptions) {
     this.#root = options.root;
     this.#data = options.data;
     this.#sink = options.sink;
     this.#reducedMotion = options.reducedMotion;
+    this.#onRoute = options.onRoute;
     this.#root.className = 'p5';
     this.#root.dataset['mode'] = 'browse';
     this.#root.dataset['spatialState'] = 'browse';
@@ -209,12 +232,91 @@ export class ExperienceShell {
       const nextKey = this.#structureKey();
       if (nextKey !== this.#structuralKey) this.#render();
       else this.#syncContent();
+      this.#retryPendingRoute();
     });
   }
 
   public tick(deltaMs: number): void {
     this.#heroStage?.tick(deltaMs);
     this.#detail?.tick(deltaMs);
+  }
+
+  /** The route naming the current spatial state. */
+  public route(): ExperienceRoute {
+    if ((this.#state === 'detail' || this.#state === 'opening-detail') && this.#activeDeviceId) {
+      return { kind: 'device', deviceId: this.#activeDeviceId };
+    }
+    const section = this.#section;
+    switch (section.kind) {
+      case 'home':
+        return { kind: 'home' };
+      case 'alarm':
+        return { kind: 'alarm' };
+      case 'settings':
+        return { kind: 'settings' };
+      case 'room':
+        return { kind: 'room', roomId: section.roomId };
+    }
+  }
+
+  /**
+   * External navigation (initial deep link, browser back/forward). Drives the
+   * shell into the named spatial state inside the persistent scene. Routes
+   * that reference data not yet loaded are parked and retried on refresh.
+   */
+  public applyRoute(route: ExperienceRoute): void {
+    this.#pendingRoute = null;
+    if (route.kind === 'device') {
+      const view = this.#data.device(route.deviceId);
+      if (!view) {
+        this.#pendingRoute = route;
+        return;
+      }
+      if (this.#state === 'detail' || this.#state === 'opening-detail') {
+        if (this.#detail?.deviceId !== route.deviceId) this.#switchDetail(route.deviceId);
+        this.#emitRoute();
+        return;
+      }
+      if (this.#section.kind !== 'room' || this.#section.roomId !== view.roomId) {
+        this.#navigate({ kind: 'room', roomId: view.roomId });
+      }
+      this.#openDetail(route.deviceId);
+      return;
+    }
+    if (this.#state === 'detail' || this.#state === 'opening-detail') this.#closeDetail();
+    if (route.kind === 'room' && !this.#data.rooms().some((room) => room.id === route.roomId)) {
+      this.#pendingRoute = route;
+      return;
+    }
+    const section: NavSection =
+      route.kind === 'room' ? { kind: 'room', roomId: route.roomId } : { kind: route.kind };
+    if (
+      section.kind !== this.#section.kind ||
+      (section.kind === 'room' &&
+        this.#section.kind === 'room' &&
+        section.roomId !== this.#section.roomId)
+    ) {
+      this.#navigate(section);
+    } else {
+      this.#emitRoute();
+    }
+  }
+
+  #emitRoute(): void {
+    const route = this.route();
+    if (this.#lastRoute && routesEqual(this.#lastRoute, route)) return;
+    this.#lastRoute = route;
+    this.#onRoute?.(route);
+  }
+
+  #retryPendingRoute(): void {
+    if (!this.#pendingRoute) return;
+    const pending = this.#pendingRoute;
+    const resolvable =
+      pending.kind === 'device'
+        ? this.#data.device(pending.deviceId) !== undefined
+        : pending.kind !== 'room' || this.#data.rooms().some((room) => room.id === pending.roomId);
+    if (resolvable) this.applyRoute(pending);
   }
 
   #q<T extends HTMLElement = HTMLElement>(selector: string): T {
@@ -266,6 +368,12 @@ export class ExperienceShell {
     this.#root.dataset['section'] = section.kind;
     this.#nav.setSection(section);
     this.#activeDeviceId = null;
+    if (section.kind === 'room') {
+      this.#root.style.setProperty('--p5-room-accent', roomAccent(section.roomId));
+      this.#root.style.setProperty('--p5-room-accent-strength', '0.12');
+    } else {
+      this.#root.style.setProperty('--p5-room-accent-strength', '0');
+    }
     this.#render();
     window.scrollTo({ top: 0, behavior: this.#reducedMotion() ? 'auto' : 'smooth' });
     if (section.kind === 'settings') this.#settings.show(this.#activeDeviceId ?? undefined);
@@ -278,6 +386,7 @@ export class ExperienceShell {
             ? 'Alarm'
             : 'Settings';
     this.#announce(`Showing ${label}`);
+    this.#emitRoute();
   }
 
   #render(): void {
@@ -309,6 +418,7 @@ export class ExperienceShell {
       case 'home':
       case 'settings':
         content.innerHTML = renderHomeContent(
+          this.#data.ambient(),
           this.#data.favourites(),
           this.#data.devices(),
           this.#data.rooms(),
@@ -334,10 +444,14 @@ export class ExperienceShell {
     const status = this.#q('[data-p5-hero-status]');
     const enter = this.#q<HTMLButtonElement>('[data-p5-hero-enter]');
     if (!view) {
+      const connected = this.#data.ambient().connected;
       eyebrow.textContent = '';
-      name.textContent =
-        this.#section.kind === 'alarm' ? 'No security devices' : 'No devices yet';
-      status.textContent = '';
+      name.textContent = !connected
+        ? 'Waking your home…'
+        : this.#section.kind === 'alarm'
+          ? 'No security devices'
+          : 'No devices yet';
+      status.textContent = connected ? '' : 'Connecting to Home Assistant';
       enter.hidden = true;
       return;
     }
@@ -356,6 +470,11 @@ export class ExperienceShell {
       const fav = this.#root.querySelector<HTMLElement>(`[data-p5-fav-status="${view.id}"]`);
       if (fav) fav.textContent = primaryStatus(view);
     }
+    const ambient = this.#data.ambient();
+    const sentence = this.#root.querySelector<HTMLElement>('[data-p5-home-sentence]');
+    if (sentence) sentence.textContent = ambient.statusSentence;
+    const meta = this.#root.querySelector<HTMLElement>('[data-p5-home-meta]');
+    if (meta) meta.textContent = `${ambient.comfort} · ${ambient.security}`;
     const sectionViews = this.#sectionDevices();
     const summary = deriveSummary(
       this.#section.kind === 'home' || this.#section.kind === 'settings' ? views : sectionViews,
@@ -389,16 +508,16 @@ export class ExperienceShell {
   }
 
   /** Travel to a device inside the persistent shell (browse or detail). */
-  #travelToDevice(deviceId: string): void {
+  #travelToDevice(deviceId: string, direction: -1 | 0 | 1 = 0): void {
     if (this.#state === 'detail') {
-      this.#switchDetail(deviceId);
+      this.#switchDetail(deviceId, direction);
       return;
     }
     if (this.#state !== 'browse') return;
     const view = this.#data.device(deviceId);
     if (!view || !this.#heroStage) return;
     this.#activeDeviceId = deviceId;
-    this.#heroStage.setDevice(view);
+    this.#heroStage.setDevice(view, direction);
     this.#renderHeroOverlay(view);
     this.#rail.setActive(deviceId);
     this.#transition?.swapDetail();
@@ -407,7 +526,7 @@ export class ExperienceShell {
 
   #step(direction: -1 | 1): void {
     const next = this.#rail.neighbour(direction);
-    if (next) this.#travelToDevice(next);
+    if (next) this.#travelToDevice(next, direction);
   }
 
   #previewDevice(deviceId: string): void {
@@ -453,15 +572,16 @@ export class ExperienceShell {
     this.#heroStage.frame('detail');
     requestAnimationFrame(() => this.#setState('detail'));
     this.#announce(`Opened ${view.name}`);
+    this.#emitRoute();
   }
 
-  #switchDetail(deviceId: string): void {
+  #switchDetail(deviceId: string, direction: -1 | 0 | 1 = 0): void {
     if (this.#state !== 'detail' || this.#detail?.deviceId === deviceId) return;
     const view = this.#data.device(deviceId);
     if (!view || !this.#heroStage || !this.#detail) return;
     this.#detail.hide();
     this.#activeDeviceId = deviceId;
-    this.#heroStage.setDevice(view);
+    this.#heroStage.setDevice(view, direction);
     this.#renderHeroOverlay(view);
     this.#rail.setActive(deviceId);
     this.#transition?.swapDetail();
@@ -469,6 +589,7 @@ export class ExperienceShell {
     if (hero) this.#detail.show(view, hero);
     this.#heroStage.frame('detail');
     this.#announce(`Showing ${view.name}`);
+    this.#emitRoute();
   }
 
   #closeDetail(immediate = false): void {
@@ -487,6 +608,7 @@ export class ExperienceShell {
       if (active) this.#renderHeroOverlay(active);
       this.#detailOpener?.focus();
       this.#detailOpener = null;
+      this.#emitRoute();
     };
     if (immediate) finish();
     else requestAnimationFrame(finish);

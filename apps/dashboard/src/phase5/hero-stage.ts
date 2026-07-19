@@ -14,6 +14,7 @@ import type { DeviceView } from './experience-model.js';
 import { createHero, hsbToColor, type HeroHandle } from './hero-models.js';
 import type { LivingObjectRegistry, LivingObjectBehaviour } from './living-object.js';
 import { applyOverrideTransform, type HeroModelRegistry } from './model-registry.js';
+import { MOTION, SpringValue } from './motion-system.js';
 
 export type StageFraming = 'browse' | 'detail';
 
@@ -31,6 +32,11 @@ export interface HeroStageOptions {
   readonly reducedMotion: () => boolean;
   readonly onAmbient: (color: string, strength: number) => void;
 }
+
+/** Physical travel choreography for hero swaps (transform, never replace). */
+const DEPART_MS = 300;
+const ARRIVE_MS = 640;
+const TRAVEL_X = 1.7;
 
 const FRAMING: Record<StageFraming, { padding: number; durationMs: number }> = {
   browse: { padding: 2.35, durationMs: 950 },
@@ -81,11 +87,20 @@ export class HeroStage {
   readonly #options: HeroStageOptions;
   #view: DeviceView | null = null;
   #hero: HeroHandle | null = null;
+  #wrap: Group | null = null;
   #behaviour: LivingObjectBehaviour | null = null;
   #framing: StageFraming = 'browse';
   #loadToken = 0;
   #unbindSwipe: (() => void) | null = null;
+  #unbindExamine: (() => void) | null = null;
   #interactive = true;
+  /** Outgoing hero during a travel swap — physically departs, then disposes. */
+  #outgoing: { readonly hero: HeroHandle; elapsedMs: number; readonly direction: number } | null =
+    null;
+  /** Incoming arrival choreography for the mounted hero. */
+  #arrival: { elapsedMs: number; readonly direction: number } | null = null;
+  readonly #examineX = new SpringValue(0, MOTION.gentleSpring);
+  readonly #examineY = new SpringValue(0, MOTION.gentleSpring);
 
   public constructor(options: HeroStageOptions) {
     this.#options = options;
@@ -99,28 +114,44 @@ export class HeroStage {
     return this.#view?.id ?? null;
   }
 
-  /** Mount or swap the hero object for a device in place on the shared stage. */
-  public setDevice(view: DeviceView): void {
+  /**
+   * Mount or swap the hero object for a device in place on the shared stage.
+   * The swap is a physical travel, never a hard replace: the outgoing object
+   * departs along the direction of travel while the incoming one arrives from
+   * the opposite side and settles under the same camera.
+   */
+  public setDevice(view: DeviceView, direction: -1 | 0 | 1 = 0): void {
     if (this.#view?.id === view.id) {
       this.update(view);
       return;
     }
-    this.#unmount();
+    this.#beginDeparture(direction);
     this.#view = view;
     const hero = createHero(view.category, view.capabilities);
     hero.apply(view.state);
     this.#hero = hero;
     const override = this.#options.registry.get(view.id);
     applyOverrideTransform(hero.object, override);
-    this.#options.engine.resources.trackObject(hero.object);
-    this.#options.engine.graph.add({ id: 'hero.stage', object: hero.object });
+    const wrap = new Group();
+    wrap.add(hero.object);
+    this.#wrap = wrap;
+    this.#options.engine.resources.trackObject(wrap);
+    this.#options.engine.graph.add({ id: 'hero.stage', object: wrap });
     this.#behaviour = this.#options.living.create(view.category, {
       object: hero.object,
       reducedMotion: this.#options.reducedMotion,
       state: () => ({ ...(this.#view?.state ?? view.state) }),
     });
     this.#loadOverrideModel(view);
+    // Frame while the wrap is at identity so the camera targets the settled pose…
     this.frame(this.#framing);
+    // …then start the arrival choreography from its offset.
+    if (this.#options.reducedMotion()) {
+      this.#arrival = null;
+    } else {
+      this.#arrival = { elapsedMs: 0, direction };
+      this.#applyArrival(0);
+    }
     this.#emitAmbient();
   }
 
@@ -154,10 +185,115 @@ export class HeroStage {
   }
 
   public tick(deltaMs: number): void {
+    this.#tickOutgoing(deltaMs);
     if (!this.#view || !this.#hero) return;
     const reduced = this.#options.reducedMotion();
     this.#hero.tick(reduced ? 0 : deltaMs, this.#view.state);
     this.#behaviour?.tick(reduced ? 0 : deltaMs);
+    this.#tickArrival(deltaMs);
+    this.#tickExamination(deltaMs);
+  }
+
+  /** Snap any in-flight arrival to its settled pose (used before re-framing). */
+  public settle(): void {
+    this.#arrival = null;
+    this.#wrap?.position.set(0, 0, 0);
+    this.#wrap?.scale.set(1, 1, 1);
+  }
+
+  #beginDeparture(direction: number): void {
+    this.#disposeOutgoing();
+    if (!this.#hero || !this.#wrap) {
+      this.#unmount();
+      return;
+    }
+    const hero = this.#hero;
+    const wrap = this.#wrap;
+    this.#behaviour?.dispose();
+    this.#behaviour = null;
+    this.#loadToken += 1;
+    this.#hero = null;
+    this.#wrap = null;
+    this.#view = null;
+    this.#options.engine.graph.remove('hero.stage');
+    if (this.#options.reducedMotion()) {
+      this.#options.engine.resources.untrackObject(wrap);
+      hero.dispose();
+      return;
+    }
+    this.#options.engine.graph.add({ id: 'hero.stage.outgoing', object: wrap });
+    this.#outgoing = { hero, elapsedMs: 0, direction };
+  }
+
+  #disposeOutgoing(): void {
+    if (!this.#outgoing) return;
+    this.#options.engine.graph.remove('hero.stage.outgoing');
+    this.#options.engine.resources.untrackObject(
+      this.#outgoing.hero.object.parent ?? this.#outgoing.hero.object,
+    );
+    this.#outgoing.hero.dispose();
+    this.#outgoing = null;
+  }
+
+  #tickOutgoing(deltaMs: number): void {
+    const outgoing = this.#outgoing;
+    if (!outgoing) return;
+    outgoing.elapsedMs += deltaMs;
+    const t = Math.min(1, outgoing.elapsedMs / DEPART_MS);
+    const eased = t * t * t;
+    const wrap = outgoing.hero.object.parent;
+    if (wrap) {
+      if (outgoing.direction === 0) {
+        wrap.position.set(0, -0.55 * eased, 0);
+        const s = 1 - 0.3 * eased;
+        wrap.scale.set(s, s, s);
+      } else {
+        wrap.position.set(-outgoing.direction * TRAVEL_X * eased, -0.08 * eased, 0);
+        const s = 1 - 0.16 * eased;
+        wrap.scale.set(s, s, s);
+      }
+    }
+    if (t >= 1) this.#disposeOutgoing();
+  }
+
+  #applyArrival(progress: number): void {
+    const arrival = this.#arrival;
+    const wrap = this.#wrap;
+    if (!arrival || !wrap) return;
+    const remaining = 1 - progress;
+    if (arrival.direction === 0) {
+      wrap.position.set(0, -0.4 * remaining, 0);
+      const s = 1 - 0.22 * remaining;
+      wrap.scale.set(s, s, s);
+    } else {
+      wrap.position.set(arrival.direction * TRAVEL_X * remaining, 0.04 * remaining, 0);
+      const s = 1 - 0.1 * remaining;
+      wrap.scale.set(s, s, s);
+    }
+  }
+
+  #tickArrival(deltaMs: number): void {
+    const arrival = this.#arrival;
+    if (!arrival) return;
+    arrival.elapsedMs += deltaMs;
+    const t = Math.min(1, arrival.elapsedMs / ARRIVE_MS);
+    const eased = 1 - Math.pow(1 - t, 4);
+    this.#applyArrival(eased);
+    if (t >= 1) {
+      this.settle();
+    }
+  }
+
+  #tickExamination(deltaMs: number): void {
+    const wrap = this.#wrap;
+    if (!wrap) return;
+    if (this.#options.reducedMotion()) {
+      wrap.rotation.set(0, 0, 0);
+      return;
+    }
+    this.#examineX.tick(deltaMs);
+    this.#examineY.tick(deltaMs);
+    wrap.rotation.set(this.#examineX.value, this.#examineY.value, 0);
   }
 
   /** Horizontal swipe switches devices; a settled tap opens detail. */
@@ -207,16 +343,52 @@ export class HeroStage {
       surface.removeEventListener('pointerup', up);
       surface.removeEventListener('pointercancel', cancel);
     };
+    this.#bindExamination(surface);
+  }
+
+  /**
+   * Subtle pointer examination: the hero leans gently toward the pointer while
+   * browsing on hover-capable devices. Interruptible spring follow — never a
+   * tween — so redirected pointer motion redirects the object seamlessly.
+   */
+  #bindExamination(surface: HTMLElement): void {
+    this.#unbindExamine?.();
+    const move = (event: PointerEvent): void => {
+      if (!this.#interactive || event.pointerType !== 'mouse') return;
+      const rect = surface.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+      const nx = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      const ny = ((event.clientY - rect.top) / rect.height) * 2 - 1;
+      this.#examineY.setTarget(nx * 0.13);
+      this.#examineX.setTarget(-ny * 0.07);
+    };
+    const leave = (): void => {
+      this.#examineX.setTarget(0);
+      this.#examineY.setTarget(0);
+    };
+    surface.addEventListener('pointermove', move);
+    surface.addEventListener('pointerleave', leave);
+    this.#unbindExamine = () => {
+      surface.removeEventListener('pointermove', move);
+      surface.removeEventListener('pointerleave', leave);
+    };
   }
 
   /** Browse gestures are suspended while detail owns direct manipulation. */
   public setInteractive(interactive: boolean): void {
     this.#interactive = interactive;
+    if (!interactive) {
+      this.#examineX.setTarget(0);
+      this.#examineY.setTarget(0);
+    }
   }
 
   public dispose(): void {
     this.#unbindSwipe?.();
     this.#unbindSwipe = null;
+    this.#unbindExamine?.();
+    this.#unbindExamine = null;
+    this.#disposeOutgoing();
     this.#unmount();
   }
 
@@ -239,6 +411,7 @@ export class HeroStage {
         object.clear();
         object.add(mount);
         applyOverrideTransform(object, resolved.override);
+        this.settle();
         this.frame(this.#framing, true);
       })
       .catch(() => {
@@ -252,10 +425,12 @@ export class HeroStage {
     this.#behaviour = null;
     if (this.#hero) {
       this.#options.engine.graph.remove('hero.stage');
-      this.#options.engine.resources.untrackObject(this.#hero.object);
+      this.#options.engine.resources.untrackObject(this.#wrap ?? this.#hero.object);
       this.#hero.dispose();
     }
     this.#hero = null;
+    this.#wrap = null;
     this.#view = null;
+    this.#arrival = null;
   }
 }
