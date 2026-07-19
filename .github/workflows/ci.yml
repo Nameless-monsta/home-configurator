@@ -67,10 +67,9 @@ jobs:
         run: |
           set -euo pipefail
           git fetch --quiet --depth=1 origin 2556a36964c33209862db4e6f05f3da22d7828c5
-          echo "payload-bytes=$(wc -c < .github/import-payload/spatial-experience-shell.bundle.b64)"
-          base64 --decode .github/import-payload/spatial-experience-shell.bundle.b64 > /tmp/spatial-experience-shell.bundle
-          echo "bundle-bytes=$(wc -c < /tmp/spatial-experience-shell.bundle)"
-          echo "bundle-sha=$(sha256sum /tmp/spatial-experience-shell.bundle | cut -d' ' -f1)"
+          cat .github/import-payload/parts/part-*.b64 > /tmp/spatial-experience-shell.bundle.b64
+          test "$(wc -c < /tmp/spatial-experience-shell.bundle.b64)" -eq 15512
+          base64 --decode /tmp/spatial-experience-shell.bundle.b64 > /tmp/spatial-experience-shell.bundle
           echo "93a76dbd128bb558cd20521c7038d5321b517470555bd0a158b6e97ab5719db2  /tmp/spatial-experience-shell.bundle" | sha256sum --check -
           git bundle verify /tmp/spatial-experience-shell.bundle
 
