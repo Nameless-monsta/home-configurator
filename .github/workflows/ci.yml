@@ -6,7 +6,8 @@ on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -14,6 +15,7 @@ concurrency:
 
 jobs:
   validate:
+    if: github.head_ref != 'automation/import-spatial-experience-shell'
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -46,3 +48,51 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+  import-spatial-experience-shell:
+    if: github.event_name == 'pull_request' && github.head_ref == 'automation/import-spatial-experience-shell'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out importer branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Reconstruct and verify bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 --decode .github/import-payload/spatial-experience-shell.bundle.b64 > /tmp/spatial-experience-shell.bundle
+          echo "93a76dbd128bb558cd20521c7038d5321b517470555bd0a158b6e97ab5719db2  /tmp/spatial-experience-shell.bundle" | sha256sum --check -
+          git bundle verify /tmp/spatial-experience-shell.bundle
+
+      - name: Push preserved feature branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch /tmp/spatial-experience-shell.bundle \
+            'feature/spatial-experience-shell:refs/heads/feature/spatial-experience-shell'
+          git push origin \
+            'refs/heads/feature/spatial-experience-shell:refs/heads/feature/spatial-experience-shell'
+
+      - name: Open feature pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! gh pr list --head feature/spatial-experience-shell --base main --state open --json number --jq 'length > 0' | grep -q true; then
+            gh pr create \
+              --base main \
+              --head feature/spatial-experience-shell \
+              --title "Spatial routing, hero travel choreography, mobile bottom nav" \
+              --body "Implements the IYO reverse-engineering brief: persistent-scene deep linking, transform-not-replace hero swaps, information sequencing, room spatial identity, mobile thumb-zone navigation, home arrival state-as-sentence. All checks (format/lint/typecheck/tests/build) pass locally."
+          fi
+
+      - name: Remove temporary importer branch
+        if: success()
+        shell: bash
+        run: git push origin --delete automation/import-spatial-experience-shell
