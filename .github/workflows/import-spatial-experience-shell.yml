@@ -1,0 +1,39 @@
+name: Import spatial experience bundle
+
+on:
+  push:
+    branches:
+      - automation/import-spatial-experience-shell
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    if: github.ref == 'refs/heads/automation/import-spatial-experience-shell'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out importer branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct and verify bundle
+        shell: bash
+        run: |
+          base64 --decode .github/import-payload/spatial-experience-shell.bundle.b64 > /tmp/spatial-experience-shell.bundle
+          echo "93a76dbd128bb558cd20521c7038d5321b517470555bd0a158b6e97ab5719db2  /tmp/spatial-experience-shell.bundle" | sha256sum --check -
+          git bundle verify /tmp/spatial-experience-shell.bundle
+
+      - name: Push preserved feature branch
+        shell: bash
+        run: |
+          git fetch /tmp/spatial-experience-shell.bundle \
+            'feature/spatial-experience-shell:refs/heads/feature/spatial-experience-shell'
+          git push origin \
+            'refs/heads/feature/spatial-experience-shell:refs/heads/feature/spatial-experience-shell'
+
+      - name: Remove temporary importer branch
+        if: success()
+        shell: bash
+        run: git push origin --delete automation/import-spatial-experience-shell
